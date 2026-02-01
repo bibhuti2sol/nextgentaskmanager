@@ -250,11 +250,7 @@ const TaskManagementInteractive = () => {
               </div>
 
               <div className="hidden lg:block">
-                <UserRoleIndicator
-                  currentRole={currentRole}
-                  userName="Alex Johnson"
-                  isCollapsed={false}
-                  onRoleChange={setCurrentRole} />
+                <UserRoleIndicator isCollapsed={false} onRoleChange={setCurrentRole} />
 
               </div>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from './UserContext';
 import Icon from '@/components/ui/AppIcon';
 
 interface UserRoleIndicatorProps {
@@ -10,13 +11,14 @@ interface UserRoleIndicatorProps {
   onRoleChange?: (role: 'Admin' | 'Manager' | 'Associate') => void;
 }
 
-const UserRoleIndicator = ({
-  currentRole,
-  userName = 'User',
-  isCollapsed = false,
-  onRoleChange,
-}: UserRoleIndicatorProps) => {
+
+const UserRoleIndicator = (props: Partial<UserRoleIndicatorProps>) => {
+  const { user } = useUser();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const currentRole = props.currentRole || user?.userRole || 'Associate';
+  const userName = props.userName || user?.userName || 'User';
+  const isCollapsed = props.isCollapsed ?? false;
+  const onRoleChange = props.onRoleChange;
 
   const roles: Array<'Admin' | 'Manager' | 'Associate'> = ['Admin', 'Manager', 'Associate'];
 

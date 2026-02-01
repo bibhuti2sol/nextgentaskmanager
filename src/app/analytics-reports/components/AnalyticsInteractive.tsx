@@ -275,11 +275,7 @@ const AnalyticsInteractive = () => {
               </div>
               <div className="flex items-center gap-3">
                 <ThemeToggle />
-                <UserRoleIndicator
-                  currentRole={currentRole}
-                  userName="Sarah Johnson"
-                  onRoleChange={setCurrentRole}
-                />
+                <UserRoleIndicator onRoleChange={setCurrentRole} />
               </div>
             </div>
           </div>

@@ -389,11 +389,7 @@ const ProjectOverviewInteractive = () => {
               </button>
               <div className="h-8 w-px bg-border" />
               <ThemeToggle isCollapsed={false} />
-              <UserRoleIndicator
-                currentRole={currentRole}
-                userName="Alex Morgan"
-                isCollapsed={false}
-                onRoleChange={setCurrentRole} />
+              <UserRoleIndicator isCollapsed={false} onRoleChange={setCurrentRole} />
 
             </div>
           </div>

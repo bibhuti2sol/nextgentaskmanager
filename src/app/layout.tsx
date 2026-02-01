@@ -1,4 +1,5 @@
 import React from 'react';
+import { UserProvider } from '@/components/common/UserContext';
 import type { Metadata, Viewport } from 'next';
 import '../styles/index.css';
 
@@ -24,8 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>{children}
-</body>
+      <body suppressHydrationWarning>
+        <UserProvider>
+          {children}
+        </UserProvider>
+      </body>
     </html>
   );
 }

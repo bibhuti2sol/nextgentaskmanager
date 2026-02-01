@@ -26,7 +26,7 @@ export default function UserManagementPage() {
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <UserRoleIndicator currentRole="Admin" userName="Admin User" />
+              <UserRoleIndicator />
             </div>
           </div>
         </div>
