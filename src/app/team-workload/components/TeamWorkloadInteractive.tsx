@@ -416,7 +416,6 @@ const TeamWorkloadInteractive = () => {
         
         <div className="space-y-6">
           <UpcomingDeadlines deadlines={mockDeadlines} />
-          <TeamAvailability availability={mockAvailability} />
         </div>
       </div>
     </div>);

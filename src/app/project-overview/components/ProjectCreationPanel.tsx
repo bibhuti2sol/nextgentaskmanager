@@ -33,6 +33,7 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
     teamMembers: [],
     status: 'Planning'
   });
+  const [projectType, setProjectType] = useState<'normal' | 'budget'>('normal');
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProjectFormData, string>>>({});
 
@@ -59,7 +60,7 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
       newErrors.endDate = 'End date must be after start date';
     }
 
-    if (!formData.budget.trim()) {
+    if (projectType === 'budget' && !formData.budget.trim()) {
       newErrors.budget = 'Budget is required';
     }
 
@@ -167,6 +168,21 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
             )}
           </div>
 
+          {/* Project Type */}
+          <div>
+            <label className="block font-caption text-sm font-medium text-foreground mb-2">
+              Project Type <span className="text-destructive">*</span>
+            </label>
+            <select
+              value={projectType}
+              onChange={e => setProjectType(e.target.value as 'normal' | 'budget')}
+              className="w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth border-border"
+            >
+              <option value="normal">Normal</option>
+              <option value="budget">Budget</option>
+            </select>
+          </div>
+
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -203,29 +219,31 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
             </div>
           </div>
 
-          {/* Budget */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Budget <span className="text-destructive">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-caption text-sm">$</span>
-              <input
-                type="number"
-                value={formData.budget}
-                onChange={(e) => handleChange('budget', e.target.value)}
-                className={`w-full pl-8 pr-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                  errors.budget ? 'border-destructive' : 'border-border'
-                }`}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-              />
+          {/* Budget (only for Budget type) */}
+          {projectType === 'budget' && (
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                Budget <span className="text-destructive">*</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-caption text-sm">$</span>
+                <input
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => handleChange('budget', e.target.value)}
+                  className={`w-full pl-8 pr-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
+                    errors.budget ? 'border-destructive' : 'border-border'
+                  }`}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              {errors.budget && (
+                <p className="mt-1 font-caption text-xs text-destructive">{errors.budget}</p>
+              )}
             </div>
-            {errors.budget && (
-              <p className="mt-1 font-caption text-xs text-destructive">{errors.budget}</p>
-            )}
-          </div>
+          )}
 
           {/* Priority */}
           <div>

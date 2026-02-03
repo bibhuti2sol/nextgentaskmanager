@@ -1,7 +1,8 @@
-'use client';
-
-import { useState } from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
+// ...existing code...
 import ProjectListView from './ProjectListView';
+import EditProjectModal from './EditProjectModal';
 import ProjectHealthDashboard from './ProjectHealthDashboard';
 import ResourceAllocation from './ResourceAllocation';
 import MilestoneTracker from './MilestoneTracker';
@@ -61,7 +62,75 @@ const ProjectOverviewInteractive = () => {
   const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [activeTab, setActiveTab] = useState<'list' | 'resources' | 'milestones'>('list');
   const [isProjectPanelOpen, setIsProjectPanelOpen] = useState(false);
-  const [projects, setProjects] = useState<ProjectFormData[]>([]);
+  // Listen for Add Project button event
+  useEffect(() => {
+    const handler = () => setIsProjectPanelOpen(true);
+    window.addEventListener('open-project-modal', handler);
+    return () => window.removeEventListener('open-project-modal', handler);
+  }, []);
+  const [projects, setProjects] = useState<ProjectFormData[]>([
+    {
+      id: 'proj-1',
+      name: 'NextGenTaskManager - Phase 1 MVP',
+      status: 'active',
+      progress: 78,
+      startDate: '2026-01-15',
+      endDate: '2026-04-30',
+      owner: 'Sarah Johnson',
+      budget: '$125,000',
+      team: 8,
+      priority: 'High',
+    },
+    {
+      id: 'proj-2',
+      name: 'Mobile App Development',
+      status: 'active',
+      progress: 45,
+      startDate: '2026-02-01',
+      endDate: '2026-06-15',
+      owner: 'Michael Chen',
+      budget: '$85,000',
+      team: 5,
+      priority: 'High',
+    },
+    {
+      id: 'proj-3',
+      name: 'API Integration Project',
+      status: 'on-hold',
+      progress: 30,
+      startDate: '2026-01-20',
+      endDate: '2026-05-10',
+      owner: 'Emily Rodriguez',
+      budget: '$45,000',
+      team: 3,
+      priority: 'Medium',
+    },
+    {
+      id: 'proj-4',
+      name: 'Database Migration',
+      status: 'completed',
+      progress: 100,
+      startDate: '2025-12-01',
+      endDate: '2026-01-31',
+      owner: 'Jessica Taylor',
+      budget: '$32,000',
+      team: 4,
+      priority: 'High',
+    },
+    {
+      id: 'proj-5',
+      name: 'Marketing Website Launch',
+      status: 'completed',
+      progress: 100,
+      startDate: '2025-11-01',
+      endDate: '2026-01-15',
+      owner: 'Amanda Wilson',
+      budget: '$28,000',
+      team: 3,
+      priority: 'Low',
+    },
+  ]);
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -362,7 +431,7 @@ const ProjectOverviewInteractive = () => {
             <div>
               <h1 className="font-heading font-bold text-2xl text-foreground">Project Overview</h1>
               <p className="font-caption text-sm text-muted-foreground mt-1">
-                Comprehensive project tracking with AI-powered insights
+                Comprehensive project tracking
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -400,10 +469,9 @@ const ProjectOverviewInteractive = () => {
           {/* Project Health Dashboard */}
           <div className="mb-6">
             <ProjectHealthDashboard
-              projectName="NextGenTaskManager - Phase 1 MVP"
+              projectName="NextGenTaskManager"
               overallHealth={78}
               metrics={mockHealthMetrics} />
-
           </div>
 
           {/* Tabbed Content */}
@@ -429,10 +497,15 @@ const ProjectOverviewInteractive = () => {
             {/* Tab Content */}
             <div className="p-6">
               {activeTab === 'list' &&
-              <ProjectListView />
+                <ProjectListView
+                  projects={projects}
+                  onEdit={setEditProjectId}
+                  onDelete={(id) => setProjects(projects.filter(p => p.id !== id))}
+                  currentRole={currentRole}
+                />
               }
               {activeTab === 'resources' &&
-              <ResourceAllocation teamMembers={mockTeamMembers} />
+              <ResourceAllocation teamMembers={mockTeamMembers} currentRole={currentRole} />
               }
               {activeTab === 'milestones' &&
               <MilestoneTracker milestones={mockMilestones} />
@@ -484,6 +557,7 @@ const ProjectOverviewInteractive = () => {
         </main>
       </div>
 
+
       {/* Project Creation Panel */}
       <ProjectCreationPanel
         isOpen={isProjectPanelOpen}
@@ -495,6 +569,17 @@ const ProjectOverviewInteractive = () => {
           console.log('Project created:', projectData);
         }}
       />
+
+      {editProjectId && (
+        <EditProjectModal
+          project={projects.find((p) => p.id === editProjectId)!}
+          onSave={(updatedProject) => {
+            setProjects(projects.map((p) => p.id === updatedProject.id ? updatedProject : p));
+            setEditProjectId(null);
+          }}
+          onClose={() => setEditProjectId(null)}
+        />
+      )}
 
       {/* Export Report Modal */}
       {isExportModalOpen && (

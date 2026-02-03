@@ -8,6 +8,7 @@ import ThemeToggle from '@/components/common/ThemeToggle';
 import ViewModeToggle from './ViewModeToggle';
 import FilterToolbar, { FilterState } from './FilterToolbar';
 import TaskListView from './TaskListView';
+import EditTaskModal from './EditTaskModal';
 import TaskKanbanView from './TaskKanbanView';
 import TaskFocusView from './TaskFocusView';
 import TaskCreationPanel from './TaskCreationPanel';
@@ -34,6 +35,12 @@ interface Task {
 }
 
 const TaskManagementInteractive = () => {
+    const [showExportDropdown, setShowExportDropdown] = useState(false);
+    const handleExport = (type: 'csv' | 'pdf' | 'xlsx') => {
+      setShowExportDropdown(false);
+      // TODO: Implement export logic for filteredTasks
+      alert(`Exporting ${filteredTasks.length} tasks as ${type.toUpperCase()}`);
+    };
   const [isHydrated, setIsHydrated] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'kanban' | 'focus'>('list');
@@ -175,8 +182,17 @@ const TaskManagementInteractive = () => {
     setIsHydrated(true);
   }, []);
 
+
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const handleTaskClick = (taskId: string) => {
-    console.log('Task clicked:', taskId);
+    // Optionally: open details, not edit
+  };
+  const handleEditTask = (taskId: string) => {
+    setEditTaskId(taskId);
+  };
+  const handleSaveTask = (updatedTask: Task) => {
+    setTasks(tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+    setEditTaskId(null);
   };
 
   const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
@@ -240,18 +256,45 @@ const TaskManagementInteractive = () => {
               <button
                 onClick={() => setIsCreationPanelOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth">
-
                 <Icon name="PlusIcon" size={18} variant="outline" />
                 <span className="hidden sm:inline">New Task</span>
               </button>
-
+              <div className="relative">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg font-caption font-medium text-sm hover:bg-accent/90 transition-smooth"
+                  onClick={() => setShowExportDropdown((prev) => !prev)}
+                >
+                  <Icon name="DocumentArrowDownIcon" size={18} variant="outline" />
+                  <span className="hidden sm:inline">Export Report</span>
+                </button>
+                {showExportDropdown && (
+                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded shadow-lg z-50">
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-muted font-caption text-sm"
+                      onClick={() => handleExport('csv')}
+                    >
+                      Download CSV
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-muted font-caption text-sm"
+                      onClick={() => handleExport('pdf')}
+                    >
+                      Download PDF
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-muted font-caption text-sm"
+                      onClick={() => handleExport('xlsx')}
+                    >
+                      Download XLSX
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="hidden lg:block">
                 <ThemeToggle isCollapsed={false} />
               </div>
-
               <div className="hidden lg:block">
                 <UserRoleIndicator isCollapsed={false} onRoleChange={setCurrentRole} />
-
               </div>
             </div>
           </div>
@@ -284,7 +327,9 @@ const TaskManagementInteractive = () => {
           <TaskListView
             tasks={filteredTasks}
             onTaskClick={handleTaskClick}
-            onStatusChange={handleStatusChange} />
+            onStatusChange={handleStatusChange}
+            onEditTask={handleEditTask}
+          />
 
           }
 
@@ -302,10 +347,19 @@ const TaskManagementInteractive = () => {
         </main>
       </div>
 
+
       <TaskCreationPanel
         isOpen={isCreationPanelOpen}
         onClose={() => setIsCreationPanelOpen(false)}
         onTaskCreate={handleTaskCreate} />
+
+      {editTaskId && (
+        <EditTaskModal
+          task={tasks.find((t) => t.id === editTaskId)!}
+          onSave={handleSaveTask}
+          onClose={() => setEditTaskId(null)}
+        />
+      )}
 
     </div>);
 

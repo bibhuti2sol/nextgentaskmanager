@@ -14,107 +14,23 @@ interface Project {
   budget: string;
   team: number;
   priority: 'High' | 'Medium' | 'Low';
+  projectType?: 'normal' | 'budget';
 }
 
 interface ProjectListViewProps {
   projects?: Project[];
   onEdit?: (projectId: string) => void;
   onDelete?: (projectId: string) => void;
+  currentRole?: 'Admin' | 'Manager' | 'Associate';
 }
 
-const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectListViewProps) => {
+const ProjectListView = ({ projects: propProjects, onEdit, onDelete, currentRole = 'Manager' }: ProjectListViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'status' | 'progress' | 'endDate'>('name');
 
-  const defaultProjects: Project[] = [
-    {
-      id: 'proj-1',
-      name: 'NextGenTaskManager - Phase 1 MVP',
-      status: 'active',
-      progress: 78,
-      startDate: '2026-01-15',
-      endDate: '2026-04-30',
-      owner: 'Sarah Johnson',
-      budget: '$125,000',
-      team: 8,
-      priority: 'High'
-    },
-    {
-      id: 'proj-2',
-      name: 'Mobile App Development',
-      status: 'active',
-      progress: 45,
-      startDate: '2026-02-01',
-      endDate: '2026-06-15',
-      owner: 'Michael Chen',
-      budget: '$85,000',
-      team: 5,
-      priority: 'High'
-    },
-    {
-      id: 'proj-3',
-      name: 'API Integration Project',
-      status: 'on-hold',
-      progress: 30,
-      startDate: '2026-01-20',
-      endDate: '2026-05-10',
-      owner: 'Emily Rodriguez',
-      budget: '$45,000',
-      team: 3,
-      priority: 'Medium'
-    },
-    {
-      id: 'proj-4',
-      name: 'Database Migration',
-      status: 'completed',
-      progress: 100,
-      startDate: '2025-12-01',
-      endDate: '2026-01-31',
-      owner: 'Jessica Taylor',
-      budget: '$32,000',
-      team: 4,
-      priority: 'High'
-    },
-    {
-      id: 'proj-5',
-      name: 'UI/UX Redesign',
-      status: 'at-risk',
-      progress: 62,
-      startDate: '2026-01-10',
-      endDate: '2026-03-20',
-      owner: 'David Kim',
-      budget: '$58,000',
-      team: 6,
-      priority: 'Medium'
-    },
-    {
-      id: 'proj-6',
-      name: 'Security Audit & Enhancement',
-      status: 'active',
-      progress: 55,
-      startDate: '2026-02-15',
-      endDate: '2026-04-25',
-      owner: 'Robert Martinez',
-      budget: '$72,000',
-      team: 4,
-      priority: 'High'
-    },
-    {
-      id: 'proj-7',
-      name: 'Marketing Website Launch',
-      status: 'completed',
-      progress: 100,
-      startDate: '2025-11-01',
-      endDate: '2026-01-15',
-      owner: 'Amanda Wilson',
-      budget: '$28,000',
-      team: 3,
-      priority: 'Low'
-    }
-  ];
-
-  const projects = propProjects || defaultProjects;
+  // Always use passed projects prop
+  // Use the projects prop directly
 
   const statusConfig = {
     active: { label: 'Active', color: 'bg-primary text-primary-foreground', icon: 'PlayIcon' },
@@ -129,7 +45,7 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
     Low: 'text-success'
   };
 
-  const filteredProjects = projects
+  const filteredProjects = propProjects
     .filter(project => {
       const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            project.owner.toLowerCase().includes(searchQuery.toLowerCase());
@@ -198,11 +114,26 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth">
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('open-export-modal'));
+              }
+            }}
+          >
             <Icon name="ArrowDownTrayIcon" size={18} variant="outline" />
             <span className="font-caption text-sm">Export</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth">
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                // Use custom event to notify parent to open modal
+                window.dispatchEvent(new CustomEvent('open-project-modal'));
+              }
+            }}
+          >
             <Icon name="PlusIcon" size={18} variant="outline" />
             <span className="font-caption text-sm">Add Project</span>
           </button>
@@ -216,6 +147,9 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
             <tr>
               <th className="px-6 py-3 text-left">
                 <span className="font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider">Project Name</span>
+              </th>
+              <th className="px-6 py-3 text-left">
+                <span className="font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider">Type</span>
               </th>
               <th className="px-6 py-3 text-left">
                 <span className="font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider">Status</span>
@@ -258,6 +192,9 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
                         <p className="font-caption text-xs text-muted-foreground">ID: {project.id}</p>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-caption text-sm text-foreground capitalize">{project.projectType ? project.projectType : 'normal'}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
@@ -304,20 +241,24 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleEdit(project.id)}
-                        className="p-2 bg-primary/10 text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-smooth"
-                        title="Edit project"
-                      >
-                        <Icon name="PencilIcon" size={16} variant="outline" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(project.id)}
-                        className="p-2 bg-destructive/10 text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-smooth"
-                        title="Delete project"
-                      >
-                        <Icon name="TrashIcon" size={16} variant="outline" />
-                      </button>
+                      {(currentRole === 'Admin' || currentRole === 'Manager') && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(project.id)}
+                            className="p-2 bg-primary/10 text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            title="Edit project"
+                          >
+                            <Icon name="PencilIcon" size={16} variant="outline" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(project.id)}
+                            className="p-2 bg-destructive/10 text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-smooth"
+                            title="Delete project"
+                          >
+                            <Icon name="TrashIcon" size={16} variant="outline" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -330,7 +271,7 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete }: ProjectLi
       {/* Footer */}
       <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
         <p className="font-caption text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{filteredProjects.length}</span> of <span className="font-medium text-foreground">{projects.length}</span> projects
+           Showing <span className="font-medium text-foreground">{filteredProjects.length}</span> of <span className="font-medium text-foreground">{propProjects?.length ?? 0}</span> projects
         </p>
         <div className="flex items-center gap-2">
           <button className="px-3 py-1.5 border border-border rounded-md text-sm text-muted-foreground hover:text-foreground hover:border-primary transition-smooth disabled:opacity-50 disabled:cursor-not-allowed">

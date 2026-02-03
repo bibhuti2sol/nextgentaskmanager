@@ -19,10 +19,13 @@ interface TeamMember {
 interface ResourceAllocationProps {
   teamMembers: TeamMember[];
   onReallocation?: (memberId: string, newAllocation: number) => void;
+  currentRole?: 'Admin' | 'Manager' | 'Associate';
 }
 
-const ResourceAllocation = ({ teamMembers, onReallocation }: ResourceAllocationProps) => {
+const ResourceAllocation = ({ teamMembers, onReallocation, currentRole = 'Manager' }: ResourceAllocationProps) => {
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [editMemberId, setEditMemberId] = useState<string | null>(null);
 
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
@@ -56,10 +59,15 @@ const ResourceAllocation = ({ teamMembers, onReallocation }: ResourceAllocationP
       <div className="px-6 py-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between">
           <h3 className="font-heading font-semibold text-lg text-foreground">Resource Allocation</h3>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth">
-            <Icon name="UserPlusIcon" size={18} variant="outline" />
-            <span className="font-caption text-sm">Add Member</span>
-          </button>
+          {(currentRole === 'Admin' || currentRole === 'Manager') && (
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth"
+              onClick={() => setShowAddMember(true)}
+            >
+              <Icon name="UserPlusIcon" size={18} variant="outline" />
+              <span className="font-caption text-sm">Add Member</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -121,15 +129,63 @@ const ResourceAllocation = ({ teamMembers, onReallocation }: ResourceAllocationP
                     <p className="font-heading font-bold text-lg text-foreground">{member.allocation}%</p>
                     <p className="font-caption text-xs text-muted-foreground">Allocated</p>
                   </div>
-                  <button
-                    className="w-8 h-8 flex items-center justify-center rounded-md border border-border hover:bg-muted transition-smooth"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle reallocation
-                    }}
-                  >
-                    <Icon name="PencilIcon" size={16} variant="outline" className="text-muted-foreground" />
-                  </button>
+                  {(currentRole === 'Admin' || currentRole === 'Manager') && (
+                    <button
+                      className="w-8 h-8 flex items-center justify-center rounded-md border border-border hover:bg-muted transition-smooth"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditMemberId(member.id);
+                      }}
+                    >
+                      <Icon name="PencilIcon" size={16} variant="outline" className="text-muted-foreground" />
+                    </button>
+                  )}
+                      {/* Add Member Modal (form with dropdown) */}
+                      {(currentRole === 'Admin' || currentRole === 'Manager') && showAddMember && (
+                        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40">
+                          <form
+                            className="bg-card rounded-lg shadow-lg p-6 w-full max-w-md"
+                            onSubmit={e => {
+                              e.preventDefault();
+                              // TODO: Add member logic here
+                              setShowAddMember(false);
+                            }}
+                          >
+                            <h2 className="font-heading text-xl font-bold mb-4">Add Team Member</h2>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium mb-1">Member Name</label>
+                              <select className="w-full px-3 py-2 rounded border border-border" required>
+                                <option value="">Select member</option>
+                                {teamMembers.map(member => (
+                                  <option key={member.id} value={member.id}>{member.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium mb-1">Capacity</label>
+                              <input type="number" min="1" className="w-full px-3 py-2 rounded border border-border" required />
+                            </div>
+                            <div className="flex justify-end gap-2 mt-6">
+                              <button type="button" onClick={() => setShowAddMember(false)} className="px-4 py-2 rounded bg-muted text-foreground">Cancel</button>
+                              <button type="submit" className="px-4 py-2 rounded bg-primary text-primary-foreground font-semibold">Add</button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+
+                      {/* Edit Member Modal (placeholder) */}
+                      {(currentRole === 'Admin' || currentRole === 'Manager') && editMemberId && (
+                        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40">
+                          <div className="bg-card rounded-lg shadow-lg p-6 w-full max-w-md">
+                            <h2 className="font-heading text-xl font-bold mb-4">Edit Resource Allocation</h2>
+                            <p className="mb-4 text-muted-foreground">(Demo placeholder) Implement allocation form for member ID: {editMemberId}</p>
+                            <div className="flex justify-end gap-2 mt-6">
+                              <button onClick={() => setEditMemberId(null)} className="px-4 py-2 rounded bg-muted text-foreground">Cancel</button>
+                              <button onClick={() => setEditMemberId(null)} className="px-4 py-2 rounded bg-primary text-primary-foreground font-semibold">Save</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                 </div>
               </div>
 

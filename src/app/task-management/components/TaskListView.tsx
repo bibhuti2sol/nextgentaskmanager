@@ -26,9 +26,10 @@ interface TaskListViewProps {
   tasks: Task[];
   onTaskClick: (taskId: string) => void;
   onStatusChange: (taskId: string, newStatus: Task['status']) => void;
+  onEditTask?: (taskId: string) => void;
 }
 
-const TaskListView = ({ tasks, onTaskClick, onStatusChange }: TaskListViewProps) => {
+const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskListViewProps) => {
   const [sortColumn, setSortColumn] = useState<keyof Task | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
@@ -256,6 +257,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange }: TaskListViewProps)
                     <button
                       className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
                       aria-label="Edit task"
+                      onClick={() => onEditTask && onEditTask(task.id)}
                     >
                       <Icon name="PencilIcon" size={16} variant="outline" />
                     </button>
