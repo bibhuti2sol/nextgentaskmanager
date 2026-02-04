@@ -244,7 +244,17 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {/* ...existing actions cell... */}
+                    <button
+                      type="button"
+                      aria-label="Edit task"
+                      className="p-2 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition-smooth"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onEditTask) onEditTask(task.id);
+                      }}
+                    >
+                      <Icon name="PencilIcon" size={18} variant="outline" />
+                    </button>
                   </td>
                 </tr>
               );
