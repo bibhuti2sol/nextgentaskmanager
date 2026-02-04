@@ -174,6 +174,9 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
+                <span className="font-caption font-medium text-xs text-muted-foreground">Overdue Tasks</span>
+              </th>
+              <th className="px-4 py-3 text-left">
                 <span className="font-caption font-medium text-xs text-muted-foreground">Progress</span>
               </th>
               <th className="px-4 py-3 text-left">
@@ -182,95 +185,70 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
             </tr>
           </thead>
           <tbody>
-            {tasks.map((task) => (
-              <tr
-                key={task.id}
-                className="border-b border-border hover:bg-muted/30 transition-smooth cursor-pointer"
-                onClick={() => onTaskClick(task.id)}
-              >
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedTasks.includes(task.id)}
-                    onChange={() => handleSelectTask(task.id)}
-                    className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <div>
-                    <p className="font-caption font-medium text-sm text-foreground">{task.title}</p>
-                    <p className="font-caption text-xs text-muted-foreground mt-0.5">
-                      {task.project} • {task.completedSubtasks}/{task.subtasks} subtasks
-                    </p>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                      <AppImage
-                        src={task.assignee.avatar}
-                        alt={task.assignee.alt}
-                        className="w-full h-full object-cover"
-                      />
+            {tasks.map((task) => {
+              const today = new Date();
+              const endDate = new Date(task.endDate);
+              const isOverdue = endDate < today && task.status !== 'Completed';
+              return (
+                <tr
+                  key={task.id}
+                  className="border-b border-border hover:bg-muted/30 transition-smooth cursor-pointer"
+                  onClick={() => onTaskClick(task.id)}
+                >
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.includes(task.id)}
+                      onChange={() => handleSelectTask(task.id)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div>
+                      <p className="font-caption font-medium text-sm text-foreground">{task.title}</p>
+                      <p className="font-caption text-xs text-muted-foreground mt-0.5">
+                        {task.project} • {task.completedSubtasks}/{task.subtasks} subtasks
+                      </p>
                     </div>
-                    <span className="font-caption text-sm text-foreground">{task.assignee.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-caption font-medium ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
-                  </span>
-                </td>
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                  <select
-                    value={task.status}
-                    onChange={(e) => onStatusChange(task.id, e.target.value as Task['status'])}
-                    className={`px-2.5 py-1 rounded-md text-xs font-caption font-medium border-0 cursor-pointer ${getStatusColor(task.status)}`}
-                  >
-                    <option value="To Do">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Review">Review</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="font-caption text-sm text-foreground">{task.startDate}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="font-caption text-sm text-foreground">{task.endDate}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-smooth"
-                        style={{ width: `${task.progress}%` }}
-                      />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                        <AppImage
+                          src={task.assignee.avatar}
+                          alt={task.assignee.alt}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="font-caption text-sm text-foreground">{task.assignee.name}</span>
                     </div>
-                    <span className="font-caption text-xs text-muted-foreground w-10 text-right">
-                      {task.progress}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center gap-1">
-                    <button
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
-                      aria-label="Edit task"
-                      onClick={() => onEditTask && onEditTask(task.id)}
-                    >
-                      <Icon name="PencilIcon" size={16} variant="outline" />
-                    </button>
-                    <button
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-error hover:bg-error/10 transition-smooth"
-                      aria-label="Delete task"
-                    >
-                      <Icon name="TrashIcon" size={16} variant="outline" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-caption font-medium ${getPriorityColor(task.priority)}`}>{task.priority}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`font-caption text-xs font-medium ${getStatusColor(task.status)}`}>{task.status}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {new Date(task.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
+                  <td className="px-4 py-3">
+                    {new Date(task.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isOverdue ? <span className="font-caption text-xs text-error font-bold">Overdue</span> : <span className="font-caption text-xs text-muted-foreground">-</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-caption text-sm font-medium text-foreground">{task.progress}%</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {/* ...existing actions cell... */}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -41,6 +41,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     bibhuti: { email: 'bibhuti@nextgentask.com', password: 'Bibhuti@2026', role: 'Admin' },
     manager: { email: 'manager@nextgentask.com', password: 'Manager@2026', role: 'Manager' },
     associate: { email: 'associate@nextgentask.com', password: 'Associate@2026', role: 'Associate' },
+    vikash: { email: 'vikash@nextgentask.com', password: 'Vikash@2026', role: 'Manager' },
+    shailesh: { email: 'shailesh@nextgentask.com', password: 'Shailesh@2026', role: 'Associate' },
   };
 
   const validateEmail = (email: string): boolean => {
@@ -96,17 +98,17 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       // Always store role and user name for current session (needed for navigation)
       if (isHydrated) {
         localStorage.setItem('userRole', validCredential.role);
-        
         // Extract user name from email (part before @)
         const userName = formData.email.split('@')[0];
         // Capitalize first letter
         const formattedName = userName.charAt(0).toUpperCase() + userName.slice(1);
         localStorage.setItem('userName', formattedName);
-        
         // Only store email if remember me is checked
         if (formData.rememberMe) {
           localStorage.setItem('userEmail', formData.email);
         }
+        // Force UserContext to update everywhere
+        window.dispatchEvent(new Event('storage'));
       }
       
       onSuccess?.();
@@ -264,7 +266,11 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         <div className="mt-6 text-center">
           <p className="text-sm font-caption text-muted-foreground">
             Don't have an account?{' '}
-            <button className="text-primary hover:text-primary/80 font-semibold transition-smooth">
+            <button
+              type="button"
+              className="text-primary hover:text-accent font-semibold transition-smooth underline underline-offset-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm hover:scale-105"
+              onClick={() => router.push('/signup')}
+            >
               Sign Up
             </button>
           </p>

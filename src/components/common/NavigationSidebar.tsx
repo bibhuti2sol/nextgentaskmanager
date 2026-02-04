@@ -131,17 +131,26 @@ const NavigationSidebar = ({ isCollapsed = false, onCollapsedChange, userRole }:
         <div className="flex items-center justify-between h-[72px] px-4 border-b border-border">
           {!collapsed && (
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-heading font-bold text-lg">N</span>
+              <img
+                src="/assets/images/nextgentask-logo.png"
+                alt="NextGenTask Logo"
+                className="w-12 h-12 rounded-xl shadow-lg"
+                style={{ objectFit: 'cover' }}
+              />
+              <div className="flex flex-col ml-2">
+                <span className="font-heading font-bold text-xl text-primary">NextGenTask</span>
+                <span className="font-caption text-base text-success">Manager</span>
               </div>
-              <span className="font-heading font-semibold text-lg text-foreground">NextGenTask</span>
             </Link>
           )}
           {collapsed && (
             <Link href="/dashboard" className="flex items-center justify-center w-full">
-              <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-heading font-bold text-lg">N</span>
-              </div>
+              <img
+                src="/assets/images/nextgentask-logo.png"
+                alt="NextGenTask Logo"
+                className="w-10 h-10 rounded-xl shadow-lg"
+                style={{ objectFit: 'cover' }}
+              />
             </Link>
           )}
         </div>

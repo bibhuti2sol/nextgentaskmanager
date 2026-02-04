@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@/components/common/UserContext';
 // ...existing code...
 import ProjectListView from './ProjectListView';
 import EditProjectModal from './EditProjectModal';
@@ -59,7 +60,8 @@ interface Milestone {
 
 const ProjectOverviewInteractive = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
+  const { user } = useUser();
+  const currentRole = user?.userRole || 'Associate';
   const [activeTab, setActiveTab] = useState<'list' | 'resources' | 'milestones'>('list');
   const [isProjectPanelOpen, setIsProjectPanelOpen] = useState(false);
   // Listen for Add Project button event
@@ -435,30 +437,27 @@ const ProjectOverviewInteractive = () => {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setIsProjectPanelOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth"
-              >
-                <Icon name="PlusIcon" size={18} variant="outline" />
-                <span className="font-caption text-sm font-medium">Add Task</span>
-              </button>
-              <button 
-                onClick={() => setIsExportModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
-              >
-                <Icon name="ArrowDownTrayIcon" size={18} variant="outline" />
-                <span className="font-caption text-sm">Export Report</span>
-              </button>
-              <button 
-                onClick={() => setIsSettingsModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
-              >
-                <Icon name="Cog6ToothIcon" size={18} variant="outline" />
-                <span className="font-caption text-sm">Settings</span>
-              </button>
+              {(currentRole !== 'Associate') && (
+                <>
+                  <button 
+                    onClick={() => setIsExportModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
+                  >
+                    <Icon name="ArrowDownTrayIcon" size={18} variant="outline" />
+                    <span className="font-caption text-sm">Export Report</span>
+                  </button>
+                  <button 
+                    onClick={() => setIsSettingsModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
+                  >
+                    <Icon name="Cog6ToothIcon" size={18} variant="outline" />
+                    <span className="font-caption text-sm">Settings</span>
+                  </button>
+                </>
+              )}
               <div className="h-8 w-px bg-border" />
               <ThemeToggle isCollapsed={false} />
-              <UserRoleIndicator isCollapsed={false} onRoleChange={setCurrentRole} />
+              <UserRoleIndicator isCollapsed={false} currentRole={currentRole} />
 
             </div>
           </div>

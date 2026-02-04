@@ -125,18 +125,20 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete, currentRole
             <Icon name="ArrowDownTrayIcon" size={18} variant="outline" />
             <span className="font-caption text-sm">Export</span>
           </button>
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                // Use custom event to notify parent to open modal
-                window.dispatchEvent(new CustomEvent('open-project-modal'));
-              }
-            }}
-          >
-            <Icon name="PlusIcon" size={18} variant="outline" />
-            <span className="font-caption text-sm">Add Project</span>
-          </button>
+          {currentRole !== 'Associate' && (
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  // Use custom event to notify parent to open modal
+                  window.dispatchEvent(new CustomEvent('open-project-modal'));
+                }
+              }}
+            >
+              <Icon name="PlusIcon" size={18} variant="outline" />
+              <span className="font-caption text-sm">Add Project</span>
+            </button>
+          )}
         </div>
       </div>
 

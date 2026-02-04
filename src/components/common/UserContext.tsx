@@ -18,11 +18,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    // Fallback: get from localStorage
-    const userName = localStorage.getItem('userName') || 'User';
-    const userRole = (localStorage.getItem('userRole') as UserInfo['userRole']) || 'Associate';
-    setUser({ userName, userRole });
-    // For future: fetch from API and setUser
+    const updateUserFromStorage = () => {
+      const userName = localStorage.getItem('userName') || 'User';
+      const userRole = (localStorage.getItem('userRole') as UserInfo['userRole']) || 'Associate';
+      setUser({ userName, userRole });
+    };
+    updateUserFromStorage();
+    window.addEventListener('storage', updateUserFromStorage);
+    return () => window.removeEventListener('storage', updateUserFromStorage);
   }, []);
 
   return (
