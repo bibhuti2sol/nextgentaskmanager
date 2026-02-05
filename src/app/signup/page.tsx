@@ -108,145 +108,125 @@ const features = [
 ];
 
 
+const featureTags = [
+  'Task Management',
+  'Project Management',
+  'Time Tracking',
+  'Workflow Automation',
+  'Document Management',
+  'Attendance Tracking',
+  'Leave Management',
+  'Collaboration',
+];
+
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-accent/5 to-background flex flex-col items-center justify-start py-12 px-4">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-white/90 rounded-2xl shadow-2xl p-8 border border-border mb-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl -z-10"></div>
-          <div className="flex items-center gap-4 mb-8">
-            <span className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-lg">
-              <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#2563eb" /><text x="16" y="21" textAnchor="middle" fontSize="16" fill="#fff" fontFamily="Arial">S</text></svg>
-            </span>
-            <h1 className="text-3xl font-bold text-foreground">Sign Up</h1>
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Left: Illustration & Welcome */}
+      <div className="flex-1 flex flex-col justify-center items-center bg-gradient-to-br from-primary/10 to-accent/10 p-8 md:rounded-r-[3rem] shadow-2xl relative overflow-hidden min-h-[480px]">
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="flex flex-wrap gap-4 justify-center items-stretch">
+          {/* Free Card */}
+          <div className="flex-1 bg-white/90 rounded-2xl shadow-xl border border-border p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
+            <h3 className="text-xl font-semibold mb-2 text-primary">Free</h3>
+            <div className="text-3xl font-bold text-primary mb-1">₹0</div>
+            <div className="text-xs text-muted-foreground mb-4">Individuals / Evaluation</div>
+            <ul className="text-sm text-left space-y-2 mb-6 w-full">
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Up to 3 users</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> All core features</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> No cost, no credit card</li>
+            </ul>
+            <button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">Start Free</button>
           </div>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* ...form fields... */}
-            <div>
-              <label className="block text-sm font-medium mb-1">User Name</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+          {/* Basic Card */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
+            <h3 className="text-xl font-semibold mb-2 text-primary">Basic</h3>
+            <div className="text-3xl font-bold text-primary mb-1">₹75,000</div>
+            <div className="text-xs text-muted-foreground mb-4">SMBs / Startups</div>
+            <ul className="text-sm text-left space-y-2 mb-6 w-full">
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Up to 10 users</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> ₹3,000 / extra user</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> All features included</li>
+            </ul>
+            <button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">Buy Now</button>
+          </div>
+          {/* Enterprise Card (Highlighted) */}
+          <div className="flex-1 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-2xl border-4 border-primary/60 p-4 flex flex-col items-center min-w-[170px] max-w-[220px] relative scale-105 z-10">
+            <h3 className="text-xl font-semibold mb-2 text-white">Enterprise</h3>
+            <div className="text-3xl font-bold text-white mb-1">₹2,00,000</div>
+            <div className="text-xs text-white/80 mb-4">Mid–Large Orgs</div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-yellow-300 text-primary font-bold px-2 py-1 rounded-full text-xs">12% Off</span>
+              <span className="bg-white text-primary font-semibold px-2 py-1 rounded-full text-xs">Most Recommended</span>
+            </div>
+            <ul className="text-sm text-left space-y-2 mb-6 w-full text-white">
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Up to 100 users</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> ₹1,500 / extra user</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> All features included</li>
+            </ul>
+            <button className="mt-auto bg-white text-primary font-bold px-6 py-2 rounded-full shadow hover:scale-105 transition">Buy Now</button>
+          </div>
+          {/* Customized Card */}
+          <div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
+            <h3 className="text-xl font-semibold mb-2 text-primary">Customized</h3>
+            <div className="text-3xl font-bold text-primary mb-1">₹3,50,000+</div>
+            <div className="text-xs text-muted-foreground mb-4">Large / Regulated</div>
+            <ul className="text-sm text-left space-y-2 mb-6 w-full">
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Custom user limits</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Custom features</li>
+              <li className="flex items-center gap-2"><span className="text-success">✔</span> Custom quote</li>
+            </ul>
+            <button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">Contact Us</button>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Signup Form */}
+      <div className="flex-1 flex flex-col justify-center items-center p-6">
+        <div className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8 border border-border">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent to-primary rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-primary-foreground font-heading font-bold text-xl">N</span>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Email ID</label>
-              <input type="email" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+              <h2 className="text-xl font-heading font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">NextGenTask</h2>
+              <p className="text-xs font-caption text-accent font-semibold tracking-wide">Manager</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Organization Name</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Address</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">State</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">City</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Pin</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Contact No</label>
-              <input type="text" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Team Size</label>
-              <input type="number" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Subscription Type</label>
-              <select className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required>
-                <option value="Basic">Basic</option>
-                <option value="Enterprise">Enterprise</option>
-                <option value="Customized">Customized</option>
-              </select>
-            </div>
-            <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="bg-gradient-to-r from-primary to-accent text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition-all duration-300">Sign Up</button>
-            </div>
+          </div>
+          <h3 className="text-xl font-bold mb-2">Sign Up</h3>
+          <p className="text-sm text-muted-foreground mb-6">Create your account to get started.</p>
+          <form className="grid grid-cols-1 gap-4">
+            <input type="text" placeholder="User Name" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="email" placeholder="Email ID" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="Organization Name" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="Address" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="State" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="City" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="Pin" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="text" placeholder="Contact No" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <input type="number" placeholder="Team Size" className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required />
+            <select className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth" required>
+              <option value="">Subscription Type</option>
+              <option value="Free">Free</option>
+              <option value="Basic">Basic</option>
+              <option value="Enterprise">Enterprise</option>
+              <option value="Customized">Customized</option>
+            </select>
+            <button type="submit" className="bg-gradient-to-r from-primary to-accent text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition-all duration-300 mt-2">Sign Up</button>
           </form>
         </div>
-
-        <div className="bg-white/90 rounded-2xl shadow-xl p-8 border border-border mb-10">
-          <h2 className="text-2xl font-bold mb-8 text-center text-primary">Simple, Transparent Pricing</h2>
-          <p className="text-center text-muted-foreground mb-10">Choose the plan that fits your team's needs. No hidden fees, no surprises.</p>
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-            {/* Starter Plan */}
-            <div className="flex-1 bg-white rounded-xl shadow-lg p-8 border border-border flex flex-col items-center min-w-[260px] max-w-[340px]">
-              <h3 className="text-xl font-bold mb-2">Starter</h3>
-              <div className="text-3xl font-bold text-primary mb-1">₹75,000<span className="text-base font-normal text-muted-foreground">/month</span></div>
-              <ul className="text-sm text-foreground mb-6 space-y-2 text-left w-full">
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Up to 10 users</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Basic task management</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Email support</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Mobile app access</li>
-              </ul>
-              <button className="w-full bg-primary text-white py-2 rounded-lg font-semibold mt-auto hover:bg-primary/90 transition">Get Started</button>
-            </div>
-            {/* Professional Plan (Most Popular) */}
-            <div className="flex-1 bg-white rounded-xl shadow-2xl p-8 border-2 border-primary flex flex-col items-center min-w-[260px] max-w-[340px] relative">
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2">
-                <span className="bg-primary text-white text-xs font-bold px-4 py-1 rounded-full shadow">Most Popular</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Professional</h3>
-              <div className="text-3xl font-bold text-primary mb-1">₹2,00,000<span className="text-base font-normal text-muted-foreground">/month</span></div>
-              <ul className="text-sm text-foreground mb-6 space-y-2 text-left w-full">
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Up to 100 users</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Advanced analytics</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Priority support</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> API access</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Custom integrations</li>
-              </ul>
-              <button className="w-full bg-primary text-white py-2 rounded-lg font-semibold mt-auto hover:bg-primary/90 transition">Get Started</button>
-            </div>
-            {/* Enterprise Plan */}
-            <div className="flex-1 bg-white rounded-xl shadow-lg p-8 border border-border flex flex-col items-center min-w-[260px] max-w-[340px]">
-              <h3 className="text-xl font-bold mb-2">Enterprise</h3>
-              <div className="text-3xl font-bold text-primary mb-1">Custom</div>
-              <ul className="text-sm text-foreground mb-6 space-y-2 text-left w-full">
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Unlimited users</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Custom features</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> Dedicated support</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> On-premise deployment</li>
-                <li className="flex items-center gap-2"><span className="text-success">✔</span> SLA guarantee</li>
-              </ul>
-              <button className="w-full bg-primary text-white py-2 rounded-lg font-semibold mt-auto hover:bg-primary/90 transition">Contact Sales</button>
-            </div>
+        <footer className="mt-8 text-xs text-muted-foreground text-center opacity-80">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <span>Support</span>
+            <span>Resources</span>
+            <span>Guide</span>
+            <span>Pricing</span>
+            <span>Terms</span>
+            <span>Privacy</span>
           </div>
-        </div>
-
-        <div className="bg-white/90 rounded-2xl shadow-xl p-8 border border-border">
-          <h2 className="text-2xl font-bold mb-4 text-primary">Feature Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border rounded-lg overflow-hidden text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-4 py-2">Feature</th>
-                  <th className="px-4 py-2">Trial</th>
-                  <th className="px-4 py-2">Basic</th>
-                  <th className="px-4 py-2">Enterprise</th>
-                  <th className="px-4 py-2">Customized</th>
-                </tr>
-              </thead>
-              <tbody>
-                {features.map((feature) => (
-                  <tr key={feature.name} className="border-b">
-                    <td className="px-4 py-2 font-semibold">{feature.name}</td>
-                    <td className="px-4 py-2 text-center">{feature.trial === true ? '✔' : feature.trial === false ? '❌' : feature.trial}</td>
-                    <td className="px-4 py-2 text-center">{feature.basic === true ? '✔' : feature.basic === false ? '❌' : feature.basic}</td>
-                    <td className="px-4 py-2 text-center">{feature.enterprise === true ? '✔' : feature.enterprise === false ? '❌' : feature.enterprise}</td>
-                    <td className="px-4 py-2 text-center">{feature.customized === true ? '✔' : feature.customized === false ? '❌' : feature.customized}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <div className="mt-2">&copy; 2026 NextGenTask Manager. All rights reserved.</div>
+        </footer>
       </div>
     </div>
   );

@@ -2,77 +2,99 @@
 
 import LoginForm from './LoginForm';
 
+const featureTags = [
+  'Task Management',
+  'Project Management',
+  'Time Tracking',
+  'Workflow Automation',
+  'Document Management',
+  'Attendance Tracking',
+  'Leave Management',
+  'Collaboration',
+];
+
 const LoginInteractive = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-      
-      {/* Brand Header - Top Left Corner */}
-      <div className="absolute top-6 left-6 z-10">
-        <div className="inline-flex items-center gap-3 group">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary via-accent to-primary rounded-2xl flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-105">
-            <span className="text-primary-foreground font-heading font-bold text-2xl">N</span>
-          </div>
-          <div>
-            <h2 className="text-2xl font-heading font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              NextGenTask
-            </h2>
-            <p className="text-sm font-caption text-accent font-semibold tracking-wide">Manager</p>
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Left: Illustration & Welcome */}
+      <div className="flex-1 flex flex-col justify-center items-center bg-gradient-to-br from-primary/10 to-accent/10 p-8 md:rounded-r-[3rem] shadow-2xl relative overflow-hidden min-h-[480px]">
+        {/* Illustration (replace with your SVG or image if available) */}
+        <div className="mb-8">
+          <div className="w-[320px] h-[220px] bg-white/80 rounded-2xl shadow-lg flex flex-col items-center justify-center p-6">
+            <div className="flex flex-col items-center gap-1 mb-4">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">NextGenTask</span>
+              <span className="text-lg font-semibold text-success">Manager</span>
+            </div>
+            {/* Dummy Graphs */}
+            <div className="flex flex-col items-center gap-3 w-full">
+              {/* Bar Graph */}
+              <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="20" width="10" height="15" rx="2" fill="#60a5fa" />
+                <rect x="30" y="10" width="10" height="25" rx="2" fill="#34d399" />
+                <rect x="50" y="25" width="10" height="10" rx="2" fill="#fbbf24" />
+                <rect x="70" y="5" width="10" height="30" rx="2" fill="#818cf8" />
+                <rect x="90" y="15" width="10" height="20" rx="2" fill="#f472b6" />
+              </svg>
+              {/* Line Graph */}
+              <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="0,35 20,25 40,30 60,10 80,20 100,5 120,15" fill="none" stroke="#60a5fa" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="0" cy="35" r="2" fill="#60a5fa" />
+                <circle cx="20" cy="25" r="2" fill="#60a5fa" />
+                <circle cx="40" cy="30" r="2" fill="#60a5fa" />
+                <circle cx="60" cy="10" r="2" fill="#60a5fa" />
+                <circle cx="80" cy="20" r="2" fill="#60a5fa" />
+                <circle cx="100" cy="5" r="2" fill="#60a5fa" />
+                <circle cx="120" cy="15" r="2" fill="#60a5fa" />
+              </svg>
+            </div>
+            <div className="w-full flex justify-between mb-2">
+              <div className="w-16 h-16 bg-primary/10 rounded-lg" />
+              <div className="w-24 h-8 bg-accent/20 rounded-lg" />
+            </div>
+            <div className="w-full h-8 bg-primary/20 rounded mb-2" />
+            <div className="w-full h-4 bg-muted/30 rounded mb-1" />
+            <div className="w-full h-4 bg-muted/30 rounded mb-1" />
+            <div className="w-1/2 h-4 bg-muted/20 rounded" />
           </div>
         </div>
+        <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2 text-center">Welcome to NextGenTask</h2>
+        <p className="text-base text-muted-foreground mb-4 text-center max-w-xs">You're just one step away from peak productivity!</p>
+        <div className="flex flex-wrap gap-2 justify-center mb-4">
+          {featureTags.map((tag) => (
+            <span key={tag} className="bg-white/80 text-primary font-semibold text-xs px-3 py-1 rounded-full shadow border border-primary/10">{tag}</span>
+          ))}
+        </div>
+        <p className="text-lg font-bold text-primary mt-2 text-center">All in ONE place...!</p>
       </div>
-      
-      {/* Centered Login Panel */}
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-20 relative z-10">
-        <LoginForm />
-        
-        {/* Security Badges - Below Login Panel */}
-        <div className="mt-8 mb-8">
-          <div className="flex items-center justify-center gap-6 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-                <span className="text-success text-xl">✓</span>
-              </div>
-              <span className="text-xs font-caption font-medium text-foreground">SSL Secured</span>
+
+      {/* Right: Login Form */}
+      <div className="flex-1 flex flex-col justify-center items-center p-6">
+        <div className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8 border border-border">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent to-primary rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-primary-foreground font-heading font-bold text-xl">N</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-                <span className="text-success text-xl">✓</span>
-              </div>
-              <span className="text-xs font-caption font-medium text-foreground">SOC 2 Compliant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-                <span className="text-success text-xl">✓</span>
-              </div>
-              <span className="text-xs font-caption font-medium text-foreground">GDPR Ready</span>
+            <div>
+              <h2 className="text-xl font-heading font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">NextGenTask</h2>
+              <p className="text-xs font-caption text-accent font-semibold tracking-wide">Manager</p>
             </div>
           </div>
+          <h3 className="text-xl font-bold mb-2">Sign in</h3>
+          <p className="text-sm text-muted-foreground mb-6">Enter your credentials to access your account.</p>
+          <LoginForm />
         </div>
+        <footer className="mt-8 text-xs text-muted-foreground text-center opacity-80">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <span>Support</span>
+            <span>Resources</span>
+            <span>Guide</span>
+            <span>Pricing</span>
+            <span>Terms</span>
+            <span>Privacy</span>
+          </div>
+          <div className="mt-2">&copy; 2026 NextGenTask Manager. All rights reserved.</div>
+        </footer>
       </div>
-      
-      <footer className="absolute bottom-0 left-0 right-0 py-6 border-t border-border/50 bg-card/50 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs font-caption text-muted-foreground">
-              &copy; 2026 NextGenTask Manager. All rights reserved.
-            </p>
-            <div className="flex items-center gap-6">
-              <button className="text-xs font-caption text-muted-foreground hover:text-foreground transition-smooth">
-                Privacy Policy
-              </button>
-              <button className="text-xs font-caption text-muted-foreground hover:text-foreground transition-smooth">
-                Terms of Service
-              </button>
-              <button className="text-xs font-caption text-muted-foreground hover:text-foreground transition-smooth">
-                Support
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
