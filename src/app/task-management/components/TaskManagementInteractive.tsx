@@ -74,7 +74,14 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 3,
     description: 'Design and implement a secure authentication system with JWT tokens, password hashing, and multi-factor authentication support. Ensure compliance with security best practices and OWASP guidelines.',
     timeTracked: '12h 30m',
-    estimatedTime: '20h 00m'
+    estimatedTime: '20h 00m',
+    subtaskList: [
+      { id: '1-1', title: 'Set up JWT authentication', status: 'Completed' },
+      { id: '1-2', title: 'Implement password hashing', status: 'In Progress' },
+      { id: '1-3', title: 'Add multi-factor authentication', status: 'To Do' },
+      { id: '1-4', title: 'Security review', status: 'To Do' },
+      { id: '1-5', title: 'Write documentation', status: 'Review' }
+    ]
   },
   {
     id: '2',
@@ -94,7 +101,13 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 7,
     description: 'Create comprehensive wireframes for all major screens in the mobile application, including user flows, navigation patterns, and interaction designs.',
     timeTracked: '18h 15m',
-    estimatedTime: '20h 00m'
+    estimatedTime: '20h 00m',
+    subtaskList: [
+      { id: '2-1', title: 'Home screen wireframe', status: 'Completed' },
+      { id: '2-2', title: 'Profile screen wireframe', status: 'Completed' },
+      { id: '2-3', title: 'Settings screen wireframe', status: 'Review' },
+      { id: '2-4', title: 'Navigation flow', status: 'In Progress' }
+    ]
   },
   {
     id: '3',

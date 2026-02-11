@@ -29,13 +29,7 @@ const TeamWorkloadOverview = ({ teamMembers }: TeamWorkloadOverviewProps) => {
           className="bg-card border border-border rounded-lg p-4 hover:shadow-elevation-2 transition-smooth"
         >
           <div className="flex items-center gap-4 mb-3">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-              <AppImage
-                src={member.avatar}
-                alt={member.alt}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {/* Avatar removed as requested */}
             <div className="flex-1 min-w-0">
               <h4 className="font-heading font-semibold text-base text-foreground truncate">
                 {member.name}

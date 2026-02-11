@@ -1,4 +1,4 @@
-import Icon from '@/components/ui/AppIcon';
+// import Icon from '@/components/ui/AppIcon';
 
 interface Task {
   id: number;
@@ -51,11 +51,9 @@ const TaskPriorityList = ({ tasks, onStatusChange }: TaskPriorityListProps) => {
           </div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Icon name="CalendarIcon" size={16} variant="outline" />
               <span className="font-caption">{task.deadline}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Icon name="UserIcon" size={16} variant="outline" />
               <span className="font-caption">{task.assignee}</span>
             </div>
           </div>

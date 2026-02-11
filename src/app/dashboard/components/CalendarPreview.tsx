@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ui/AppIcon';
+// import Icon from '@/components/ui/AppIcon';
 
 interface CalendarEvent {
   id: number;
@@ -29,13 +29,11 @@ const CalendarPreview = ({ events }: CalendarPreviewProps) => {
         <h3 className="font-heading font-semibold text-lg text-foreground">{selectedDate}</h3>
         <button className="text-primary text-sm font-caption font-medium hover:underline flex items-center gap-1">
           View Calendar
-          <Icon name="ArrowRightIcon" size={16} variant="outline" />
         </button>
       </div>
       <div className="space-y-3">
         {events.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="CalendarIcon" size={48} variant="outline" className="mx-auto mb-3 text-muted-foreground" />
             <p className="text-muted-foreground font-caption">No events scheduled</p>
           </div>
         ) : (
@@ -45,9 +43,7 @@ const CalendarPreview = ({ events }: CalendarPreviewProps) => {
               className={`border rounded-lg p-3 ${eventColors[event.type]}`}
             >
               <div className="flex items-center gap-3">
-                <div className="flex-shrink-0">
-                  <Icon name="ClockIcon" size={16} variant="outline" />
-                </div>
+                {/* Icon removed as requested */}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-caption font-semibold text-sm">{event.title}</h4>
                   <p className="text-xs font-caption opacity-80">{event.time}</p>

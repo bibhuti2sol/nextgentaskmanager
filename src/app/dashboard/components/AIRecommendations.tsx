@@ -28,14 +28,7 @@ const AIRecommendations = ({ recommendations }: AIRecommendationsProps) => {
           className="bg-card border border-border rounded-lg p-4 hover:shadow-elevation-2 transition-smooth"
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <Icon
-                name={typeIcons[rec.type].icon as any}
-                size={24}
-                variant="solid"
-                className={typeIcons[rec.type].color}
-              />
-            </div>
+            {/* Icon removed as requested */}
             <div className="flex-1 min-w-0">
               <h4 className="font-heading font-semibold text-base text-foreground mb-1">
                 {rec.title}

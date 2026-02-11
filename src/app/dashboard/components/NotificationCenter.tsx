@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ui/AppIcon';
+// import Icon from '@/components/ui/AppIcon';
 
 interface Notification {
   id: number;
@@ -46,7 +46,7 @@ const NotificationCenter = ({ notifications: initialNotifications }: Notificatio
         className="relative p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-smooth"
         aria-label="Notifications"
       >
-        <Icon name="BellIcon" size={24} variant="outline" />
+        {/* Icon removed as requested */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-error text-error-foreground text-xs font-caption font-medium w-5 h-5 rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -72,7 +72,7 @@ const NotificationCenter = ({ notifications: initialNotifications }: Notificatio
             <div className="overflow-y-auto flex-1">
               {notifications.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Icon name="BellSlashIcon" size={48} variant="outline" className="mx-auto mb-3 text-muted-foreground" />
+                  {/* Icon removed as requested */}
                   <p className="text-muted-foreground font-caption">No notifications</p>
                 </div>
               ) : (
@@ -86,12 +86,7 @@ const NotificationCenter = ({ notifications: initialNotifications }: Notificatio
                       onClick={() => markAsRead(notification.id)}
                     >
                       <div className="flex items-start gap-3">
-                        <Icon
-                          name={notificationIcons[notification.type].icon as any}
-                          size={20}
-                          variant="solid"
-                          className={notificationIcons[notification.type].color}
-                        />
+                        {/* Icon removed as requested */}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-caption font-semibold text-sm text-foreground mb-1">
                             {notification.title}
