@@ -33,14 +33,6 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     { id: 4, name: 'Customer Portal Enhancement' }
   ];
 
-  // All data with project associations
-  const allMetrics = [
-    { title: 'Active Tasks', value: 24, change: 12, icon: '📋', variant: 'primary' as const, projectId: null },
-    { title: 'Upcoming Deadlines', value: 8, change: -5, icon: '⏰', variant: 'warning' as const, projectId: null },
-    { title: 'Team Members', value: 12, change: 8, icon: '👥', variant: 'success' as const, projectId: null },
-    { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null }
-  ];
-
   const allTasks = [
     {
       id: 1,
@@ -77,6 +69,27 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       deadline: 'Feb 05, 2026',
       assignee: 'David Kim',
       projectId: 3
+    }
+  ];
+
+  // All data with project associations
+  const allMetrics = [
+    { title: 'Active Tasks', value: 24, change: 12, icon: '📋', variant: 'primary' as const, projectId: null },
+    { title: 'Upcoming Deadlines', value: 8, change: -5, icon: '⏰', variant: 'warning' as const, projectId: null },
+    { title: 'Team Members', value: 12, change: 8, icon: '👥', variant: 'success' as const, projectId: null },
+    { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null },
+    {
+      title: 'Subtasks',
+      value: `${allTasks.filter(task => task.status === 'Pending').length} Open, ${allTasks.filter(task => task.status === 'In Progress').length} In Progress, ${allTasks.filter(task => task.status === 'Completed').length} Completed`,
+      change: 0,
+      icon: '📝',
+      variant: 'info' as const,
+      projectId: null,
+      styles: {
+        title: 'text-sm text-muted-foreground font-medium',
+        value: 'text-lg font-semibold text-foreground',
+        change: 'text-xs text-muted-foreground'
+      }
     }
   ];
 
