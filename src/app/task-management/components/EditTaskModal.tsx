@@ -5,19 +5,17 @@ export interface EditTaskModalProps {
   task: {
     id: string;
     title: string;
-    assignee: { name: string; avatar: string; alt: string };
+    assignee: string;
     priority: 'High' | 'Medium' | 'Low';
     status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
     startDate: string;
     endDate: string;
     progress: number;
     project: string;
-    subtasks: number;
-    completedSubtasks: number;
-    description?: string;
-    comments: string:
+    description: string;
+    comments: string;
   };
-  onSave: (updatedTask: EditTaskModalProps['task']) => void;
+  onSave: (updated: any) => void;
   onClose: () => void;
 }
 
@@ -45,7 +43,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onSave, onClose }) 
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Assignee</label>
-            <input name="assignee.name" value={form.assignee.name} onChange={(e) => setForm((prev) => ({ ...prev, assignee: { ...prev.assignee, name: e.target.value } }))} className="w-full px-3 py-2 rounded border border-border" />
+            <input name="assignee" value={form.assignee} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Priority</label>
@@ -82,11 +80,11 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onSave, onClose }) 
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea name="description" value={form.description || ''} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
+            <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
           </div>
-           <div>
-            <label className="block text-sm font-medium mb-1"><Comments></Comments></label>
-            <textarea name="description" value={form.comments || ''} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
+          <div>
+            <label className="block text-sm font-medium mb-1">Comments</label>
+            <textarea name="comments" value={form.comments} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-6">
