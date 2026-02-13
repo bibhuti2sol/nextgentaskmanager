@@ -117,6 +117,16 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
     }
   };
 
+  const handleEditSubtask = (subtask: Subtask, taskId: string) => {
+    setEditingSubtask(subtask);
+    setEditingTaskId(taskId);
+  };
+
+  const handleEditTask = (taskId: string) => {
+    setEditingTaskId(taskId);
+    setEditingSubtask(null); // Ensure subtask editing is not active
+  };
+
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       {selectedTasks.length > 0 && (
@@ -284,9 +294,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                       <button
                         type="button"
                         className="bg-gradient-to-r from-primary to-accent text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition"
-                        onClick={() => {
-                          setEditingTaskId(task.id);
-                        }}
+                        onClick={() => handleEditTask(task.id)}
                       >
                         Edit Task
                       </button>
@@ -297,10 +305,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                       <td colSpan={10} className="pl-12 py-2">
                         <SubtaskView
                           subtasks={task.subtaskList || []}
-                          onEdit={(subtask) => {
-                            setEditingSubtask(subtask);
-                            setEditingTaskId(task.id);
-                          }}
+                          onEdit={(subtask) => handleEditSubtask(subtask, task.id)}
                         />
                       </td>
                     </tr>
@@ -336,7 +341,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
             }}
           />
         )}
-        {editingTaskId && (
+        {editingTaskId && !editingSubtask && (
           <EditTask
             task={tasks.find((task) => task.id === editingTaskId)!}
             assigneeOptions={assigneeOptions}
