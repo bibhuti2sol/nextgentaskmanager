@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface EditTaskProps {
   task: {
+    id: string;
     title: string;
     assignee: string;
     priority: "High" | "Medium" | "Low";
@@ -30,10 +31,12 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
   const [project, setProject] = useState(task?.project || "");
   const [description, setDescription] = useState(task?.description || "");
   const [comments, setComments] = useState(task?.comments || "");
+  const [taskId, setTaskId] = useState(task?.id || "");
 
   const handleSave = () => {
     onSave({
       ...task,
+      id: taskId,
       title,
       assignee,
       priority,
@@ -46,6 +49,14 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
       comments,
     });
     onClose();
+  };
+
+  const handleAddComment = (newComment: string) => {
+    if (status !== "Completed" && newComment.trim() !== "") {
+      const timestamp = new Date().toLocaleString();
+      const updatedComments = `${comments}\n[${timestamp}] ${newComment}`;
+      setComments(updatedComments);
+    }
   };
 
   return (
@@ -135,12 +146,21 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             placeholder="Description"
             className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground"
           />
-          <textarea
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Comments"
-            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground"
-          />
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">Comments</label>
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Previous comments will appear here. Add a new comment below."
+              className="border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground"
+              readOnly
+            />
+            <textarea
+              onChange={(e) => handleAddComment(e.target.value)}
+              placeholder="Add a new comment"
+              className="border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground mt-2"
+            />
+          </div>
           <div className="col-span-2 flex justify-end gap-4">
             <button
               type="button"

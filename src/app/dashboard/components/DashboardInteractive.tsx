@@ -88,7 +88,11 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null },
     {
       title: 'Subtasks',
-      value: <div className="w-full h-full"><SubtaskChart open={subtaskMetrics.open} inProgress={subtaskMetrics.inProgress} completed={subtaskMetrics.completed} /></div>,
+      value: (
+        <div className="w-full h-full">
+          <SubtaskChart open={subtaskMetrics.open} inProgress={subtaskMetrics.inProgress} completed={subtaskMetrics.completed} />
+        </div>
+      ),
       change: 0,
       icon: '📝',
       variant: 'info' as const,
