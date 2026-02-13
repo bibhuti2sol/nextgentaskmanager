@@ -351,6 +351,7 @@ function FeatureModal({ feature, onClose }: { feature: any; onClose: () => void 
 
 export default function ProductMainPage() {
   const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
+  const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
   const featuresRef = useRef<HTMLDivElement>(null);
   const industriesRef = useRef<HTMLDivElement>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -463,10 +464,27 @@ export default function ProductMainPage() {
         </div>
       </section>
       {/* Blog Section */}
-      <section ref={blogRef} id="blog" className="w-full max-w-4xl mx-auto py-16 px-4">
-        <h2 className="text-3xl font-bold text-primary mb-8 text-center drop-shadow-lg animate-fade-in">Blog</h2>
-        <div className="flex flex-col items-center">
-          <p className="mb-6 text-lg text-muted-foreground text-center animate-fade-in">Coming soon: Insights, tips, and updates from the NextGenTask team.</p>
+      <section ref={blogRef} id="blog" className="w-full max-w-6xl mx-auto py-16 px-4">
+        <h2 className="text-4xl font-bold text-primary mb-8 text-center drop-shadow-lg animate-fade-in">Blog</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Blog Post 1 */}
+          <div className="bg-white rounded-xl shadow-lg p-6 hover:scale-105 transition-all">
+            <h3 className="text-2xl font-semibold text-primary mb-4">Boost Your Productivity</h3>
+            <p className="text-sm text-muted-foreground mb-6">Learn how NextGenTask Manager can help you streamline your workflows and achieve more in less time.</p>
+            <button className="text-accent font-medium hover:underline">Read More</button>
+          </div>
+          {/* Blog Post 2 */}
+          <div className="bg-white rounded-xl shadow-lg p-6 hover:scale-105 transition-all">
+            <h3 className="text-2xl font-semibold text-primary mb-4">Effective Team Collaboration</h3>
+            <p className="text-sm text-muted-foreground mb-6">Discover the best practices for fostering collaboration and communication within your team.</p>
+            <button className="text-accent font-medium hover:underline">Read More</button>
+          </div>
+          {/* Blog Post 3 */}
+          <div className="bg-white rounded-xl shadow-lg p-6 hover:scale-105 transition-all">
+            <h3 className="text-2xl font-semibold text-primary mb-4">All-in-One Task Management</h3>
+            <p className="text-sm text-muted-foreground mb-6">Explore how NextGenTask Manager combines all essential tools in one platform for seamless task management.</p>
+            <button className="text-accent font-medium hover:underline">Read More</button>
+          </div>
         </div>
       </section>
       {/* Contact Us Section */}
@@ -476,6 +494,100 @@ export default function ProductMainPage() {
           <p className="mb-6 text-lg text-muted-foreground text-center animate-fade-in">For inquiries, partnerships, or support, email us at <a href="mailto:support@nextgentask.com" className="text-accent underline">support@nextgentask.com</a></p>
         </div>
       </section>
+      {/* Subtask Modal */}
+      {subtaskModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fade-in">
+            <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={() => setSubtaskModalOpen(false)}>&times;</button>
+            <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Subtask</h3>
+            <form className="flex flex-col gap-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Subtask Name"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <select
+                name="status"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              >
+                <option value="">Select Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <input
+                type="text"
+                name="assignee"
+                placeholder="Assignee"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <input
+                type="date"
+                name="date"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <button
+                type="button"
+                className="bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition"
+                onClick={() => {
+                  console.log("Subtask updated:");
+                  setSubtaskModalOpen(false);
+                }}
+              >
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Subtask Modal */}
+      {subtaskModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fade-in">
+            <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={() => setSubtaskModalOpen(false)}>&times;</button>
+            <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Subtask</h3>
+            <form className="flex flex-col gap-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Subtask Name"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <select
+                name="status"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              >
+                <option value="">Select Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <input
+                type="text"
+                name="assignee"
+                placeholder="Assignee"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <input
+                type="date"
+                name="date"
+                className="border border-border rounded-lg px-4 py-2 w-full"
+              />
+              <button
+                type="button"
+                className="bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition"
+                onClick={() => {
+                  console.log("Subtask updated:");
+                  setSubtaskModalOpen(false);
+                }}
+              >
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

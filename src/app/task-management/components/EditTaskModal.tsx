@@ -15,6 +15,7 @@ export interface EditTaskModalProps {
     subtasks: number;
     completedSubtasks: number;
     description?: string;
+    comments: string:
   };
   onSave: (updatedTask: EditTaskModalProps['task']) => void;
   onClose: () => void;
@@ -82,6 +83,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onSave, onClose }) 
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea name="description" value={form.description || ''} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
+          </div>
+           <div>
+            <label className="block text-sm font-medium mb-1"><Comments></Comments></label>
+            <textarea name="description" value={form.comments || ''} onChange={handleChange} className="w-full px-3 py-2 rounded border border-border" />
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-6">

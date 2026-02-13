@@ -2,6 +2,9 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
+import SubtaskView from "./SubtaskView";
+import EditSubtask from "./EditSubtask";
+import EditTask from "./EditTask";
 
 interface Subtask {
   id: string;
@@ -209,7 +212,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
             {tasks.map((task) => {
               const today = new Date();
               const endDate = new Date(task.endDate);
-              const isOverdue = endDate < today && task.status !== 'Completed';
+              const isOverdue = endDate < today && task.status !== "Completed";
               return (
                 <React.Fragment key={task.id}>
                   <tr>
@@ -277,42 +280,25 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                     <td className="px-4 py-3">
                       <button
                         type="button"
-                        aria-label="Edit task"
-                        className="p-2 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition-smooth"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onEditTask) onEditTask(task.id);
+                        className="bg-gradient-to-r from-primary to-accent text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition"
+                        onClick={() => {
+                          setEditingTaskId(task.id);
                         }}
                       >
-                        ✏️
+                        Edit Task
                       </button>
                     </td>
                   </tr>
                   {expandedTaskId === task.id && (
                     <tr className="bg-muted/5">
                       <td colSpan={10} className="pl-12 py-2">
-                        <div className="space-y-2">
-                          {Array.isArray(task.subtaskList) && task.subtaskList.length > 0
-                            ? task.subtaskList.map((subtask) => (
-                                <div key={subtask.id} className="flex items-center gap-4 py-1 border-b border-border">
-                                  <span className="font-caption text-sm text-foreground">{subtask.title}</span>
-                                  <span className={`font-caption text-xs px-2 py-1 rounded ${getStatusColor(subtask.status)}`}>{subtask.status}</span>
-                                  <button
-                                    type="button"
-                                    aria-label="Edit subtask"
-                                    className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-muted transition-smooth"
-                                    onClick={() => {
-                                      setEditingSubtask(subtask);
-                                      setEditingTaskId(task.id);
-                                    }}
-                                  >
-                                    ✏️
-                                  </button>
-                                </div>
-                              ))
-                            : <div className="font-caption text-xs text-muted-foreground">No subtasks available.</div>
-                          }
-                        </div>
+                        <SubtaskView
+                          subtasks={task.subtaskList || []}
+                          onEdit={(subtask) => {
+                            setEditingSubtask(subtask);
+                            setEditingTaskId(task.id);
+                          }}
+                        />
                       </td>
                     </tr>
                   )}
@@ -322,17 +308,42 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
           </tbody>
         </table>
         {editingSubtask && (
-          <SubtaskEditModal
+          <EditSubtask
             subtask={editingSubtask}
             onSave={(updated) => {
               if (!editingTaskId) return;
+              const updatedTasks = tasks.map((task) => {
+                if (task.id === editingTaskId) {
+                  return {
+                    ...task,
+                    subtaskList: task.subtaskList?.map((st) =>
+                      st.id === updated.id ? updated : st
+                    ),
+                  };
+                }
+                return task;
+              });
               setEditingSubtask(null);
               setEditingTaskId(null);
+              console.log("Updated tasks:", updatedTasks);
             }}
             onClose={() => {
               setEditingSubtask(null);
               setEditingTaskId(null);
             }}
+          />
+        )}
+        {editingTaskId && (
+          <EditTask
+            task={tasks.find((task) => task.id === editingTaskId)!}
+            onSave={(updatedTask) => {
+              const updatedTasks = tasks.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task
+              );
+              setEditingTaskId(null);
+              console.log("Updated tasks:", updatedTasks);
+            }}
+            onClose={() => setEditingTaskId(null)}
           />
         )}
       </div>
