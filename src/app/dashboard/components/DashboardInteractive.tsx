@@ -91,9 +91,9 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     {
       title: 'Subtasks',
       value: (
-        <>
+        <span>
           <SubtaskChart open={subtaskMetrics.open} inProgress={subtaskMetrics.inProgress} completed={subtaskMetrics.completed} />
-        </>
+        </span>
       ),
       change: 0,
       icon: '📝',
