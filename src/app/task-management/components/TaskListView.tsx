@@ -65,6 +65,9 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
   const [editingSubtask, setEditingSubtask] = useState<Subtask | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
+  const assigneeOptions = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown"];
+  const projectOptions = ["Website Redesign", "Mobile App", "API Integration", "Marketing Campaign"];
+
   const handleSort = (column: keyof Task) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -336,6 +339,8 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
         {editingTaskId && (
           <EditTask
             task={tasks.find((task) => task.id === editingTaskId)!}
+            assigneeOptions={assigneeOptions}
+            projectOptions={projectOptions}
             onSave={(updatedTask) => {
               const updatedTasks = tasks.map((task) =>
                 task.id === updatedTask.id ? updatedTask : task
