@@ -27,6 +27,8 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>(initialRole);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(2); // Initial unread notifications count
 
   const allProjects = [
     { id: 1, name: 'NextGen Mobile App Development' },
@@ -89,9 +91,9 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     {
       title: 'Subtasks',
       value: (
-        <div className="w-full h-full">
+        <>
           <SubtaskChart open={subtaskMetrics.open} inProgress={subtaskMetrics.inProgress} completed={subtaskMetrics.completed} />
-        </div>
+        </>
       ),
       change: 0,
       icon: '📝',
@@ -277,6 +279,13 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
   }];
 
 
+  const toggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+    if (!showNotifications) {
+      setUnreadCount(0); // Clear unread count when notifications are viewed
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <NavigationSidebar 
@@ -304,10 +313,27 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
                 onProjectChange={setSelectedProjectId}
               />
               <div className="relative">
-                <BellIcon className="h-6 w-6 text-foreground cursor-pointer" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  2
-                </span>
+                <button
+                  onClick={toggleNotifications}
+                  className="relative focus:outline-none"
+                >
+                  <BellIcon className="h-6 w-6 text-foreground cursor-pointer" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg p-4">
+                    <h4 className="font-bold text-sm text-foreground mb-2">Notifications</h4>
+                    <ul className="text-sm text-muted-foreground">
+                      <li className="mb-2">Task "Design mobile app wireframes" is due tomorrow.</li>
+                      <li className="mb-2">New comment on task "API endpoint documentation".</li>
+                      <li>Database schema optimization task is overdue.</li>
+                    </ul>
+                  </div>
+                )}
               </div>
               <ThemeToggle />
               <div className="h-8 w-px bg-border" />
