@@ -50,7 +50,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative animate-fade-in mt-16">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative animate-fade-in mt-16">
         <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
         <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Task</h3>
         <form className="grid grid-cols-2 gap-4">
@@ -59,12 +59,12 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Task Title"
-            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full"
+            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           />
           <select
             value={assignee}
             onChange={(e) => setAssignee(e.target.value)}
-            className="border border-border rounded-lg px-4 py-2 w-full"
+            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           >
             <option value="">Select Assignee</option>
             {assigneeOptions.map((option) => (
@@ -76,7 +76,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as "High" | "Medium" | "Low")}
-            className="border border-border rounded-lg px-4 py-2 w-full"
+            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           >
             <option value="High">High</option>
             <option value="Medium">Medium</option>
@@ -85,7 +85,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as "To Do" | "In Progress" | "Review" | "Completed")}
-            className="border border-border rounded-lg px-4 py-2 w-full"
+            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           >
             <option value="To Do">To Do</option>
             <option value="In Progress">In Progress</option>
@@ -98,7 +98,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full"
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
             />
           </div>
           <div className="flex flex-col">
@@ -107,7 +107,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full"
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
             />
           </div>
           <input
@@ -115,12 +115,12 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             value={progress}
             onChange={(e) => setProgress(Number(e.target.value))}
             placeholder="Progress (%)"
-            className="border border-border rounded-lg px-4 py-2 w-full"
+            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           />
           <select
             value={project}
             onChange={(e) => setProject(e.target.value)}
-            className="border border-border rounded-lg px-4 py-2 w-full"
+            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
           >
             <option value="">Select Project</option>
             {projectOptions.map((option) => (
@@ -133,13 +133,13 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description"
-            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none"
+            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground"
           />
           <textarea
             value={comments}
             onChange={(e) => setComments(e.target.value)}
             placeholder="Comments"
-            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none"
+            className="col-span-2 border border-border rounded-lg px-4 py-2 w-full h-24 resize-none bg-background text-foreground"
           />
           <div className="col-span-2 flex justify-end gap-4">
             <button

@@ -9,6 +9,8 @@ import MetricsCard from './MetricsCard';
 import TaskPriorityList from './TaskPriorityList';
 import ProjectHealthCard from './ProjectHealthCard';
 import ProductivityChart from './ProductivityChart';
+import SubtaskChart from './SubtaskChart';
+import { BellIcon } from '@heroicons/react/24/outline';
 
 import QuickActions from './QuickActions';
 import CalendarPreview from './CalendarPreview';
@@ -72,6 +74,12 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     }
   ];
 
+  const subtaskMetrics = {
+    open: allTasks.filter(task => task.status === 'Pending').length,
+    inProgress: allTasks.filter(task => task.status === 'In Progress').length,
+    completed: allTasks.filter(task => task.status === 'Completed').length
+  };
+
   // All data with project associations
   const allMetrics = [
     { title: 'Active Tasks', value: 24, change: 12, icon: '📋', variant: 'primary' as const, projectId: null },
@@ -80,16 +88,11 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null },
     {
       title: 'Subtasks',
-      value: `${allTasks.filter(task => task.status === 'Pending').length} Open, ${allTasks.filter(task => task.status === 'In Progress').length} In Progress, ${allTasks.filter(task => task.status === 'Completed').length} Completed`,
+      value: <div className="w-full h-full"><SubtaskChart open={subtaskMetrics.open} inProgress={subtaskMetrics.inProgress} completed={subtaskMetrics.completed} /></div>,
       change: 0,
       icon: '📝',
       variant: 'info' as const,
-      projectId: null,
-      styles: {
-        title: 'text-sm text-muted-foreground font-medium',
-        value: 'text-lg font-semibold text-foreground',
-        change: 'text-xs text-muted-foreground'
-      }
+      projectId: null
     }
   ];
 
@@ -296,7 +299,12 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
                 selectedProjectId={selectedProjectId}
                 onProjectChange={setSelectedProjectId}
               />
-              <NotificationCenter notifications={mockNotifications} />
+              <div className="relative">
+                <BellIcon className="h-6 w-6 text-foreground cursor-pointer" />
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  2
+                </span>
+              </div>
               <ThemeToggle />
               <div className="h-8 w-px bg-border" />
               <UserRoleIndicator
