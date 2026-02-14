@@ -103,7 +103,7 @@ const UserTable = ({
                   Team
                   <Icon name="ChevronUpDownIcon" size={14} variant="outline" />
                 </button>
-              </th>
+              </th> 
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('reportsTo')}
@@ -122,6 +122,7 @@ const UserTable = ({
                   <Icon name="ChevronUpDownIcon" size={14} variant="outline" />
                 </button>
               </th>
+              
               <th className="px-4 py-3 text-left">
                 <span className="font-caption font-medium text-xs text-muted-foreground">
                   Last Activity

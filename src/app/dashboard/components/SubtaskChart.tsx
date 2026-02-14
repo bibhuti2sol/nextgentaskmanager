@@ -20,13 +20,13 @@ interface SubtaskChartProps {
 
 const SubtaskChart: React.FC<SubtaskChartProps> = ({ open, inProgress, completed }) => {
   const data = {
-    labels: ['Open', 'In Progress', 'Completed', 'Total'],
+    labels: ['Open', 'In Progress', 'Completed'],
     datasets: [
       {
         label: 'Subtasks',
-        data: [open, inProgress, completed, open + inProgress + completed],
-        backgroundColor: ['#f87171', '#60a5fa', '#34d399', '#a78bfa'],
-        borderColor: ['#f87171', '#60a5fa', '#34d399', '#a78bfa'],
+        data: [open, inProgress, completed],
+        backgroundColor: ['#f87171', '#60a5fa', '#34d399'],
+        borderColor: ['#f87171', '#60a5fa', '#34d399'],
         borderWidth: 1
       }
     ]
@@ -55,9 +55,9 @@ const SubtaskChart: React.FC<SubtaskChartProps> = ({ open, inProgress, completed
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-center">
+    <span className="w-full h-full flex justify-center items-center">
       <Bar data={data} options={options} />
-    </div>
+    </span>
   );
 };
 
