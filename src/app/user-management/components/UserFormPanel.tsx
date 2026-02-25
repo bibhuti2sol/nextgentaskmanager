@@ -115,7 +115,7 @@ const UserFormPanel = ({
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/api/v1/users', {
+      const response = await axios.get('http://13.204.89.203:8080/api/swagger-ui/api/v1/users', {
         headers: {
           Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiaWJodXRpLm5leHQiLCJpZCI6NjMsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX0FETUlOIn1dLCJpYXQiOjE3NzE4Mzk5ODIsImV4cCI6MTc3MTkyNjM4Mn0.OzqDa6r3QAR6mkeoZ8nni9xXaHTtGTGA4NYXhbM0fdY`,
         },
