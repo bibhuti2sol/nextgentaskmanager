@@ -8,7 +8,6 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import TeamsManagement from './TeamsManagement';
 import DepartmentsManagement from './DepartmentsManagement';
 import Icon from '@/components/ui/AppIcon';
-import type { Department } from './DepartmentsManagement';
 
 export interface User {
   id: string;
@@ -22,6 +21,18 @@ export interface User {
   lastActivity: string;
   avatar: string;
   avatarAlt: string;
+}
+
+// Update the `Department` interface to include `head` and `teamCount`.
+export interface Department {
+  id: string;
+  name: string;
+  description: string;
+  headOfDepartment: string; // Existing property
+  head: string; // Added property
+  teamCount: number; // Added property
+  employeeCount: number;
+  status: 'Active' | 'Inactive';
 }
 
 type TabType = 'users' | 'teams' | 'departments';
@@ -146,6 +157,8 @@ const UserManagementInteractive = () => {
         name: 'Product Development',
         description: 'Core product development and engineering',
         headOfDepartment: 'Sarah Chen',
+        head: 'Sarah Chen',
+        teamCount: 3,
         employeeCount: 25,
         status: 'Active'
       },
@@ -154,6 +167,8 @@ const UserManagementInteractive = () => {
         name: 'Creative',
         description: 'Design and creative services',
         headOfDepartment: 'Emily Watson',
+        head: 'Emily Watson',
+        teamCount: 2,
         employeeCount: 15,
         status: 'Active'
       },
@@ -162,6 +177,8 @@ const UserManagementInteractive = () => {
         name: 'Growth',
         description: 'Marketing and business growth',
         headOfDepartment: 'Alex Thompson',
+        head: 'Alex Thompson',
+        teamCount: 2,
         employeeCount: 12,
         status: 'Active'
       },
@@ -170,6 +187,8 @@ const UserManagementInteractive = () => {
         name: 'Executive',
         description: 'Executive leadership and management',
         headOfDepartment: 'Bibhuti',
+        head: 'Bibhuti',
+        teamCount: 1,
         employeeCount: 5,
         status: 'Active'
       }

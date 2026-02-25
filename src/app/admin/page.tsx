@@ -1,7 +1,8 @@
+// Ensure SSR is fully disabled for the `/admin` page.
 "use client";
 
-import React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Icon from '@/components/ui/AppIcon';
 
 interface Subtask {
   id: string;
@@ -61,6 +62,11 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingSubtask, setEditingSubtask] = useState<Subtask | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSort = (column: keyof Task) => {
     if (sortColumn === column) {
@@ -110,6 +116,10 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
         return 'text-success bg-success/10';
     }
   };
+
+  if (!isClient) {
+    return null; // Prevent rendering during SSR
+  }
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">

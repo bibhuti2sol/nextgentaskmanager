@@ -32,6 +32,8 @@ interface Task {
   description: string;
   timeTracked: string;
   estimatedTime: string;
+  subtaskList?: { id: string; title: string; status: 'To Do' | 'In Progress' | 'Review' | 'Completed' }[];
+  comments: string; // Added property
 }
 
 const TaskManagementInteractive = () => {
@@ -75,6 +77,7 @@ const TaskManagementInteractive = () => {
     description: 'Design and implement a secure authentication system with JWT tokens, password hashing, and multi-factor authentication support. Ensure compliance with security best practices and OWASP guidelines.',
     timeTracked: '12h 30m',
     estimatedTime: '20h 00m',
+    comments: 'Initial implementation of JWT authentication completed.',
     subtaskList: [
       { id: '1-1', title: 'Set up JWT authentication', status: 'Completed' },
       { id: '1-2', title: 'Implement password hashing', status: 'In Progress' },
@@ -102,6 +105,7 @@ const TaskManagementInteractive = () => {
     description: 'Create comprehensive wireframes for all major screens in the mobile application, including user flows, navigation patterns, and interaction designs.',
     timeTracked: '18h 15m',
     estimatedTime: '20h 00m',
+    comments: 'Wireframes for home and profile screens approved.',
     subtaskList: [
       { id: '2-1', title: 'Home screen wireframe', status: 'Completed' },
       { id: '2-2', title: 'Profile screen wireframe', status: 'Completed' },
@@ -127,7 +131,8 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 0,
     description: 'Document all REST API endpoints with request/response examples, authentication requirements, and error handling specifications.',
     timeTracked: '0h 00m',
-    estimatedTime: '8h 00m'
+    estimatedTime: '8h 00m',
+    comments: 'Pending completion of API development.',
   },
   {
     id: '4',
@@ -147,7 +152,8 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 2,
     description: 'Analyze and optimize database queries, add proper indexes, and restructure tables for improved performance and scalability.',
     timeTracked: '9h 45m',
-    estimatedTime: '16h 00m'
+    estimatedTime: '16h 00m',
+    comments: 'Indexing of user table improved query performance by 30%.',
   },
   {
     id: '5',
@@ -167,7 +173,8 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 4,
     description: 'Create engaging visual assets for social media platforms including Instagram, Facebook, and LinkedIn with brand-consistent designs.',
     timeTracked: '12h 00m',
-    estimatedTime: '12h 00m'
+    estimatedTime: '12h 00m',
+    comments: 'All assets delivered and approved by the marketing team.',
   },
   {
     id: '6',
@@ -187,7 +194,8 @@ const TaskManagementInteractive = () => {
     completedSubtasks: 0,
     description: 'Prepare test scenarios, recruit participants, and set up testing environment for comprehensive user experience evaluation.',
     timeTracked: '0h 00m',
-    estimatedTime: '10h 00m'
+    estimatedTime: '10h 00m',
+    comments: 'Need to finalize test scenarios and recruit participants.',
   }]
   );
 
@@ -338,7 +346,16 @@ const TaskManagementInteractive = () => {
 
           {currentView === 'list' &&
           <TaskListView
-            tasks={filteredTasks}
+            tasks={filteredTasks.map((task) => ({
+              ...task,
+              assignee: task.assignee.name, // Convert `assignee` object to `name` string
+              subtaskList: task.subtaskList?.map((subtask) => ({
+                ...subtask,
+                assignee: '', // Default value for `assignee`
+                startDate: '', // Default value for `startDate`
+                endDate: '', // Default value for `endDate`
+              })),
+            }))}
             onTaskClick={handleTaskClick}
             onStatusChange={handleStatusChange}
             onEditTask={handleEditTask}
@@ -368,7 +385,10 @@ const TaskManagementInteractive = () => {
 
       {editTaskId && (
         <EditTaskModal
-          task={tasks.find((t) => t.id === editTaskId)!}
+          task={{
+            ...tasks.find((t) => t.id === editTaskId)!,
+            assignee: tasks.find((t) => t.id === editTaskId)?.assignee.name || '', // Convert `assignee` object to `name` string
+          }}
           onSave={handleSaveTask}
           onClose={() => setEditTaskId(null)}
         />

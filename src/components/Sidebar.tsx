@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
+import Icon from '@/components/ui/AppIcon';
 
 interface Subtask {
   id: string;

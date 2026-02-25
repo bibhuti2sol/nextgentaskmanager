@@ -6,11 +6,12 @@ import Icon from '@/components/ui/AppIcon';
 export interface Department {
   id: string;
   name: string;
+  description: string;
+  headOfDepartment: string; // Added property to match
   head: string;
   teamCount: number;
   employeeCount: number;
   status: 'Active' | 'Inactive';
-  description: string;
 }
 
 interface DepartmentsManagementProps {
@@ -26,6 +27,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
   const [formData, setFormData] = useState<Omit<Department, 'id'>>({
     name: '',
     head: '',
+    headOfDepartment: '', // Added property
     teamCount: 0,
     employeeCount: 0,
     status: 'Active',
@@ -41,7 +43,8 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         teamCount: 3,
         employeeCount: 25,
         status: 'Active',
-        description: 'Product development and engineering'
+        description: 'Product development and engineering',
+        headOfDepartment: 'Sarah Chen' // Added property to match
       },
       {
         id: '2',
@@ -50,7 +53,8 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         teamCount: 2,
         employeeCount: 15,
         status: 'Active',
-        description: 'Design and creative services'
+        description: 'Design and creative services',
+        headOfDepartment: 'Emily Watson' // Added property to match
       },
       {
         id: '3',
@@ -59,7 +63,8 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         teamCount: 2,
         employeeCount: 12,
         status: 'Active',
-        description: 'Marketing and business growth'
+        description: 'Marketing and business growth',
+        headOfDepartment: 'Alex Thompson' // Added property to match
       },
       {
         id: '4',
@@ -68,7 +73,8 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         teamCount: 1,
         employeeCount: 5,
         status: 'Active',
-        description: 'Executive leadership and management'
+        description: 'Executive leadership and management',
+        headOfDepartment: 'Bibhuti' // Added property to match
       }
     ];
     setDepartments(mockDepartments);
@@ -92,6 +98,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     setFormData({
       name: '',
       head: '',
+      headOfDepartment: '', // Added property
       teamCount: 0,
       employeeCount: 0,
       status: 'Active',
@@ -105,6 +112,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     setFormData({
       name: department.name,
       head: department.head,
+      headOfDepartment: department.head, // Added property
       teamCount: department.teamCount,
       employeeCount: department.employeeCount,
       status: department.status,
@@ -131,7 +139,8 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     } else {
       const newDepartment: Department = {
         ...formData,
-        id: Date.now().toString()
+        id: Date.now().toString(),
+        headOfDepartment: formData.head // Added property to match
       };
       const updatedDepartments = [...departments, newDepartment];
       setDepartments(updatedDepartments);

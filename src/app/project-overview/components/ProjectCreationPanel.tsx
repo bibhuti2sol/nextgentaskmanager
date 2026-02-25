@@ -10,6 +10,8 @@ interface ProjectCreationPanelProps {
 }
 
 export interface ProjectFormData {
+  id: string; // Added `id` property
+  name: string; // Added `name` property
   projectName: string;
   description: string;
   startDate: string;
@@ -19,10 +21,15 @@ export interface ProjectFormData {
   projectManager: string;
   teamMembers: string[];
   status: 'Planning' | 'In Progress' | 'On Hold' | 'Completed';
+  progress: number; // Added `progress` property
+  owner: string; // Added `owner` property
+  team: number; // Added `team` property
 }
 
 const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPanelProps) => {
   const [formData, setFormData] = useState<ProjectFormData>({
+    id: '',
+    name: '',
     projectName: '',
     description: '',
     startDate: '',
@@ -31,7 +38,10 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
     priority: 'Medium',
     projectManager: '',
     teamMembers: [],
-    status: 'Planning'
+    status: 'Planning',
+    progress: 0, // Initialize progress
+    owner: '', // Initialize owner
+    team: 0, // Initialize team
   });
   const [projectType, setProjectType] = useState<'normal' | 'budget'>('normal');
 
@@ -68,6 +78,10 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
       newErrors.projectManager = 'Project manager is required';
     }
 
+    if (!formData.owner.trim()) {
+      newErrors.owner = 'Owner is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,6 +96,8 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
 
   const handleReset = () => {
     setFormData({
+      id: '',
+      name: '',
       projectName: '',
       description: '',
       startDate: '',
@@ -90,7 +106,10 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
       priority: 'Medium',
       projectManager: '',
       teamMembers: [],
-      status: 'Planning'
+      status: 'Planning',
+      progress: 0, // Reset progress
+      owner: '', // Reset owner
+      team: 0, // Reset team
     });
     setErrors({});
   };
@@ -289,6 +308,25 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
             </select>
             {errors.projectManager && (
               <p className="mt-1 font-caption text-xs text-destructive">{errors.projectManager}</p>
+            )}
+          </div>
+
+          {/* Owner */}
+          <div>
+            <label className="block font-caption text-sm font-medium text-foreground mb-2">
+              Owner <span className="text-destructive">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.owner}
+              onChange={(e) => handleChange('owner', e.target.value)}
+              className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
+                errors.owner ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="Enter owner's name"
+            />
+            {errors.owner && (
+              <p className="mt-1 font-caption text-xs text-destructive">{errors.owner}</p>
             )}
           </div>
 

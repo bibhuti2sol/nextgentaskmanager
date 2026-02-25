@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import SubtaskView from "./SubtaskView";
 import EditSubtask from "./EditSubtask";
 import EditTask from "./EditTask";
+import Icon from '@/components/ui/AppIcon';
 
 interface Subtask {
   id: string;
@@ -92,11 +93,7 @@ const SubtaskEditModal = ({ subtask, onSave, onClose }: SubtaskEditModalProps) =
 interface Task {
   id: string;
   title: string;
-  assignee: {
-    name: string;
-    avatar: string;
-    alt: string;
-  };
+  assignee: string; // Changed from object to string
   priority: 'High' | 'Medium' | 'Low';
   status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
   startDate: string;
@@ -106,6 +103,8 @@ interface Task {
   subtasks: number;
   completedSubtasks: number;
   subtaskList?: Subtask[];
+  description: string; // Added property
+  comments: string; // Added property
 }
 
 interface TaskListViewProps {
@@ -325,7 +324,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                             className="w-full h-full object-cover"
                           /> */}
                         </div>
-                        <span className="font-caption text-sm text-foreground">{task.assignee.name}</span>
+                        <span className="font-caption text-sm text-foreground">{task.assignee}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -401,7 +400,12 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
         )}
         {editingTaskId && !editingSubtask && (
           <EditTask
-            task={tasks.find((task) => task.id === editingTaskId)!}
+            task={{
+              ...tasks.find((task) => task.id === editingTaskId)!,
+              assignee: tasks.find((task) => task.id === editingTaskId)?.assignee || '',
+              description: tasks.find((task) => task.id === editingTaskId)?.description || '',
+              comments: tasks.find((task) => task.id === editingTaskId)?.comments || '',
+            }}
             assigneeOptions={assigneeOptions}
             projectOptions={projectOptions}
             onSave={(updatedTask) => {
