@@ -106,6 +106,15 @@ const UserTable = ({
               </th> 
               <th className="px-4 py-3 text-left">
                 <button
+                  onClick={() => handleSort('department')}
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                >
+                  Department
+                  <Icon name="ChevronUpDownIcon" size={14} variant="outline" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button
                   onClick={() => handleSort('reportsTo')}
                   className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
                 >
@@ -184,16 +193,13 @@ const UserTable = ({
                   </div>
                 </td>
                 <td className="px-4 py-4">
-                  <p className="font-caption text-sm text-foreground">{user.reportsTo}</p>
+                  <p className="font-caption text-sm text-foreground">{user.department || 'N/A'}</p>
                 </td>
                 <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full font-caption text-xs font-medium ${
-                      getStatusColor(user.status)
-                    }`}
-                  >
-                    {user.status}
-                  </span>
+                  <p className="font-caption text-sm text-foreground">{user.reportsTo || 'N/A'}</p>
+                </td>
+                <td className="px-4 py-4">
+                  <p className="font-caption text-sm text-foreground">{user.status}</p>
                 </td>
                 <td className="px-4 py-4">
                   <p className="font-caption text-sm text-muted-foreground">
