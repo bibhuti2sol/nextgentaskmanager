@@ -14,6 +14,8 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
   const [startDate, setStartDate] = useState(subtask?.startDate || "");
   const [endDate, setEndDate] = useState(subtask?.endDate || "");
 
+  const assigneeOptions = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown"];
+
   const handleSave = () => {
     onSave({
       id: subtask?.id || "", // Ensure id is not undefined
@@ -49,13 +51,18 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
             <option value="Review">Review</option>
             <option value="Completed">Completed</option>
           </select>
-          <input
-            type="text"
+          <select
             value={assignee}
             onChange={(e) => setAssignee(e.target.value)}
-            placeholder="Assignee"
             className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          />
+          >
+            <option value="">Select Assignee</option>
+            {assigneeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
           <input
             type="date"
             value={startDate}

@@ -62,7 +62,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card rounded-2xl shadow-2xl p-6 max-w-4xl w-full relative animate-fade-in mt-44">
+      <div className="bg-card rounded-2xl shadow-2xl p-6 max-w-4xl w-full relative animate-fade-in" style={{ margin: '12vh auto', maxHeight: '70vh', overflowY: 'auto' }}>
         <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
         <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Task</h3>
         <form className="grid grid-cols-4 gap-4">
