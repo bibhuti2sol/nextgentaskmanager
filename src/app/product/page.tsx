@@ -10,6 +10,12 @@ import {
   ArcElement,
   Tooltip,
   Legend,
+  CoreChartOptions,
+  ElementChartOptions,
+  PluginChartOptions,
+  DatasetChartOptions,
+  ScaleChartOptions,
+  DoughnutControllerChartOptions,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
@@ -36,13 +42,14 @@ const heroPieData = {
   ],
 };
 
+// Remove the `_DeepPartialObject` import and use a generic type assertion for `heroPieOptions`.
 const heroPieOptions = {
   responsive: true,
   cutout: "0%", // Make it a full pie, not donut
   plugins: {
     legend: {
       display: true,
-      position: "bottom" as const,
+      position: "bottom",
       labels: {
         font: { size: 16, family: "inherit" },
         color: "#22223b",
@@ -81,12 +88,12 @@ const heroPieOptions = {
       borderRadius: 4,
       backgroundColor: (context: any) => context.dataset.backgroundColor[context.dataIndex],
       padding: 6,
-      anchor: "center",
-      align: "center",
+      anchor: "center", // Valid type
+      align: "center", // Valid type
       formatter: function (value: number, context: any) {
         const data = context.chart.data.datasets[0].data;
         const total = data.reduce((a: number, b: number) => a + b, 0);
-        const percent = total ? ((value / total) * 100).toFixed(0) : 0;
+        const percent = total ? parseFloat(((value / total) * 100).toFixed(0)) : 0;
         // Only show if > 5% for realism
         return percent > 5 ? `${percent}%` : "";
       },
@@ -99,7 +106,7 @@ const heroPieOptions = {
     animateRotate: true,
     animateScale: true,
   },
-};
+} as const;
 
 const features = [
   {

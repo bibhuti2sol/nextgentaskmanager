@@ -73,8 +73,10 @@ const ProjectOverviewInteractive = () => {
   const [projects, setProjects] = useState<ProjectFormData[]>([
     {
       id: 'proj-1',
-      name: 'NextGenTaskManager - Phase 1 MVP',
-      status: 'active',
+      name: 'NextGenTaskManager',
+      projectName: 'NextGenTaskManager',
+      description: 'A comprehensive task management tool for modern teams.',
+      status: 'In Progress',
       progress: 78,
       startDate: '2026-01-15',
       endDate: '2026-04-30',
@@ -82,11 +84,15 @@ const ProjectOverviewInteractive = () => {
       budget: '$125,000',
       team: 8,
       priority: 'High',
+      projectManager: 'Sarah Johnson',
+      teamMembers: ['Michael Chen', 'Emily Rodriguez', 'David Kim'],
     },
     {
       id: 'proj-2',
       name: 'Mobile App Development',
-      status: 'active',
+      projectName: 'Mobile App Development',
+      description: 'Developing a cross-platform mobile application.',
+      status: 'In Progress',
       progress: 45,
       startDate: '2026-02-01',
       endDate: '2026-06-15',
@@ -94,11 +100,15 @@ const ProjectOverviewInteractive = () => {
       budget: '$85,000',
       team: 5,
       priority: 'High',
+      projectManager: 'Michael Chen',
+      teamMembers: ['Emily Rodriguez', 'Jessica Taylor'],
     },
     {
       id: 'proj-3',
       name: 'API Integration Project',
-      status: 'on-hold',
+      projectName: 'API Integration Project',
+      description: 'Integrating third-party APIs for enhanced functionality.',
+      status: 'On Hold',
       progress: 30,
       startDate: '2026-01-20',
       endDate: '2026-05-10',
@@ -106,11 +116,15 @@ const ProjectOverviewInteractive = () => {
       budget: '$45,000',
       team: 3,
       priority: 'Medium',
+      projectManager: 'Emily Rodriguez',
+      teamMembers: ['David Kim'],
     },
     {
       id: 'proj-4',
       name: 'Database Migration',
-      status: 'completed',
+      projectName: 'Database Migration',
+      description: 'Migrating legacy databases to a modern cloud platform.',
+      status: 'Completed',
       progress: 100,
       startDate: '2025-12-01',
       endDate: '2026-01-31',
@@ -118,11 +132,15 @@ const ProjectOverviewInteractive = () => {
       budget: '$32,000',
       team: 4,
       priority: 'High',
+      projectManager: 'Jessica Taylor',
+      teamMembers: ['Michael Chen', 'David Kim'],
     },
     {
       id: 'proj-5',
       name: 'Marketing Website Launch',
-      status: 'completed',
+      projectName: 'Marketing Website Launch',
+      description: 'Launching a new marketing website for the company.',
+      status: 'Completed',
       progress: 100,
       startDate: '2025-11-01',
       endDate: '2026-01-15',
@@ -130,6 +148,8 @@ const ProjectOverviewInteractive = () => {
       budget: '$28,000',
       team: 3,
       priority: 'Low',
+      projectManager: 'Amanda Wilson',
+      teamMembers: ['Sarah Johnson'],
     },
   ]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
@@ -497,7 +517,13 @@ const ProjectOverviewInteractive = () => {
             <div className="p-6">
               {activeTab === 'list' &&
                 <ProjectListView
-                  projects={projects}
+                  projects={projects.map((project) => ({
+                    ...project,
+                    status: project.status === 'In Progress' ? 'active'
+                           : project.status === 'Completed' ? 'completed'
+                           : project.status === 'On Hold' ? 'on-hold'
+                           : 'at-risk', // Default mapping for unmatched statuses
+                  }))}
                   onEdit={setEditProjectId}
                   onDelete={(id) => setProjects(projects.filter(p => p.id !== id))}
                   currentRole={currentRole}
@@ -571,9 +597,24 @@ const ProjectOverviewInteractive = () => {
 
       {editProjectId && (
         <EditProjectModal
-          project={projects.find((p) => p.id === editProjectId)!}
+          project={{
+            ...projects.find((p) => p.id === editProjectId)!,
+            status: projects.find((p) => p.id === editProjectId)!.status === 'In Progress' ? 'active'
+                   : projects.find((p) => p.id === editProjectId)!.status === 'Completed' ? 'completed'
+                   : projects.find((p) => p.id === editProjectId)!.status === 'On Hold' ? 'on-hold'
+                   : 'at-risk',
+          }}
           onSave={(updatedProject) => {
-            setProjects(projects.map((p) => p.id === updatedProject.id ? updatedProject : p));
+            const existingProject = projects.find((p) => p.id === updatedProject.id)!;
+            const mappedProject: ProjectFormData = {
+              ...existingProject,
+              ...updatedProject,
+              status: updatedProject.status === 'active' ? 'In Progress'
+                     : updatedProject.status === 'completed' ? 'Completed'
+                     : updatedProject.status === 'on-hold' ? 'On Hold'
+                     : 'Planning',
+            };
+            setProjects(projects.map((p) => p.id === updatedProject.id ? mappedProject : p));
             setEditProjectId(null);
           }}
           onClose={() => setEditProjectId(null)}

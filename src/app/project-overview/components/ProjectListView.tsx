@@ -45,7 +45,8 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete, currentRole
     Low: 'text-success'
   };
 
-  const filteredProjects = propProjects
+  // Ensure `propProjects` is defined before filtering.
+  const filteredProjects = (propProjects ?? [])
     .filter(project => {
       const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            project.owner.toLowerCase().includes(searchQuery.toLowerCase());

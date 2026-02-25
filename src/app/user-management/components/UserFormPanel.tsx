@@ -20,14 +20,22 @@ const UserFormPanel = ({
   editingUser,
   existingUsers,
 }: UserFormPanelProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    role: 'Admin' | 'Manager' | 'Associate'; // Updated type
+    team: string;
+    department: string;
+    reportsTo: string;
+    status: 'Active' | 'Inactive'; // Updated type
+  }>({
     name: '',
     email: '',
-    role: 'Associate\' as \'Admin\' | \'Manager\' | \'Associate',
+    role: 'Associate',
     team: '',
     department: '',
     reportsTo: '',
-    status: 'Active\' as \'Active\' | \'Inactive',
+    status: 'Active',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

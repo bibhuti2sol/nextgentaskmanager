@@ -97,7 +97,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       ),
       change: 0,
       icon: '📝',
-      variant: 'info' as const,
+      variant: 'primary' as const,
       projectId: null
     }
   ];
@@ -351,7 +351,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
           {/* Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {mockMetrics.map((metric, index) =>
-            <MetricsCard key={index} {...metric} />
+            <MetricsCard key={index} {...metric} value={String(metric.value)} />
             )}
           </div>
 

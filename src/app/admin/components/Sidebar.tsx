@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
+import Icon from '@/components/ui/AppIcon';
 
 interface Subtask {
   id: string;
@@ -54,13 +55,25 @@ interface TaskListViewProps {
   onEditTask?: (taskId: string) => void;
 }
 
-const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskListViewProps) => {
+const TaskListView = ({ tasks: initialTasks = [], onTaskClick, onStatusChange, onEditTask }: TaskListViewProps) => {
   const [sortColumn, setSortColumn] = useState<keyof Task | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingSubtask, setEditingSubtask] = useState<Subtask | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
+  // Ensure `tasks` and `selectedTasks` are initialized with default values.
+  const tasks: Task[] = Array.isArray(initialTasks) ? initialTasks : []; // Ensure tasks is always an array
+  const selectedTasksState: string[] = Array.isArray(selectedTasks) ? selectedTasks : []; // Ensure selectedTasks is always an array
+
+  // Add nullish coalescing to safely handle undefined values.
+  const hasSelectedTasks = (selectedTasksState?.length ?? 0) > 0;
+  const hasTasks = (tasks?.length ?? 0) > 0;
+
+  // Ensure all `map` and `length` operations are guarded.
+  const safeTasks = tasks ?? []; // Default to an empty array if tasks is undefined
+  const safeSelectedTasks = selectedTasksState ?? []; // Default to an empty array if selectedTasksState is undefined
 
   const handleSort = (column: keyof Task) => {
     if (sortColumn === column) {
@@ -72,15 +85,15 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
   };
 
   const handleSelectTask = (taskId: string) => {
-    if (selectedTasks.includes(taskId)) {
-      setSelectedTasks(selectedTasks.filter((id) => id !== taskId));
+    if (selectedTasksState.includes(taskId)) {
+      setSelectedTasks(selectedTasksState.filter((id) => id !== taskId));
     } else {
-      setSelectedTasks([...selectedTasks, taskId]);
+      setSelectedTasks([...selectedTasksState, taskId]);
     }
   };
 
   const handleSelectAll = () => {
-    if (selectedTasks.length === tasks.length) {
+    if (selectedTasksState.length === tasks.length) {
       setSelectedTasks([]);
     } else {
       setSelectedTasks(tasks.map((task) => task.id));
@@ -113,10 +126,10 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
-      {selectedTasks.length > 0 && (
+      {selectedTasksState.length > 0 && (
         <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border-b border-border">
           <span className="font-caption text-sm text-foreground">
-            {selectedTasks.length} task{selectedTasks.length > 1 ? 's' : ''} selected
+            {selectedTasksState.length} task{selectedTasksState.length > 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-md text-xs font-caption font-medium text-foreground hover:bg-muted transition-smooth">
@@ -141,7 +154,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
               <th>
                 <input
                   type="checkbox"
-                  checked={selectedTasks.length === tasks.length}
+                  checked={selectedTasksState.length === tasks.length}
                   onChange={handleSelectAll}
                   className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
                 />
@@ -216,7 +229,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask }: TaskLi
                     <td>
                       <input
                         type="checkbox"
-                        checked={selectedTasks.includes(task.id)}
+                        checked={selectedTasksState.includes(task.id)}
                         onChange={() => handleSelectTask(task.id)}
                         className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
                       />
