@@ -43,6 +43,7 @@ interface Task {
   endDate: string;
   progress: number;
   project: string;
+  department?: string; // Add department field
   subtasks: number;
   completedSubtasks: number;
   subtaskList?: Subtask[];
@@ -216,6 +217,14 @@ const TaskListView = ({ tasks: initialTasks = [], onTaskClick, onStatusChange, o
               <th className="px-4 py-3 text-left">
                 <span className="font-caption font-medium text-xs text-muted-foreground">Actions</span>
               </th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={() => handleSort('department')}
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                >
+                  Department
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -299,6 +308,9 @@ const TaskListView = ({ tasks: initialTasks = [], onTaskClick, onStatusChange, o
                       >
                         ✏️
                       </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-caption text-sm text-foreground">{task.department || 'N/A'}</span>
                     </td>
                   </tr>
                   {expandedTaskId === task.id && (
