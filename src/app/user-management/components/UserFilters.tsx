@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ui/AppIcon';
+import { useState } from 'react';
 
 interface UserFiltersProps {
   searchQuery: string;
@@ -23,6 +24,18 @@ const UserFilters = ({
   statusFilter,
   onStatusFilterChange,
 }: UserFiltersProps) => {
+  const [users, setUsers] = useState([]);
+
+  const fetchUsers = async () => {
+    try {
+      // Replace the API call with a placeholder or mock data
+      const response = { data: [] }; // Mocked empty data
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

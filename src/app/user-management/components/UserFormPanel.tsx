@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import type { User } from './UserManagementInteractive';
-import axios from 'axios';
 
 interface UserFormPanelProps {
   isOpen: boolean;
@@ -39,6 +38,7 @@ const UserFormPanel = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [users, setUsers] = useState<Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]>([]);
 
   useEffect(() => {
     if (editingUser) {
@@ -113,13 +113,10 @@ const UserFormPanel = ({
     (u) => (u.role === 'Admin' || u.role === 'Manager') && u.id !== editingUser?.id
   );
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (): Promise<Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]> => {
     try {
-      const response = await axios.get('http://localhost:8081/api/v1/users', {
-        headers: {
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiaWJodXRpLm5leHQiLCJpZCI6NjMsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX0FETUlOIn1dLCJpYXQiOjE3NzE4Mzk5ODIsImV4cCI6MTc3MTkyNjM4Mn0.OzqDa6r3QAR6mkeoZ8nni9xXaHTtGTGA4NYXhbM0fdY`,
-        },
-      });
+      // Replace the API call with a placeholder or mock data
+      const response = { data: [] }; // Mocked empty data
       return response.data;
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -131,13 +128,23 @@ const UserFormPanel = ({
     const loadUsers = async () => {
       const users = await fetchUsers();
       // Update the existingUsers state with the fetched users
-      onSave(users);
+      handleSave(users);
     };
 
     if (isOpen) {
       loadUsers();
     }
   }, [isOpen]);
+
+  const handleSave = (users: Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]) => {
+    // Update the existingUsers state with the fetched users
+    setUsers((prevUsers) => [...prevUsers, ...users]);
+  };
+
+  const handleSaveUsers = async () => {
+    const users = await fetchUsers();
+    handleSave(users); // Pass the entire array to handleSave
+  };
 
   if (!isOpen) return null;
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
+import EditUserPanel from './EditUserPanel';
 import type { User } from './UserManagementInteractive';
 
 interface UserTableProps {
@@ -22,6 +23,8 @@ const UserTable = ({
 }: UserTableProps) => {
   const [sortColumn, setSortColumn] = useState<keyof User | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleSort = (column: keyof User) => {
     if (sortColumn === column) {
@@ -46,6 +49,13 @@ const UserTable = ({
     } else {
       onSelectUsers([...selectedUsers, userId]);
     }
+  };
+
+  const handleEditUser = (user: User) => {
+    console.log('Edit user triggered for:', user); // Debug log
+    setSelectedUser(user);
+    setIsEditPanelOpen(true);
+    console.log('isEditPanelOpen:', isEditPanelOpen); // Debug log
   };
 
   const getRoleColor = (role: User['role']) => {
@@ -209,8 +219,9 @@ const UserTable = ({
                 <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => onEditUser(user)}
-                      className="p-2 rounded-md text-primary hover:bg-primary/10 transition-smooth"
+                      type="button"
+                      onClick={() => handleEditUser(user)}
+                      className="p-2 rounded-md text-primary hover:bg-primary/10 transition-smooth focus:outline-none focus:ring-2 focus:ring-primary"
                       aria-label="Edit user"
                     >
                       <Icon name="PencilIcon" size={16} variant="outline" />
@@ -242,6 +253,22 @@ const UserTable = ({
             No users found matching your filters
           </p>
         </div>
+      )}
+
+      {isEditPanelOpen && selectedUser && (
+        <EditUserPanel
+          user={selectedUser}
+          users={users} // Pass the list of users to the EditUserPanel
+          onClose={() => setIsEditPanelOpen(false)}
+          onSave={(updatedUser) => {
+            console.log('User saved:', updatedUser); // Debug log
+            const updatedUsers = users.map((u) =>
+              u.id === updatedUser.id ? updatedUser : u
+            );
+            onSelectUsers(updatedUsers.map((u) => u.id));
+            setIsEditPanelOpen(false);
+          }}
+        />
       )}
     </div>
   );
