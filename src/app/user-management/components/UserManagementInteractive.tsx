@@ -53,29 +53,50 @@ const UserManagementInteractive = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
 
   useEffect(() => {
-    // Fetch users from the API
     const fetchUsers = async () => {
       try {
-        const response = await fetch('https://dummyjson.com/users');
-        const data = await response.json();
-        const apiUsers: User[] = data.users.map((user: any) => ({
+        const response = await fetch("http://43.205.137.114:8080/api/v1/users", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result?.data) {
+          throw new Error("Invalid API response");
+        }
+
+        const apiUsers: User[] = result.data.map((user: any) => ({
           id: user.id.toString(),
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
-          role: 'Associate', // Default role as 'Associate'
-          team: 'General', // Default team
-          department: 'General', // Default department
-          reportsTo: 'None', // Default reportsTo
-          status: user.isActive ? 'Active' : 'Inactive',
-          lastActivity: 'Unknown', // Default last activity
-          avatar: user.image,
-          avatarAlt: `${user.firstName} ${user.lastName} profile picture`
+          role:
+            user.roles?.[0]?.replace("ROLE_", "") === "ADMIN"
+              ? "Admin"
+              : user.roles?.[0]?.replace("ROLE_", "") === "MANAGER"
+              ? "Manager"
+              : "Associate",
+          team: user.teamName || "General",
+          department: user.departmentName || "General",
+          reportsTo: user.managerName || "None",
+          status: user.enabled ? "Active" : "Inactive",
+          lastActivity: "Unknown",
+          avatar: "https://via.placeholder.com/150",
+          avatarAlt: `${user.firstName} ${user.lastName} profile picture`,
         }));
 
         setUsers(apiUsers);
         setFilteredUsers(apiUsers);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error("Error fetching users:", error);
       }
     };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import axios, { AxiosError } from 'axios';
 
 export interface Department {
   id: string;
@@ -12,6 +13,7 @@ export interface Department {
   teamCount: number;
   employeeCount: number;
   status: 'Active' | 'Inactive';
+  departmentHeadName?: string; // Added property to match API response
 }
 
 interface DepartmentsManagementProps {
@@ -33,65 +35,82 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     status: 'Active',
     description: ''
   });
+  const [departmentHeads, setDepartmentHeads] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
-    const mockDepartments: Department[] = [
-      {
-        id: '1',
-        name: 'Product Development',
-        head: 'Sarah Chen',
-        teamCount: 3,
-        employeeCount: 25,
-        status: 'Active',
-        description: 'Product development and engineering',
-        headOfDepartment: 'Sarah Chen' // Added property to match
-      },
-      {
-        id: '2',
-        name: 'Creative',
-        head: 'Emily Watson',
-        teamCount: 2,
-        employeeCount: 15,
-        status: 'Active',
-        description: 'Design and creative services',
-        headOfDepartment: 'Emily Watson' // Added property to match
-      },
-      {
-        id: '3',
-        name: 'Growth',
-        head: 'Alex Thompson',
-        teamCount: 2,
-        employeeCount: 12,
-        status: 'Active',
-        description: 'Marketing and business growth',
-        headOfDepartment: 'Alex Thompson' // Added property to match
-      },
-      {
-        id: '4',
-        name: 'Executive',
-        head: 'Bibhuti',
-        teamCount: 1,
-        employeeCount: 5,
-        status: 'Active',
-        description: 'Executive leadership and management',
-        headOfDepartment: 'Bibhuti' // Added property to match
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        });
+
+        if (response.status === 200 && Array.isArray(response.data)) {
+          setDepartments(response.data);
+          setFilteredDepartments(response.data);
+        } else {
+          console.error('Unexpected response format:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
       }
-    ];
-    setDepartments(mockDepartments);
-    setFilteredDepartments(mockDepartments);
+    };
+
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
     let filtered = departments;
     if (searchQuery) {
-      filtered = filtered.filter(
-        (dept) =>
+      filtered = departments.filter(
+        (dept: Department) =>
           dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           dept.head.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     setFilteredDepartments(filtered);
   }, [searchQuery, departments]);
+
+  const fetchDepartmentHeads = async (): Promise<{ id: string; name: string }[]> => {
+    try {
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments/heads/eligible', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+
+      if (response.status === 200 && Array.isArray(response.data)) {
+        return response.data.map((head: any) => ({
+          id: head.id,
+          name: head.fullName, // Updated to use fullName for dropdown display
+        }));
+      } else {
+        console.error('Unexpected response format:', response.data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching department heads:', error);
+      return [];
+    }
+  };
+
+  const loadDepartmentHeads = async () => {
+    try {
+      const heads = await fetchDepartmentHeads();
+      setDepartmentHeads(heads);
+    } catch (error) {
+      console.error('Error loading department heads:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isFormOpen) {
+      loadDepartmentHeads();
+    }
+  }, [isFormOpen]);
 
   const handleAddDepartment = () => {
     setEditingDepartment(null);
@@ -107,47 +126,149 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     setIsFormOpen(true);
   };
 
-  const handleEditDepartment = (department: Department) => {
+  const handleEditDepartment = async (department: Department) => {
     setEditingDepartment(department);
     setFormData({
       name: department.name,
-      head: department.head,
-      headOfDepartment: department.head, // Added property
+      head: department.departmentHeadName || '',
+      headOfDepartment: department.departmentHeadName || '',
       teamCount: department.teamCount,
       employeeCount: department.employeeCount,
       status: department.status,
-      description: department.description
+      description: department.description,
     });
+
+    // Fetch department heads when editing a department
+    await loadDepartmentHeads();
+
     setIsFormOpen(true);
   };
 
-  const handleDeleteDepartment = (departmentId: string) => {
+  const handleDeleteDepartment = async (departmentId: string) => {
+    if (!departmentId) {
+      console.error('Invalid department ID. Cannot proceed with deletion.');
+      alert('Invalid department ID. Please try again.');
+      return;
+    }
+
     if (confirm('Are you sure you want to delete this department?')) {
-      const updatedDepartments = departments.filter((d) => d.id !== departmentId);
-      setDepartments(updatedDepartments);
-      onDepartmentUpdate?.(updatedDepartments);
+      const maxRetries = 3;
+      let attempt = 0;
+      let success = false;
+
+      while (attempt < maxRetries && !success) {
+        try {
+          console.log(`Attempt ${attempt + 1}: Attempting to delete department with ID: ${departmentId}`);
+          const response = await axios.delete(`http://43.205.137.114:8080/api/v1/departments/${departmentId}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            },
+          });
+
+          if (response.status === 200) {
+            console.log(`Department with ID: ${departmentId} deleted successfully.`);
+            const updatedDepartments = departments.filter((d: Department) => d.id !== departmentId);
+            setDepartments(updatedDepartments);
+            setFilteredDepartments(updatedDepartments);
+            onDepartmentUpdate?.(updatedDepartments);
+            success = true;
+          } else {
+            console.error(`Failed to delete department. Status: ${response.status}, Response:`, response.data);
+          }
+        } catch (err) {
+          const error = err as AxiosError;
+          console.error('Error deleting department:', error);
+          if (error.response) {
+            console.error(`Server responded with status: ${error.response.status}`);
+            console.error('Response data:', error.response.data);
+          } else {
+            console.error('No response received from server:', error.message);
+          }
+        }
+
+        attempt++;
+        if (!success && attempt < maxRetries) {
+          console.log('Retrying deletion...');
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        }
+      }
+
+      if (!success) {
+        console.error(`Failed to delete department with ID: ${departmentId} after ${maxRetries} attempts.`);
+        alert('Failed to delete the department. Please try again later.');
+      }
     }
   };
 
-  const handleSaveDepartment = () => {
-    if (editingDepartment) {
-      const updatedDepartments = departments.map((d) =>
-        d.id === editingDepartment.id ? { ...d, ...formData } : d
-      );
-      setDepartments(updatedDepartments);
-      onDepartmentUpdate?.(updatedDepartments);
-    } else {
-      const newDepartment: Department = {
-        ...formData,
-        id: Date.now().toString(),
-        headOfDepartment: formData.head // Added property to match
-      };
-      const updatedDepartments = [...departments, newDepartment];
-      setDepartments(updatedDepartments);
-      onDepartmentUpdate?.(updatedDepartments);
+  const handleSaveDepartment = async () => {
+    const departmentData = {
+      name: formData.name,
+      description: formData.description,
+      status: formData.status.toUpperCase(),
+      departmentHeadId: departmentHeads.find((head) => head.name === formData.head)?.id || null,
+      departmentHeadName: formData.head,
+    };
+
+    try {
+      if (editingDepartment) {
+        // Update existing department
+        const response = await axios.put(
+          `http://43.205.137.114:8080/api/v1/departments/${editingDepartment.id}`,
+          departmentData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          const updatedDepartments = departments.map((d: Department) =>
+            d.id === editingDepartment.id ? { ...d, ...formData } : d
+          );
+          setDepartments(updatedDepartments);
+          setFilteredDepartments(updatedDepartments);
+          onDepartmentUpdate?.(updatedDepartments);
+        }
+      } else {
+        // Add new department
+        const response = await axios.post(
+          'http://43.205.137.114:8080/api/v1/departments',
+          departmentData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            },
+          }
+        );
+
+        if (response.status === 201) {
+          const newDepartment: Department = {
+            ...formData,
+            id: response.data.id,
+            headOfDepartment: formData.head,
+          };
+          const updatedDepartments = [...departments, newDepartment];
+          setDepartments(updatedDepartments);
+          setFilteredDepartments(updatedDepartments);
+          onDepartmentUpdate?.(updatedDepartments);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving department:', error);
     }
+
     setIsFormOpen(false);
     setEditingDepartment(null);
+  };
+
+  const handleDropdownFocus = async () => {
+    if (departmentHeads.length === 0) {
+      await loadDepartmentHeads();
+    }
   };
 
   return (
@@ -226,7 +347,9 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-caption text-sm text-foreground">{department.head}</span>
+                    <span className="font-caption text-sm text-foreground">
+                      {department.departmentHeadName || 'N/A'}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-caption text-sm text-foreground">{department.teamCount}</span>
@@ -294,37 +417,19 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
                   Department Head
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.head}
                   onChange={(e) => setFormData({ ...formData, head: e.target.value })}
+                  onFocus={handleDropdownFocus}
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Enter department head name"
-                />
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team Count
-                </label>
-                <input
-                  type="number"
-                  value={formData.teamCount}
-                  onChange={(e) => setFormData({ ...formData, teamCount: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Enter team count"
-                />
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Employee Count
-                </label>
-                <input
-                  type="number"
-                  value={formData.employeeCount}
-                  onChange={(e) => setFormData({ ...formData, employeeCount: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Enter employee count"
-                />
+                >
+                  <option value="">Select department head</option>
+                  {departmentHeads.map((head) => (
+                    <option key={head.id} value={head.name}>
+                      {head.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
@@ -358,13 +463,13 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
                   setIsFormOpen(false);
                   setEditingDepartment(null);
                 }}
-                className="px-4 py-2 border border-border rounded-lg font-caption font-medium text-sm text-foreground hover:bg-muted transition-smooth"
+                className="px-4 py-2 border border-border rounded-lg font-caption font-medium text-sm text-muted-foreground hover:bg-muted/80 transition-smooth"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveDepartment}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
+                className="px-4 py-2 bg-accent text-accent-foreground rounded-lg font-caption font-medium text-sm hover:bg-accent/90 transition-smooth"
               >
                 {editingDepartment ? 'Update Department' : 'Add Department'}
               </button>

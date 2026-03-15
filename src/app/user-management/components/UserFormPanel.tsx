@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import type { User } from './UserManagementInteractive';
+import axios, { AxiosError } from 'axios';
 
 interface UserFormPanelProps {
   isOpen: boolean;
@@ -20,46 +21,55 @@ const UserFormPanel = ({
   existingUsers,
 }: UserFormPanelProps) => {
   const [formData, setFormData] = useState<{
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Associate'; // Updated type
+    role: ('Admin' | 'Manager' | 'Associate')[]; // Updated to array type
     team: string;
     department: string;
     reportsTo: string;
     status: 'Active' | 'Inactive'; // Updated type
+    password?: string; // Added password field
   }>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    role: 'Associate',
+    role: ['Associate'], // Default to Associate role
     team: '',
     department: '',
     reportsTo: '',
     status: 'Active',
+    password: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [users, setUsers] = useState<Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]>([]);
+  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
     if (editingUser) {
       setFormData({
-        name: editingUser.name,
+        firstName: editingUser.firstName,
+        lastName: editingUser.lastName,
         email: editingUser.email,
-        role: editingUser.role,
+        role: editingUser.role ? [editingUser.role] : [], // Convert to array
         team: editingUser.team,
         department: editingUser.department,
         reportsTo: editingUser.reportsTo,
         status: editingUser.status,
+        password: '', // Do not pre-fill password
       });
     } else {
       setFormData({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
-        role: 'Associate',
+        role: ['Associate'],
         team: '',
         department: '',
         reportsTo: '',
         status: 'Active',
+        password: '',
       });
     }
     setErrors({});
@@ -68,8 +78,12 @@ const UserFormPanel = ({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
     }
 
     if (!formData.email.trim()) {
@@ -90,18 +104,70 @@ const UserFormPanel = ({
       newErrors.reportsTo = 'Reporting manager is required';
     }
 
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      try {
+        const userData = {
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          roles: formData.role.map((role) => `ROLE_${role.toUpperCase()}`), // Convert roles to required format
+          departmentId: parseInt(formData.department), // Assuming department is stored as an ID
+          teamId: parseInt(formData.team), // Assuming team is stored as an ID
+          managerId: parseInt(formData.reportsTo), // Assuming reportsTo is stored as an ID
+          name: `${formData.firstName} ${formData.lastName}`,
+          role: formData.role[0], // Use the first role from the array
+          team: formData.team,
+          department: formData.department,
+          status: formData.status,
+          reportsTo: formData.reportsTo, // Added missing property
+        };
+
+        console.log('Request Payload:', userData); // Log the request payload for debugging
+
+        const response = await axios.post('http://43.205.137.114:8080/api/v1/auth/signup', userData, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        });
+
+        if (response.status === 200) {
+          console.log('User created successfully:', response.data);
+          onSave(userData);
+          onClose();
+        } else {
+          console.error(`Unexpected response status: ${response.status}`, response.data);
+          alert('Failed to create user. Please try again later.');
+        }
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error creating user:', axiosError);
+
+        if (axiosError.response) {
+          console.error('Server responded with:', axiosError.response.data);
+          alert(`Failed to create user. Server error: ${axiosError.response.status}`);
+        } else {
+          console.error('No response received from server:', axiosError.message);
+          alert('Failed to create user. Please check your network connection.');
+        }
+      }
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
@@ -124,15 +190,29 @@ const UserFormPanel = ({
     }
   };
 
+  const fetchDepartments = async (): Promise<{ id: number; name: string }[]> => {
+    try {
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments');
+      console.log('Fetched Departments:', response.data); // Log the fetched data for debugging
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    const loadUsers = async () => {
-      const users = await fetchUsers();
-      // Update the existingUsers state with the fetched users
-      handleSave(users);
+    const loadDepartments = async () => {
+      try {
+        const departments = await fetchDepartments();
+        setDepartments(departments);
+      } catch (error) {
+        console.error('Error loading departments:', error);
+      }
     };
 
     if (isOpen) {
-      loadUsers();
+      loadDepartments();
     }
   }, [isOpen]);
 
@@ -151,83 +231,163 @@ const UserFormPanel = ({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
+        className="fixed inset-0 flex items-center justify-center bg-black/50 z-[2000] transition-opacity"
         onClick={onClose}
-      />
-      <div className="fixed right-0 top-0 h-full w-full md:w-[600px] bg-card border-l border-border z-[2001] overflow-y-auto">
-        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <h2 className="font-heading text-xl font-semibold text-foreground">
-              {editingUser ? 'Edit User' : 'Add New User'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
-              aria-label="Close panel"
-            >
-              <Icon name="XMarkIcon" size={24} variant="outline" />
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Name */}
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.name ? 'border-error' : 'border-border'
-              }`}
-              placeholder="Enter full name"
-            />
-            {errors.name && (
-              <p className="mt-1 font-caption text-xs text-error">{errors.name}</p>
-            )}
+      >
+        <div
+          className="relative bg-card shadow-elevation-3 border border-border z-[2001] overflow-y-auto rounded-lg w-full max-w-lg max-h-[90vh]"
+          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the panel
+        >
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 z-10">
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-xl font-semibold text-foreground">
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </h2>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+                aria-label="Close panel"
+              >
+                <Icon name="XMarkIcon" size={24} variant="outline" />
+              </button>
+            </div>
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-2">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.email ? 'border-error' : 'border-border'
-              }`}
-              placeholder="user@nextgentask.com"
-            />
-            {errors.email && (
-              <p className="mt-1 font-caption text-xs text-error">{errors.email}</p>
-            )}
-          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* First Name */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                First Name *
+              </label>
+              <input
+                type="text"
+                value={formData.firstName || ''}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.firstName ? 'border-error' : 'border-border'
+                }`}
+                placeholder="Enter first name"
+                required
+              />
+              {errors.firstName && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.firstName}</p>
+              )}
+            </div>
 
-          {/* Role and Status */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Last Name */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                value={formData.lastName || ''}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.lastName ? 'border-error' : 'border-border'
+                }`}
+                placeholder="Enter last name"
+                required
+              />
+              {errors.lastName && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.lastName}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.email ? 'border-error' : 'border-border'
+                }`}
+                placeholder="user@nextgentask.com"
+              />
+              {errors.email && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                Password *
+              </label>
+              <input
+                type="password"
+                value={formData.password || ''}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.password ? 'border-error' : 'border-border'
+                }`}
+                placeholder="Enter password"
+                required
+              />
+              {errors.password && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Role (Checkboxes for multiple selection) */}
             <div>
               <label className="block font-caption font-medium text-sm text-foreground mb-2">
                 Role *
               </label>
-              <select
-                value={formData.role}
-                onChange={(e) =>
-                  handleInputChange('role', e.target.value)
-                }
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="Associate">Associate</option>
-                <option value="Manager">Manager</option>
-                <option value="Admin">Admin</option>
-              </select>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.role.includes('Admin')}
+                    onChange={(e) => {
+                      const roles = formData.role.includes('Admin')
+                        ? formData.role.filter((r) => r !== 'Admin')
+                        : [...formData.role, 'Admin'];
+                      handleInputChange('role', roles);
+                    }}
+                    className="form-checkbox text-primary focus:ring-primary"
+                  />
+                  Admin
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.role.includes('Manager')}
+                    onChange={(e) => {
+                      const roles = formData.role.includes('Manager')
+                        ? formData.role.filter((r) => r !== 'Manager')
+                        : [...formData.role, 'Manager'];
+                      handleInputChange('role', roles);
+                    }}
+                    className="form-checkbox text-primary focus:ring-primary"
+                  />
+                  Manager
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.role.includes('Associate')}
+                    onChange={(e) => {
+                      const roles = formData.role.includes('Associate')
+                        ? formData.role.filter((r) => r !== 'Associate')
+                        : [...formData.role, 'Associate'];
+                      handleInputChange('role', roles);
+                    }}
+                    className="form-checkbox text-primary focus:ring-primary"
+                  />
+                  Associate
+                </label>
+              </div>
+              {errors.role && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.role}</p>
+              )}
             </div>
 
+            {/* Status */}
             <div>
               <label className="block font-caption font-medium text-sm text-foreground mb-2">
                 Status *
@@ -243,117 +403,117 @@ const UserFormPanel = ({
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
-          </div>
 
-          {/* Team and Department */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Team and Department */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                  Department *
+                </label>
+                <select
+                  value={formData.department}
+                  onChange={(e) => handleInputChange('department', e.target.value)}
+                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.department ? 'border-error' : 'border-border'
+                  }`}
+                >
+                  <option value="">Select department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.department && (
+                  <p className="mt-1 font-caption text-xs text-error">{errors.department}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                  Team *
+                </label>
+                <select
+                  value={formData.team}
+                  onChange={(e) => handleInputChange('team', e.target.value)}
+                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.team ? 'border-error' : 'border-border'
+                  }`}
+                >
+                  <option value="">Select team</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Support">Support</option>
+                </select>
+                {errors.team && (
+                  <p className="mt-1 font-caption text-xs text-error">{errors.team}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Reports To */}
             <div>
               <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                Team *
+                Reports To *
               </label>
               <select
-                value={formData.team}
-                onChange={(e) => handleInputChange('team', e.target.value)}
+                value={formData.reportsTo}
+                onChange={(e) => handleInputChange('reportsTo', e.target.value)}
                 className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.team ? 'border-error' : 'border-border'
+                  errors.reportsTo ? 'border-error' : 'border-border'
                 }`}
               >
-                <option value="">Select team</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Sales">Sales</option>
-                <option value="Support">Support</option>
+                <option value="">Select manager</option>
+                {potentialManagers.map((manager) => (
+                  <option key={manager.id} value={manager.name}>
+                    {manager.name} ({manager.role})
+                  </option>
+                ))}
               </select>
-              {errors.team && (
-                <p className="mt-1 font-caption text-xs text-error">{errors.team}</p>
+              {errors.reportsTo && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.reportsTo}</p>
               )}
             </div>
 
-            <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                Department *
-              </label>
-              <select
-                value={formData.department}
-                onChange={(e) => handleInputChange('department', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.department ? 'border-error' : 'border-border'
-                }`}
+            {/* Info Box */}
+            <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <Icon
+                name="InformationCircleIcon"
+                size={20}
+                variant="outline"
+                className="text-primary flex-shrink-0 mt-0.5"
+              />
+              <div>
+                <p className="font-caption text-sm text-foreground font-medium mb-1">
+                  User Hierarchy
+                </p>
+                <p className="font-caption text-xs text-muted-foreground">
+                  Associates report to Managers or Admins. Managers report to Admins. This
+                  hierarchy determines access levels and approval workflows.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-caption font-medium text-sm hover:bg-gray-300 transition-smooth"
               >
-                <option value="">Select department</option>
-                <option value="Product Development">Product Development</option>
-                <option value="Creative">Creative</option>
-                <option value="Growth">Growth</option>
-                <option value="Operations">Operations</option>
-                <option value="Customer Success">Customer Success</option>
-              </select>
-              {errors.department && (
-                <p className="mt-1 font-caption text-xs text-error">{errors.department}</p>
-              )}
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg font-caption font-medium text-sm hover:bg-green-700 transition-smooth"
+              >
+                {editingUser ? 'Update User' : 'Create User'}
+              </button>
             </div>
-          </div>
-
-          {/* Reports To */}
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-2">
-              Reports To *
-            </label>
-            <select
-              value={formData.reportsTo}
-              onChange={(e) => handleInputChange('reportsTo', e.target.value)}
-              className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.reportsTo ? 'border-error' : 'border-border'
-              }`}
-            >
-              <option value="">Select manager</option>
-              {potentialManagers.map((manager) => (
-                <option key={manager.id} value={manager.name}>
-                  {manager.name} ({manager.role})
-                </option>
-              ))}
-            </select>
-            {errors.reportsTo && (
-              <p className="mt-1 font-caption text-xs text-error">{errors.reportsTo}</p>
-            )}
-          </div>
-
-          {/* Info Box */}
-          <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-            <Icon
-              name="InformationCircleIcon"
-              size={20}
-              variant="outline"
-              className="text-primary flex-shrink-0 mt-0.5"
-            />
-            <div>
-              <p className="font-caption text-sm text-foreground font-medium mb-1">
-                User Hierarchy
-              </p>
-              <p className="font-caption text-xs text-muted-foreground">
-                Associates report to Managers or Admins. Managers report to Admins. This
-                hierarchy determines access levels and approval workflows.
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-muted text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted/80 transition-smooth"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
-            >
-              {editingUser ? 'Update User' : 'Create User'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </>
   );

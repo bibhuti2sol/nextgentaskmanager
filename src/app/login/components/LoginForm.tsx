@@ -236,7 +236,11 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               <span className="text-sm font-caption text-foreground">Remember me</span>
             </label>
             <button
-              type="button"
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('/forgot-password');
+              }}
               className="text-sm font-caption text-primary hover:text-primary/80 transition-smooth"
               disabled={isLoading}
             >

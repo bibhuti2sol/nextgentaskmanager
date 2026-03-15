@@ -1,16 +1,4 @@
 import React from 'react';
-import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface SubtaskChartProps {
   open: number;
@@ -19,45 +7,13 @@ interface SubtaskChartProps {
 }
 
 const SubtaskChart: React.FC<SubtaskChartProps> = ({ open, inProgress, completed }) => {
-  const data = {
-    labels: ['Open', 'In Progress', 'Completed'],
-    datasets: [
-      {
-        label: 'Subtasks',
-        data: [open, inProgress, completed],
-        backgroundColor: ['#f87171', '#60a5fa', '#34d399'],
-        borderColor: ['#f87171', '#60a5fa', '#34d399'],
-        borderWidth: 1
-      }
-    ]
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        enabled: true
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        beginAtZero: true
-      }
-    }
-  };
+  const totalSubtasks = open + inProgress + completed;
 
   return (
-    <span className="w-full h-full flex justify-center items-center">
-      <Bar data={data} options={options} />
-    </span>
+    <div className="w-full h-full flex flex-col justify-center items-center">
+      <p className="text-lg font-semibold">Subtasks</p>
+      <p className="text-2xl font-bold">{totalSubtasks} Total</p>
+    </div>
   );
 };
 

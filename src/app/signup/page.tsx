@@ -255,6 +255,12 @@ export default function SignupPage() {
 							required
 						/>
 						<input
+							type="password"
+							placeholder="Password"
+							className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth"
+							required
+						/>
+						<input
 							type="text"
 							placeholder="Organization Name"
 							className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/30 transition-smooth"
