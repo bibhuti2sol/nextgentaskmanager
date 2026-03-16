@@ -37,28 +37,29 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
   });
   const [departmentHeads, setDepartmentHeads] = useState<{ id: string; name: string }[]>([]);
 
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
-          },
-        });
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
 
-        if (response.status === 200 && Array.isArray(response.data)) {
-          setDepartments(response.data);
-          setFilteredDepartments(response.data);
-        } else {
-          console.error('Unexpected response format:', response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching departments:', error);
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDepartments(response.data);
+        setFilteredDepartments(response.data);
+        onDepartmentUpdate?.(response.data);
+      } else {
+        console.error('Unexpected response format:', response.data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
 
-    fetchDepartments();
+  useEffect(() => {
+    fetchDepartments(); // Ensure departments are fetched on component mount
   }, []);
 
   useEffect(() => {
@@ -152,51 +153,25 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     }
 
     if (confirm('Are you sure you want to delete this department?')) {
-      const maxRetries = 3;
-      let attempt = 0;
-      let success = false;
+      try {
+        console.log(`Attempting to delete department with ID: ${departmentId}`);
+        const response = await axios.delete(`http://43.205.137.114:8080/api/v1/departments/${departmentId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        });
 
-      while (attempt < maxRetries && !success) {
-        try {
-          console.log(`Attempt ${attempt + 1}: Attempting to delete department with ID: ${departmentId}`);
-          const response = await axios.delete(`http://43.205.137.114:8080/api/v1/departments/${departmentId}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
-            },
-          });
-
-          if (response.status === 200) {
-            console.log(`Department with ID: ${departmentId} deleted successfully.`);
-            const updatedDepartments = departments.filter((d: Department) => d.id !== departmentId);
-            setDepartments(updatedDepartments);
-            setFilteredDepartments(updatedDepartments);
-            onDepartmentUpdate?.(updatedDepartments);
-            success = true;
-          } else {
-            console.error(`Failed to delete department. Status: ${response.status}, Response:`, response.data);
-          }
-        } catch (err) {
-          const error = err as AxiosError;
-          console.error('Error deleting department:', error);
-          if (error.response) {
-            console.error(`Server responded with status: ${error.response.status}`);
-            console.error('Response data:', error.response.data);
-          } else {
-            console.error('No response received from server:', error.message);
-          }
+        if (response.status === 200 || response.status === 204) {
+          console.log(`Department with ID: ${departmentId} deleted successfully.`);
+          await fetchDepartments(); // Auto-refresh after delete
+        } else {
+          console.error(`Failed to delete department. Status: ${response.status}, Response:`, response.data);
+          alert('Failed to delete the department. Please try again later.');
         }
-
-        attempt++;
-        if (!success && attempt < maxRetries) {
-          console.log('Retrying deletion...');
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
-        }
-      }
-
-      if (!success) {
-        console.error(`Failed to delete department with ID: ${departmentId} after ${maxRetries} attempts.`);
-        alert('Failed to delete the department. Please try again later.');
+      } catch (error) {
+        console.error('Error deleting department:', error);
+        alert('An error occurred while deleting the department. Please try again later.');
       }
     }
   };
@@ -225,12 +200,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         );
 
         if (response.status === 200) {
-          const updatedDepartments = departments.map((d: Department) =>
-            d.id === editingDepartment.id ? { ...d, ...formData } : d
-          );
-          setDepartments(updatedDepartments);
-          setFilteredDepartments(updatedDepartments);
-          onDepartmentUpdate?.(updatedDepartments);
+          await fetchDepartments(); // Auto-refresh after update
         }
       } else {
         // Add new department
@@ -246,15 +216,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         );
 
         if (response.status === 201) {
-          const newDepartment: Department = {
-            ...formData,
-            id: response.data.id,
-            headOfDepartment: formData.head,
-          };
-          const updatedDepartments = [...departments, newDepartment];
-          setDepartments(updatedDepartments);
-          setFilteredDepartments(updatedDepartments);
-          onDepartmentUpdate?.(updatedDepartments);
+          await fetchDepartments(); // Auto-refresh after add
         }
       }
     } catch (error) {

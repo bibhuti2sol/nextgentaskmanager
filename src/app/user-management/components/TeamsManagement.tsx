@@ -35,6 +35,8 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     status: 'Active',
     description: ''
   });
+  const [fetchedDepartments, setFetchedDepartments] = useState<Department[]>([]);
+  const [teamLeads, setTeamLeads] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const mockTeams: Team[] = [
@@ -91,6 +93,65 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     setFilteredTeams(filtered);
   }, [searchQuery, teams]);
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('http://43.205.137.114:8080/api/v1/departments', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const activeDepartments = data.map((dept: any) => ({ id: dept.id, name: dept.name }));
+        setFetchedDepartments(activeDepartments);
+      } else {
+        console.error('Failed to fetch departments:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments(); // Fetch departments on component mount
+  }, []);
+
+  const fetchTeamLeads = async (departmentId: string) => {
+    try {
+      const response = await fetch(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const leads = data.map((team: any) => ({ id: team.teamLeadId, name: team.teamLeadName }));
+        setTeamLeads(leads);
+      } else {
+        console.error('Failed to fetch team leads:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching team leads:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (formData.department) {
+      const selectedDepartment = fetchedDepartments.find(
+        (dept) => dept.name === formData.department
+      );
+      if (selectedDepartment) {
+        fetchTeamLeads(selectedDepartment.id);
+      }
+    }
+  }, [formData.department]);
+
   const handleAddTeam = () => {
     setEditingTeam(null);
     setFormData({
@@ -117,30 +178,124 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     setIsFormOpen(true);
   };
 
-  const handleDeleteTeam = (teamId: string) => {
+  const handleDeleteTeam = async (teamId: string) => {
     if (confirm('Are you sure you want to delete this team?')) {
-      const updatedTeams = teams.filter((t) => t.id !== teamId);
-      setTeams(updatedTeams);
-      onTeamUpdate?.(updatedTeams);
+      try {
+        const response = await fetch(`http://43.205.137.114:8080/api/v1/teams/${teamId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        });
+
+        if (response.ok) {
+          await fetchAllTeams(); // Refresh teams after deletion
+        } else {
+          console.error('Failed to delete team:', response.status);
+        }
+      } catch (error) {
+        console.error('Error deleting team:', error);
+      }
     }
   };
 
-  const handleSaveTeam = () => {
-    if (editingTeam) {
-      const updatedTeams = teams.map((t) =>
-        t.id === editingTeam.id ? { ...t, ...formData } : t
-      );
-      setTeams(updatedTeams);
-      onTeamUpdate?.(updatedTeams);
-    } else {
-      const newTeam: Team = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      const updatedTeams = [...teams, newTeam];
-      setTeams(updatedTeams);
-      onTeamUpdate?.(updatedTeams);
+  const fetchAllTeams = async () => {
+    try {
+      const response = await fetch('http://43.205.137.114:8080/api/v1/teams', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const formattedTeams = data.map((team: any) => {
+          const department = team.departmentName || 'Unknown';
+          const teamLead = team.teamLeadName || 'Unknown';
+
+          return {
+            id: team.id,
+            name: team.name,
+            department,
+            teamLead,
+            memberCount: team.memberCount || 0, // Default to 0 if not provided
+            status: team.status,
+            description: team.description,
+          };
+        });
+        setTeams(formattedTeams);
+        setFilteredTeams(formattedTeams);
+        onTeamUpdate?.(formattedTeams);
+      } else {
+        console.error('Failed to fetch teams:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
     }
+  };
+
+  useEffect(() => {
+    fetchAllTeams(); // Fetch all teams on component mount
+  }, []);
+
+  const handleSaveTeam = async () => {
+    const updatedTeam = {
+      name: formData.name,
+      description: formData.description,
+      status: formData.status.toUpperCase(), // Ensure status is in uppercase
+      departmentId: fetchedDepartments.find((dept) => dept.name === formData.department)?.id,
+      teamLeadId: teamLeads.find((lead) => lead.name === formData.teamLead)?.id,
+    };
+
+    try {
+      if (editingTeam) {
+        // Update existing team
+        const response = await fetch(`http://43.205.137.114:8080/api/v1/teams/${editingTeam.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+          body: JSON.stringify(updatedTeam),
+        });
+
+        if (response.ok) {
+          await fetchAllTeams(); // Refresh teams after update
+        } else {
+          console.error('Failed to update team:', response.status);
+        }
+      } else {
+        // Add new team
+        const newTeam = {
+          name: formData.name,
+          description: formData.description,
+          status: formData.status.toUpperCase(), // Ensure status is in uppercase
+          departmentId: fetchedDepartments.find((dept) => dept.name === formData.department)?.id,
+          teamLeadId: teamLeads.find((lead) => lead.name === formData.teamLead)?.id,
+        };
+
+        const response = await fetch('http://43.205.137.114:8080/api/v1/teams', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+          body: JSON.stringify(newTeam),
+        });
+
+        if (response.ok) {
+          await fetchAllTeams(); // Refresh teams after adding a new team
+        } else {
+          console.error('Failed to add team:', response.status);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving team:', error);
+    }
+
     setIsFormOpen(false);
     setEditingTeam(null);
   };
@@ -295,13 +450,11 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="">Select department</option>
-                  {departments
-                    .filter((dept) => dept.status === 'Active')
-                    .map((dept) => (
-                      <option key={dept.id} value={dept.name}>
-                        {dept.name}
-                      </option>
-                    ))}
+                  {fetchedDepartments.map((dept) => (
+                    <option key={dept.id} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -314,26 +467,12 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="">Select team lead</option>
-                  {users
-                    .filter((user) => user.status === 'Active')
-                    .map((user) => (
-                      <option key={user.id} value={user.name}>
-                        {user.name}
-                      </option>
-                    ))}
+                  {teamLeads.map((lead, index) => (
+                    <option key={`${lead.id}-${index}`} value={lead.name}>
+                      {lead.name}
+                    </option>
+                  ))}
                 </select>
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Member Count
-                </label>
-                <input
-                  type="number"
-                  value={formData.memberCount}
-                  onChange={(e) => setFormData({ ...formData, memberCount: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Enter member count"
-                />
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
