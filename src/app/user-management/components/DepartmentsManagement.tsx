@@ -177,6 +177,17 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
   };
 
   const handleSaveDepartment = async () => {
+    const missingFields = [];
+
+    if (!formData.name) missingFields.push('Name');
+    if (!formData.head) missingFields.push('Department Head');
+    if (!formData.status) missingFields.push('Status');
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
     const departmentData = {
       name: formData.name,
       description: formData.description,
@@ -245,7 +256,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         </div>
         <button
           onClick={handleAddDepartment}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg font-caption font-medium text-sm hover:opacity-90 transition-smooth"
         >
           <Icon name="PlusIcon" size={18} variant="outline" />
           Add Department

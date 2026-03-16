@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios, { AxiosError } from 'axios';
 import Icon from '@/components/ui/AppIcon';
 import type { User } from './UserManagementInteractive';
+
+interface ExtendedUser extends User {
+  firstName: string;
+  lastName: string;
+  password?: string;
+}
 
 interface EditUserPanelProps {
   user: User;
@@ -10,16 +17,117 @@ interface EditUserPanelProps {
 }
 
 const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onSave }) => {
-  const [form, setForm] = useState(user);
+  const [form, setForm] = useState<ExtendedUser>(user as ExtendedUser);
+  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
+  const [teams, setTeams] = useState<{ id: number; name: string }[]>([]);
+
+  const fetchDepartments = async (): Promise<{ id: number; name: string }[]> => {
+    try {
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+      return response.data.map((dept: any) => ({ id: dept.id, name: dept.name }));
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      return [];
+    }
+  };
+
+  const fetchTeamsByDepartment = async (departmentId: string): Promise<{ id: number; name: string }[]> => {
+    try {
+      const response = await axios.get(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+      return response.data.map((team: any) => ({ id: team.id, name: team.name }));
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const loadDepartments = async () => {
+      const fetchedDepartments = await fetchDepartments();
+      setDepartments(fetchedDepartments);
+    };
+
+    loadDepartments();
+  }, []);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (form.department) {
+        const selectedDepartment = departments.find((dept) => dept.name === form.department);
+        if (selectedDepartment) {
+          const fetchedTeams = await fetchTeamsByDepartment(selectedDepartment.id.toString());
+          setTeams(fetchedTeams);
+        } else {
+          setTeams([]);
+        }
+      } else {
+        setTeams([]);
+      }
+    };
+
+    loadTeams();
+  }, [form.department, departments]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form);
+    try {
+      const updatedUser = {
+        email: form.email,
+        firstName: form.firstName, // Use provided value
+        lastName: form.lastName, // Use provided value
+        roles: [form.role ? `ROLE_${form.role.toUpperCase()}` : ''],
+        departmentId: departments.find((dept) => dept.name === form.department)?.id || null,
+        teamId: teams.find((team) => team.name === form.team)?.id || null,
+        managerId: users.find((user) => user.name === form.reportsTo)?.id || null,
+      };
+
+      const response = await axios.put(
+        `http://43.205.137.114:8080/api/v1/users/${user.id}`,
+        updatedUser,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log('User updated successfully:', response.data);
+        onSave(response.data);
+        onClose();
+        window.location.reload(); // Refresh the page after the action
+      } else {
+        console.error(`Unexpected response status: ${response.status}`, response.data);
+        alert('Failed to update user. Please try again later.');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      console.error('Error updating user:', axiosError);
+
+      if (axiosError.response) {
+        console.error('Server responded with:', axiosError.response.data);
+        alert(`Failed to update user. Server error: ${axiosError.response.status}`);
+      } else {
+        console.error('No response received from server:', axiosError.message);
+        alert('Failed to update user. Please check your network connection.');
+      }
+    }
   };
 
   return (
@@ -61,22 +169,6 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
             </select>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Team</label>
-            <select
-              name="team"
-              value={form.team}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            >
-              <option value="">Select Team</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Design">Design</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Sales">Sales</option>
-              <option value="Support">Support</option>
-            </select>
-          </div>
-          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Department</label>
             <select
               name="department"
@@ -85,11 +177,27 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
             >
               <option value="">Select Department</option>
-              <option value="Product Development">Product Development</option>
-              <option value="Creative">Creative</option>
-              <option value="Growth">Growth</option>
-              <option value="Operations">Operations</option>
-              <option value="Customer Success">Customer Success</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.name}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Team</label>
+            <select
+              name="team"
+              value={form.team}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+            >
+              <option value="">Select Team</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.name}>
+                  {team.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="mb-4">

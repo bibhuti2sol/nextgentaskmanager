@@ -45,6 +45,7 @@ const UserFormPanel = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [users, setUsers] = useState<Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]>([]);
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
+  const [teams, setTeams] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
     if (editingUser) {
@@ -127,15 +128,11 @@ const UserFormPanel = ({
           departmentId: parseInt(formData.department), // Assuming department is stored as an ID
           teamId: parseInt(formData.team), // Assuming team is stored as an ID
           managerId: parseInt(formData.reportsTo), // Assuming reportsTo is stored as an ID
-          name: `${formData.firstName} ${formData.lastName}`,
-          role: formData.role[0], // Use the first role from the array
-          team: formData.team,
-          department: formData.department,
-          status: formData.status,
+          team: formData.team, // Added missing property
+          department: formData.department, // Added missing property
           reportsTo: formData.reportsTo, // Added missing property
+          status: formData.status, // Added missing property
         };
-
-        console.log('Request Payload:', userData); // Log the request payload for debugging
 
         const response = await axios.post('http://43.205.137.114:8080/api/v1/auth/signup', userData, {
           headers: {
@@ -192,11 +189,30 @@ const UserFormPanel = ({
 
   const fetchDepartments = async (): Promise<{ id: number; name: string }[]> => {
     try {
-      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments');
-      console.log('Fetched Departments:', response.data); // Log the fetched data for debugging
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching departments:', error);
+      return [];
+    }
+  };
+
+  const fetchTeamsByDepartment = async (departmentId: string): Promise<{ id: number; name: string }[]> => {
+    try {
+      const response = await axios.get(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+        },
+      });
+      return response.data.map((team: any) => ({ id: team.id, name: team.name }));
+    } catch (error) {
+      console.error('Error fetching teams:', error);
       return [];
     }
   };
@@ -215,6 +231,23 @@ const UserFormPanel = ({
       loadDepartments();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (formData.department) {
+        try {
+          const fetchedTeams = await fetchTeamsByDepartment(formData.department);
+          setTeams(fetchedTeams);
+        } catch (error) {
+          console.error('Error loading teams:', error);
+        }
+      } else {
+        setTeams([]);
+      }
+    };
+
+    loadTeams();
+  }, [formData.department]);
 
   const handleSave = (users: Omit<User, 'id' | 'lastActivity' | 'avatar' | 'avatarAlt'>[]) => {
     // Update the existingUsers state with the fetched users
@@ -441,11 +474,11 @@ const UserFormPanel = ({
                   }`}
                 >
                   <option value="">Select team</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Design">Design</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Sales">Sales</option>
-                  <option value="Support">Support</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
                 </select>
                 {errors.team && (
                   <p className="mt-1 font-caption text-xs text-error">{errors.team}</p>
