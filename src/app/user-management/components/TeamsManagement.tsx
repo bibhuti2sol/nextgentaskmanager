@@ -312,7 +312,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         </div>
         <button
           onClick={handleAddTeam}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-emerald-500 text-white rounded-2xl font-caption font-semibold text-sm hover:opacity-95 transition-smooth shadow-sm"
         >
           <Icon name="PlusIcon" size={18} variant="outline" />
           Add Team

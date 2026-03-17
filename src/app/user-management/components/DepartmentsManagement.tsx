@@ -36,6 +36,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     description: ''
   });
   const [departmentHeads, setDepartmentHeads] = useState<{ id: string; name: string }[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
   const fetchDepartments = async () => {
     try {
@@ -68,7 +69,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       filtered = departments.filter(
         (dept: Department) =>
           dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          dept.head.toLowerCase().includes(searchQuery.toLowerCase())
+          (dept.head?.toLowerCase() || '').includes(searchQuery.toLowerCase())
       );
     }
     setFilteredDepartments(filtered);
@@ -244,6 +245,68 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     }
   };
 
+  const handleSelectDepartment = (id: string) => {
+    setSelectedDepartments((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((deptId) => deptId !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  const handleSelectAllDepartments = () => {
+    if (selectedDepartments.length === filteredDepartments.length) {
+      setSelectedDepartments([]);
+    } else {
+      setSelectedDepartments(filteredDepartments.map((dept) => dept.id));
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: 'Active' | 'Inactive') => {
+    try {
+      const promises = selectedDepartments.map((id) =>
+        axios.put(
+          `http://43.205.137.114:8080/api/v1/departments/${id}/status`,
+          { status: newStatus },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            },
+          }
+        )
+      );
+      await Promise.all(promises);
+      await fetchDepartments(); // Refresh departments after status update
+      setSelectedDepartments([]);
+    } catch (error) {
+      console.error('Error updating department status:', error);
+      alert('An error occurred while updating the status. Please try again later.');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDepartments.length > 0) {
+      if (confirm('Are you sure you want to delete the selected departments?')) {
+        try {
+          const promises = selectedDepartments.map((id) =>
+            axios.delete(`http://43.205.137.114:8080/api/v1/departments/${id}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+              },
+            })
+          );
+          await Promise.all(promises);
+          await fetchDepartments(); // Refresh departments after deletion
+          setSelectedDepartments([]);
+        } catch (error) {
+          console.error('Error deleting departments:', error);
+          alert('An error occurred while deleting the departments. Please try again later.');
+        }
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -280,12 +343,52 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         />
       </div>
 
+      {/* Selected Items Action Bar */}
+      {selectedDepartments.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <span className="font-caption text-sm text-foreground">
+            {selectedDepartments.length} department{selectedDepartments.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkStatusChange('Active')}
+              className="flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-md text-xs font-caption font-medium text-success hover:bg-success/20 transition-smooth"
+            >
+              <Icon name="CheckCircleIcon" size={14} variant="outline" />
+              Activate
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange('Inactive')}
+              className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-md text-xs font-caption font-medium text-warning hover:bg-warning/20 transition-smooth"
+            >
+              <Icon name="XCircleIcon" size={14} variant="outline" />
+              Deactivate
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 px-3 py-1.5 bg-error/10 border border-error/20 rounded-md text-xs font-caption font-medium text-error hover:bg-error/20 transition-smooth"
+            >
+              <Icon name="TrashIcon" size={14} variant="outline" />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Departments Table */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.length === filteredDepartments.length}
+                    onChange={handleSelectAllDepartments}
+                    className="form-checkbox h-4 w-4 text-primary border-border rounded focus:ring-primary/50"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                   Department Name
                 </th>
@@ -309,6 +412,14 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
             <tbody className="divide-y divide-border">
               {filteredDepartments.map((department) => (
                 <tr key={department.id} className="hover:bg-muted/30 transition-smooth">
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.includes(department.id)}
+                      onChange={() => handleSelectDepartment(department.id)}
+                      className="form-checkbox h-4 w-4 text-primary border-border rounded focus:ring-primary/50"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div>
                       <div className="font-caption font-medium text-sm text-foreground">
@@ -333,7 +444,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-full font-caption font-medium text-xs ${
-                        department.status === 'Active' ?'bg-success/10 text-success' :'bg-muted text-muted-foreground'
+                        department.status === 'Active' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
                       }`}
                     >
                       {department.status}
