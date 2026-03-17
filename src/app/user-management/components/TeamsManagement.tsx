@@ -203,13 +203,14 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     }
   };
 
-  const fetchAllTeams = async (search = '', status = '', page = 0, size = 10) => {
+  const fetchAllTeams = async (search = '', status = '', page = 0, size = 10, sort = 'id,desc') => {
     try {
       const queryParams = new URLSearchParams({
         search,
         status,
         page: page.toString(),
         size: size.toString(),
+        sort,
       });
 
       const response = await fetch(`http://43.205.137.114:8080/api/v1/teams?${queryParams.toString()}`, {
@@ -255,11 +256,11 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    fetchAllTeams(searchQuery, '', newPage, 10); // Fetch teams for the new page
+    fetchAllTeams(searchQuery, '', newPage, 10, 'id,desc'); // Fetch teams for the new page with max 10 records
   };
 
   useEffect(() => {
-    fetchAllTeams(searchQuery, '', currentPage, 10); // Fetch teams for the current page
+    fetchAllTeams(searchQuery, '', currentPage, 10, 'id,desc'); // Fetch teams for the current page with max 10 records
   }, [searchQuery, currentPage]);
 
   const handleSaveTeam = async () => {
