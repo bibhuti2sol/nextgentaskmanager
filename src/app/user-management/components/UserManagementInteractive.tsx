@@ -188,9 +188,28 @@ const UserManagementInteractive = () => {
     setIsFormOpen(true);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUserToDelete(userId);
-    setDeleteModalOpen(true);
+  const handleDeleteUser = async (userId: string) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+      try {
+        const response = await fetch(`http://43.205.137.114:8080/api/v1/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          },
+        });
+
+        if (response.ok) {
+          setUsers(users.filter((u) => u.id !== userId)); // Remove user from state
+          setFilteredUsers(filteredUsers.filter((u) => u.id !== userId)); // Update filtered users
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to delete user:', response.status, errorData);
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+      }
+    }
   };
 
   const confirmDelete = () => {

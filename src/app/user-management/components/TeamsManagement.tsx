@@ -37,6 +37,9 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
   });
   const [fetchedDepartments, setFetchedDepartments] = useState<Department[]>([]);
   const [teamLeads, setTeamLeads] = useState<{ id: string; name: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   useEffect(() => {
     const mockTeams: Team[] = [
@@ -121,7 +124,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
   const fetchTeamLeads = async (departmentId: string) => {
     try {
-      const response = await fetch(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
+      const response = await fetch(`http://43.205.137.114:8080/api/v1/teams/leads/eligible`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +134,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
       if (response.ok) {
         const data = await response.json();
-        const leads = data.map((team: any) => ({ id: team.teamLeadId, name: team.teamLeadName }));
+        const leads = data.map((user: any) => ({ id: user.id, name: user.fullName }));
         setTeamLeads(leads);
       } else {
         console.error('Failed to fetch team leads:', response.status);
@@ -200,9 +203,16 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     }
   };
 
-  const fetchAllTeams = async () => {
+  const fetchAllTeams = async (search = '', status = '', page = 0, size = 10) => {
     try {
-      const response = await fetch('http://43.205.137.114:8080/api/v1/teams', {
+      const queryParams = new URLSearchParams({
+        search,
+        status,
+        page: page.toString(),
+        size: size.toString(),
+      });
+
+      const response = await fetch(`http://43.205.137.114:8080/api/v1/teams?${queryParams.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -212,23 +222,29 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
       if (response.ok) {
         const data = await response.json();
-        const formattedTeams = data.map((team: any) => {
-          const department = team.departmentName || 'Unknown';
-          const teamLead = team.teamLeadName || 'Unknown';
+        if (data.content && Array.isArray(data.content)) {
+          const formattedTeams = data.content.map((team: any) => {
+            const department = team.departmentName || 'Unknown';
+            const teamLead = team.teamLeadName || 'Unknown';
 
-          return {
-            id: team.id,
-            name: team.name,
-            department,
-            teamLead,
-            memberCount: team.memberCount || 0, // Default to 0 if not provided
-            status: team.status,
-            description: team.description,
-          };
-        });
-        setTeams(formattedTeams);
-        setFilteredTeams(formattedTeams);
-        onTeamUpdate?.(formattedTeams);
+            return {
+              id: team.id,
+              name: team.name,
+              department,
+              teamLead,
+              memberCount: team.memberCount || 0, // Default to 0 if not provided
+              status: team.status,
+              description: team.description,
+            };
+          });
+          setTeams(formattedTeams);
+          setFilteredTeams(formattedTeams);
+          setTotalPages(data.totalPages || 0); // Update total pages
+          setTotalRecords(data.totalElements || 0); // Update total record count
+          onTeamUpdate?.(formattedTeams);
+        } else {
+          console.error('Unexpected response format: content is missing or not an array', data);
+        }
       } else {
         console.error('Failed to fetch teams:', response.status);
       }
@@ -237,9 +253,14 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    fetchAllTeams(searchQuery, '', newPage, 10); // Fetch teams for the new page
+  };
+
   useEffect(() => {
-    fetchAllTeams(); // Fetch all teams on component mount
-  }, []);
+    fetchAllTeams(searchQuery, '', currentPage, 10); // Fetch teams for the current page
+  }, [searchQuery, currentPage]);
 
   const handleSaveTeam = async () => {
     const updatedTeam = {
@@ -307,7 +328,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         <div>
           <h2 className="font-heading font-semibold text-xl text-foreground">All Teams</h2>
           <p className="font-caption text-sm text-muted-foreground mt-1">
-            {filteredTeams.length} team{filteredTeams.length !== 1 ? 's' : ''} found
+            {totalRecords} team{totalRecords !== 1 ? 's' : ''} found
           </p>
         </div>
         <button
@@ -415,6 +436,29 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          Page {currentPage + 1} of {totalPages}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage + 1 === totalPages}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
 
