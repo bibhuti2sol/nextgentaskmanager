@@ -287,41 +287,45 @@ const UserFormPanel = ({
   return (
     <>
       <div
-        className="fixed inset-0 flex items-center justify-center bg-black/50 z-[2000] transition-opacity"
+        className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
         onClick={onClose}
-      >
+      />
+      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4 sm:p-6">
         <div
-          className="relative bg-card shadow-elevation-3 border border-border z-[2001] overflow-y-auto rounded-lg w-full max-w-lg max-h-[90vh]"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the panel
+          className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] pointer-events-auto mx-auto mt-auto sm:mt-0"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 z-10">
-            <div className="flex items-center justify-between">
-              <h2 className="font-heading text-xl font-semibold text-foreground">
+          {/* Header */}
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-foreground">
                 {editingUser ? 'Edit User' : 'Add New User'}
               </h2>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
-                aria-label="Close panel"
-              >
-                <Icon name="XMarkIcon" size={24} variant="outline" />
-              </button>
+              <p className="font-caption text-sm text-muted-foreground mt-1">
+                {editingUser ? 'Update user details and permissions' : 'Fill in the details to create a new user'}
+              </p>
             </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
+              aria-label="Close panel"
+            >
+              <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Username Field - Hidden as per user request */}
-
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto">
             {/* First Name */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 First Name *
               </label>
               <input
                 type="text"
                 value={formData.firstName || ''}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.firstName ? 'border-error' : 'border-border'
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.firstName ? 'border-error' : 'border-border'
                   }`}
                 placeholder="Enter first name"
                 required
@@ -333,14 +337,14 @@ const UserFormPanel = ({
 
             {/* Last Name */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Last Name *
               </label>
               <input
                 type="text"
                 value={formData.lastName || ''}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.lastName ? 'border-error' : 'border-border'
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.lastName ? 'border-error' : 'border-border'
                   }`}
                 placeholder="Enter last name"
                 required
@@ -352,14 +356,14 @@ const UserFormPanel = ({
 
             {/* Email */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Email Address *
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.email ? 'border-error' : 'border-border'
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.email ? 'border-error' : 'border-border'
                   }`}
                 placeholder="user@nextgentask.com"
               />
@@ -370,14 +374,14 @@ const UserFormPanel = ({
 
             {/* Password */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Password *
               </label>
               <input
                 type="password"
                 value={formData.password || ''}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.password ? 'border-error' : 'border-border'
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.password ? 'border-error' : 'border-border'
                   }`}
                 placeholder="Enter password"
                 required
@@ -387,13 +391,13 @@ const UserFormPanel = ({
               )}
             </div>
 
-            {/* Role (Checkboxes for multiple selection) */}
-            <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+            {/* Role (Checkboxes) */}
+            <div className="sm:col-span-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Role *
               </label>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
+              <div className="flex items-center gap-4 px-4 py-2 bg-background border border-border rounded-md">
+                <label className="flex items-center gap-2 font-caption text-sm">
                   <input
                     type="checkbox"
                     checked={formData.role.includes('Admin')}
@@ -407,7 +411,7 @@ const UserFormPanel = ({
                   />
                   Admin
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 font-caption text-sm">
                   <input
                     type="checkbox"
                     checked={formData.role.includes('Manager')}
@@ -421,7 +425,7 @@ const UserFormPanel = ({
                   />
                   Manager
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 font-caption text-sm">
                   <input
                     type="checkbox"
                     checked={formData.role.includes('Associate')}
@@ -443,7 +447,7 @@ const UserFormPanel = ({
 
             {/* Status */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Status *
               </label>
               <select
@@ -451,63 +455,16 @@ const UserFormPanel = ({
                 onChange={(e) =>
                   handleInputChange('status', e.target.value)
                 }
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
 
-            {/* Team and Department */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Department *
-                </label>
-                <select
-                  value={formData.department}
-                  onChange={(e) => handleInputChange('department', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.department ? 'border-error' : 'border-border'
-                    }`}
-                >
-                  <option value="">Select department</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.department && (
-                  <p className="mt-1 font-caption text-xs text-error">{errors.department}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team *
-                </label>
-                <select
-                  value={formData.team}
-                  onChange={(e) => handleInputChange('team', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.team ? 'border-error' : 'border-border'
-                    }`}
-                >
-                  <option value="">Select team</option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.team && (
-                  <p className="mt-1 font-caption text-xs text-error">{errors.team}</p>
-                )}
-              </div>
-            </div>
-
             {/* Reports To */}
             <div>
-              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
                 Reports To *
               </label>
               <select
@@ -523,7 +480,7 @@ const UserFormPanel = ({
                   });
                   if (errors.reportsTo) setErrors({ ...errors, reportsTo: '' });
                 }}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.reportsTo ? 'border-error' : 'border-border'
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.reportsTo ? 'border-error' : 'border-border'
                   }`}
               >
                 <option value="">Select manager</option>
@@ -538,8 +495,54 @@ const UserFormPanel = ({
               )}
             </div>
 
+            {/* Department */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
+                Department *
+              </label>
+              <select
+                value={formData.department}
+                onChange={(e) => handleInputChange('department', e.target.value)}
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.department ? 'border-error' : 'border-border'
+                  }`}
+              >
+                <option value="">Select department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+              {errors.department && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.department}</p>
+              )}
+            </div>
+
+            {/* Team */}
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-1">
+                Team *
+              </label>
+              <select
+                value={formData.team}
+                onChange={(e) => handleInputChange('team', e.target.value)}
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.team ? 'border-error' : 'border-border'
+                  }`}
+              >
+                <option value="">Select team</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+              {errors.team && (
+                <p className="mt-1 font-caption text-xs text-error">{errors.team}</p>
+              )}
+            </div>
+
             {/* Info Box */}
-            <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <div className="sm:col-span-2 lg:col-span-4 flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <Icon
                 name="InformationCircleIcon"
                 size={20}
@@ -547,7 +550,7 @@ const UserFormPanel = ({
                 className="text-primary flex-shrink-0 mt-0.5"
               />
               <div>
-                <p className="font-caption text-sm text-foreground font-medium mb-1">
+                <p className="font-caption text-sm text-foreground font-medium mb-0.5">
                   User Hierarchy
                 </p>
                 <p className="font-caption text-xs text-muted-foreground">
@@ -558,18 +561,19 @@ const UserFormPanel = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-border shrink-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-caption font-medium text-sm hover:bg-gray-300 transition-smooth"
+                className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg font-caption font-medium text-sm hover:bg-green-700 transition-smooth"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
               >
+                <Icon name={editingUser ? "PencilIcon" : "PlusIcon"} size={18} variant="outline" />
                 {editingUser ? 'Update User' : 'Create User'}
               </button>
             </div>

@@ -18,9 +18,17 @@ interface NavigationSidebarProps {
   isCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
   userRole?: 'Admin' | 'Manager' | 'Associate';
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const NavigationSidebar = ({ isCollapsed = false, onCollapsedChange, userRole }: NavigationSidebarProps) => {
+const NavigationSidebar = ({ 
+  isCollapsed = false, 
+  onCollapsedChange, 
+  userRole,
+  isMobileOpen = false,
+  onMobileClose
+}: NavigationSidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(isCollapsed);
@@ -120,12 +128,23 @@ const NavigationSidebar = ({ isCollapsed = false, onCollapsedChange, userRole }:
   };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-screen bg-card border-r border-border transition-smooth z-[1000] ${
-        collapsed ? 'w-[60px]' : 'w-[240px]'
-      }`}
-      suppressHydrationWarning
-    >
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[999] md:hidden transition-opacity duration-300"
+          onClick={onMobileClose}
+        />
+      )}
+      
+      <aside
+        className={`fixed left-0 top-0 h-screen bg-card border-r border-border transition-smooth z-[1000] ${
+          collapsed ? 'w-[60px]' : 'w-[240px]'
+        } ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+        suppressHydrationWarning
+      >
       <div className="flex flex-col h-full">
         {/* Logo Section */}
         <div className="flex items-center justify-between h-[72px] px-4 border-b border-border">
@@ -219,6 +238,7 @@ const NavigationSidebar = ({ isCollapsed = false, onCollapsedChange, userRole }:
         </div>
       </div>
     </aside>
+    </>
   );
 };
 

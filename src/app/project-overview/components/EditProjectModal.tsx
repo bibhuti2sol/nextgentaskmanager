@@ -86,162 +86,203 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onSave, on
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-        <h2 className="text-lg font-bold mb-4">Edit Project</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="projectName" className="block text-sm font-medium text-gray-700">
-              Project Name
-            </label>
-            <input
-              type="text"
-              id="projectName"
-              name="name"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.name}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.status}
-              onChange={handleChange}
-            >
-              <option value="planning">Planning</option>
-              <option value="in-progress">In Progress</option>
-              <option value="on-hold">On Hold</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label htmlFor="progress" className="block text-sm font-medium text-gray-700">
-              Progress (%)
-            </label>
-            <input
-              type="number"
-              id="progress"
-              name="progress"
-              min="0"
-              max="100"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.progress}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-              Start Date
-            </label>
-            <input
-              type="date"
-              id="startDate"
-              name="startDate"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.startDate}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              End Date
-            </label>
-            <input
-              type="date"
-              id="endDate"
-              name="endDate"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.endDate}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Project Manager
-            </label>
-            <select
-              id="owner"
-              name="owner"
-              value={form.owner}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth border-border"
-            >
-              <option value="">Select Project Manager</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
-              Project Type
-            </label>
-            <select
-              id="projectType"
-              name="projectType"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.projectType}
-              onChange={handleChange}
-            >
-              <option value="normal">Normal</option>
-              <option value="budget">Budget</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
-              Budget
-            </label>
-            <input
-              type="text"
-              id="budget"
-              name="budget"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.budget}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
-              Priority
-            </label>
-            <select
-              id="priority"
-              name="priority"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.priority}
-              onChange={handleChange}
-            >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-2">
+    <>
+      <div
+        className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4 sm:p-6">
+        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] pointer-events-auto mx-auto mt-auto sm:mt-0">
+          {/* Header */}
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-foreground">Edit Project</h2>
+              <p className="font-caption text-sm text-muted-foreground mt-1">Update project details and settings</p>
+            </div>
             <button
-              type="button"
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
               onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
+              aria-label="Close panel"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md hover:opacity-90"
-            >
-              Save Changes
+              <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
             </button>
           </div>
-        </form>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto">
+            {/* Project Name */}
+            <div className="sm:col-span-2 lg:col-span-2">
+              <label htmlFor="projectName" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Project Name
+              </label>
+              <input
+                type="text"
+                id="projectName"
+                name="name"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.name}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label htmlFor="status" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.status}
+                onChange={handleChange}
+              >
+                <option value="planning">Planning</option>
+                <option value="in-progress">In Progress</option>
+                <option value="on-hold">On Hold</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            {/* Progress */}
+            <div>
+              <label htmlFor="progress" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Progress (%)
+              </label>
+              <input
+                type="number"
+                id="progress"
+                name="progress"
+                min="0"
+                max="100"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.progress}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Start Date */}
+            <div>
+              <label htmlFor="startDate" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                name="startDate"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.startDate}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label htmlFor="endDate" className="block font-caption text-sm font-medium text-foreground mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.endDate}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Project Manager */}
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-1">
+                Project Manager
+              </label>
+              <select
+                id="owner"
+                name="owner"
+                value={form.owner}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+              >
+                <option value="">Select Project Manager</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label htmlFor="priority" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Priority
+              </label>
+              <select
+                id="priority"
+                name="priority"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.priority}
+                onChange={handleChange}
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            {/* Project Type */}
+            <div>
+              <label htmlFor="projectType" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Project Type
+              </label>
+              <select
+                id="projectType"
+                name="projectType"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.projectType}
+                onChange={handleChange}
+              >
+                <option value="normal">Normal</option>
+                <option value="budget">Budget</option>
+              </select>
+            </div>
+
+            {/* Budget */}
+            <div>
+              <label htmlFor="budget" className="block font-caption text-sm font-medium text-foreground mb-1">
+                Budget
+              </label>
+              <input
+                type="text"
+                id="budget"
+                name="budget"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+                value={form.budget}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-border shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
+              >
+                <Icon name="PencilIcon" size={18} variant="outline" />
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

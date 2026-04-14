@@ -184,11 +184,6 @@ const UserTable = ({
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
-                    <AppImage
-                      src={user.avatar}
-                      alt={user.avatarAlt}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
                     <div>
                       <p className="font-caption font-medium text-sm text-foreground">
                         {user.name}

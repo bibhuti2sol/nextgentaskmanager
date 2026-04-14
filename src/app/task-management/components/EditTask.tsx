@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
 import Icon from '@/components/ui/AppIcon';
+import axios from 'axios';
+
+interface Assignee {
+  id: number;
+  fullName: string;
+}
+
+interface Project {
+  id: number;
+  name: string;
+}
 
 interface EditTaskProps {
   task: {
@@ -35,22 +46,88 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
   const [taskId, setTaskId] = useState(task?.id || "");
   const [newComment, setNewComment] = useState(""); // Separate state for new comment
 
-  const handleSave = () => {
-    onSave({
-      ...task,
-      id: taskId,
-      title,
-      assignee,
-      priority,
-      status,
-      startDate,
-      endDate,
-      progress,
-      project,
-      description,
-      comments,
-    });
-    onClose();
+  const [assignees, setAssignees] = useState<Assignee[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setLoadingOptions(true);
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+
+        const [assigneesRes, projectsRes] = await Promise.all([
+          fetch('http://43.205.137.114:8080/api/v1/users/assignees', {
+            headers: { Authorization: token }
+          }),
+          fetch('http://43.205.137.114:8080/api/v1/projects?search=&status=&page=0&size=500&sort=id,desc', {
+            headers: { Authorization: token }
+          })
+        ]);
+
+        if (assigneesRes.ok) {
+          const data = await assigneesRes.json();
+          setAssignees(data);
+        }
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
+          if (data && data.content) {
+            setProjects(data.content);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dropdown options:', error);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
+  const handleSave = async () => {
+    setSubmitting(true);
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+
+      const foundAssignee = assignees.find(a => a.fullName === assignee);
+      const foundProject = projects.find(p => p.name === project);
+
+      const payload = {
+        title,
+        description,
+        priority: priority.toUpperCase(),
+        status: status === 'To Do' ? 'TODO'
+          : status === 'In Progress' ? 'IN_PROGRESS'
+            : status === 'Review' ? 'REVIEW'
+              : 'DONE',
+        assigneeId: foundAssignee ? foundAssignee.id : null,
+        projectId: foundProject ? foundProject.id : null,
+        startDate,
+        endDate,
+        recurring: false, // Defaulting as not present in simple form
+        subTasks: [], // Currently not editable here
+        comments: comments ? comments.split('\n').filter(c => c.trim() !== '') : []
+      };
+
+      const response = await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      });
+
+      if (response.status === 200) {
+        onSave(response.data);
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      alert('Failed to update task. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAddComment = () => {
@@ -67,8 +144,8 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
         className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
         onClick={onClose}
       />
-      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4">
-        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto">
+      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4 sm:p-6">
+        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] pointer-events-auto mx-auto mt-auto sm:mt-0">
           <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
             <div>
               <h2 className="font-heading font-bold text-xl text-foreground">Edit Task</h2>
@@ -83,149 +160,162 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             </button>
           </div>
 
-          <form className="p-6 grid grid-cols-4 gap-4 overflow-y-auto">
-          <div className="col-span-4">
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Task Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Task Title"
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Assignee</label>
-            <select
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            >
-              <option value="">Select Assignee</option>
-              {assigneeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Priority</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as "High" | "Medium" | "Low")}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as "To Do" | "In Progress" | "Review" | "Completed")}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            >
-              <option value="To Do">To Do</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Review">Review</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground mb-1">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground mb-1">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground mb-1">Progress (%)</label>
-            <input
-              type="number"
-              value={progress}
-              onChange={(e) => setProgress(Number(e.target.value))}
-              placeholder="Progress (%)"
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground mb-1">Project</label>
-            <select
-              value={project}
-              onChange={(e) => setProject(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-            >
-              <option value="">Select Project</option>
-              {projectOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-4">
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-              className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground"
-            />
-          </div>
-          <div className="col-span-4">
-            <label className="block text-sm font-medium text-muted-foreground mb-1">Comments</label>
-            <textarea
-              value={comments}
-              placeholder="Previous comments will appear here."
-              className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground"
-              readOnly
-            />
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a new comment"
-              className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground mt-2"
-            />
-            <button
-              type="button"
-              className="mt-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark"
-              onClick={handleAddComment}
-            >
-              Add Comment
-            </button>
-          </div>
-          <div className="col-span-4 flex gap-3 pt-4 mt-2 border-t border-border shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
-            >
-              <Icon name="PencilIcon" size={18} variant="outline" />
-              Save Changes
-            </button>
-          </div>
-        </form>
+          <form className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto">
+            <div className="sm:col-span-2 lg:col-span-4">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Task Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Task Title"
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              />
+            </div>
+            <div className="sm:col-span-1 lg:col-span-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Assignee</label>
+              <select
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              >
+                <option value="">Select Assignee</option>
+                {assignees.length > 0 ? (
+                  assignees.map((option) => (
+                    <option key={option.id} value={option.fullName}>
+                      {option.fullName}
+                    </option>
+                  ))
+                ) : (
+                  assigneeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as "High" | "Medium" | "Low")}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as "To Do" | "In Progress" | "Review" | "Completed")}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              >
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Review">Review</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1">Project</label>
+              <select
+                value={project}
+                onChange={(e) => setProject(e.target.value)}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              >
+                <option value="">Select Project</option>
+                {projects.length > 0 ? (
+                  projects.map((option) => (
+                    <option key={option.id} value={option.name}>
+                      {option.name}
+                    </option>
+                  ))
+                ) : (
+                  projectOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-4">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description"
+                className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-4">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Comments</label>
+              <textarea
+                value={comments}
+                placeholder="Previous comments will appear here."
+                className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground"
+                readOnly
+              />
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add a new comment"
+                className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground mt-2"
+              />
+              <button
+                type="button"
+                className="mt-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark"
+                onClick={handleAddComment}
+              >
+                Add Comment
+              </button>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-border shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {submitting ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Icon name="PencilIcon" size={18} variant="outline" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </>

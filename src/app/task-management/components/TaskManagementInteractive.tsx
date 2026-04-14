@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import axios from 'axios';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -37,18 +38,19 @@ interface Task {
 }
 
 const TaskManagementInteractive = () => {
-    const [showExportDropdown, setShowExportDropdown] = useState(false);
-    const handleExport = (type: 'csv' | 'pdf' | 'xlsx') => {
-      setShowExportDropdown(false);
-      // TODO: Implement export logic for filteredTasks
-      alert(`Exporting ${filteredTasks.length} tasks as ${type.toUpperCase()}`);
-    };
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const handleExport = (type: 'csv' | 'pdf' | 'xlsx') => {
+    setShowExportDropdown(false);
+    // TODO: Implement export logic for filteredTasks
+    alert(`Exporting ${filteredTasks.length} tasks as ${type.toUpperCase()}`);
+  };
   const [isHydrated, setIsHydrated] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'kanban' | 'focus'>('list');
   const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [isCreationPanelOpen, setIsCreationPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     priority: [],
     assignee: [],
@@ -56,173 +58,9 @@ const TaskManagementInteractive = () => {
     status: [],
     dateRange: null
   });
-
-  const [tasks, setTasks] = useState<Task[]>([
-  {
-    id: '1',
-    title: 'Implement user authentication system',
-    assignee: {
-      name: 'Sarah Chen',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_18a713e78-1763297858426.png",
-      alt: 'Professional headshot of Asian woman with long black hair in white blouse'
-    },
-    priority: 'High',
-    status: 'In Progress',
-    startDate: '01/15/2026',
-    endDate: '01/30/2026',
-    progress: 65,
-    project: 'Website Redesign',
-    subtasks: 5,
-    completedSubtasks: 3,
-    description: 'Design and implement a secure authentication system with JWT tokens, password hashing, and multi-factor authentication support. Ensure compliance with security best practices and OWASP guidelines.',
-    timeTracked: '12h 30m',
-    estimatedTime: '20h 00m',
-    comments: 'Initial implementation of JWT authentication completed.',
-    subtaskList: [
-      { id: '1-1', title: 'Set up JWT authentication', status: 'Completed' },
-      { id: '1-2', title: 'Implement password hashing', status: 'In Progress' },
-      { id: '1-3', title: 'Add multi-factor authentication', status: 'To Do' },
-      { id: '1-4', title: 'Security review', status: 'To Do' },
-      { id: '1-5', title: 'Write documentation', status: 'Review' }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Design mobile app wireframes',
-    assignee: {
-      name: 'Michael Rodriguez',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19ad99abc-1763299907968.png",
-      alt: 'Professional portrait of Hispanic man with short brown hair in navy blazer'
-    },
-    priority: 'Medium',
-    status: 'Review',
-    startDate: '01/20/2026',
-    endDate: '02/05/2026',
-    progress: 90,
-    project: 'Mobile App',
-    subtasks: 8,
-    completedSubtasks: 7,
-    description: 'Create comprehensive wireframes for all major screens in the mobile application, including user flows, navigation patterns, and interaction designs.',
-    timeTracked: '18h 15m',
-    estimatedTime: '20h 00m',
-    comments: 'Wireframes for home and profile screens approved.',
-    subtaskList: [
-      { id: '2-1', title: 'Home screen wireframe', status: 'Completed' },
-      { id: '2-2', title: 'Profile screen wireframe', status: 'Completed' },
-      { id: '2-3', title: 'Settings screen wireframe', status: 'Review' },
-      { id: '2-4', title: 'Navigation flow', status: 'In Progress' }
-    ]
-  },
-  {
-    id: '3',
-    title: 'API endpoint documentation',
-    assignee: {
-      name: 'Emily Watson',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1158c42da-1763295926268.png",
-      alt: 'Professional headshot of Caucasian woman with blonde hair in gray business suit'
-    },
-    priority: 'Low',
-    status: 'To Do',
-    startDate: '02/01/2026',
-    endDate: '02/10/2026',
-    progress: 0,
-    project: 'API Integration',
-    subtasks: 3,
-    completedSubtasks: 0,
-    description: 'Document all REST API endpoints with request/response examples, authentication requirements, and error handling specifications.',
-    timeTracked: '0h 00m',
-    estimatedTime: '8h 00m',
-    comments: 'Pending completion of API development.',
-  },
-  {
-    id: '4',
-    title: 'Database schema optimization',
-    assignee: {
-      name: 'David Kim',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1c1f09ffa-1763296911571.png",
-      alt: 'Professional portrait of Asian man with black hair in dark blue shirt'
-    },
-    priority: 'High',
-    status: 'In Progress',
-    startDate: '01/18/2026',
-    endDate: '01/28/2026',
-    progress: 45,
-    project: 'Website Redesign',
-    subtasks: 6,
-    completedSubtasks: 2,
-    description: 'Analyze and optimize database queries, add proper indexes, and restructure tables for improved performance and scalability.',
-    timeTracked: '9h 45m',
-    estimatedTime: '16h 00m',
-    comments: 'Indexing of user table improved query performance by 30%.',
-  },
-  {
-    id: '5',
-    title: 'Social media campaign assets',
-    assignee: {
-      name: 'Sarah Chen',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_18a713e78-1763297858426.png",
-      alt: 'Professional headshot of Asian woman with long black hair in white blouse'
-    },
-    priority: 'Medium',
-    status: 'Completed',
-    startDate: '01/10/2026',
-    endDate: '01/25/2026',
-    progress: 100,
-    project: 'Marketing Campaign',
-    subtasks: 4,
-    completedSubtasks: 4,
-    description: 'Create engaging visual assets for social media platforms including Instagram, Facebook, and LinkedIn with brand-consistent designs.',
-    timeTracked: '12h 00m',
-    estimatedTime: '12h 00m',
-    comments: 'All assets delivered and approved by the marketing team.',
-  },
-  {
-    id: '6',
-    title: 'User testing session preparation',
-    assignee: {
-      name: 'Michael Rodriguez',
-      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19ad99abc-1763299907968.png",
-      alt: 'Professional portrait of Hispanic man with short brown hair in navy blazer'
-    },
-    priority: 'High',
-    status: 'To Do',
-    startDate: '01/25/2026',
-    endDate: '02/01/2026',
-    progress: 0,
-    project: 'Mobile App',
-    subtasks: 7,
-    completedSubtasks: 0,
-    description: 'Prepare test scenarios, recruit participants, and set up testing environment for comprehensive user experience evaluation.',
-    timeTracked: '0h 00m',
-    estimatedTime: '10h 00m',
-    comments: 'Need to finalize test scenarios and recruit participants.',
-  }]
-  );
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-
-  const [editTaskId, setEditTaskId] = useState<string | null>(null);
-  const handleTaskClick = (taskId: string) => {
-    // Optionally: open details, not edit
-  };
-  const handleEditTask = (taskId: string) => {
-    setEditTaskId(taskId);
-  };
-  const handleSaveTask = (updatedTask: Task) => {
-    setTasks(tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
-    setEditTaskId(null);
-  };
-
-  const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
-    setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
-  };
-
-  const handleTaskCreate = (newTask: any) => {
-    console.log('New task created:', newTask);
-  };
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -234,26 +72,179 @@ const TaskManagementInteractive = () => {
     return matchesSearch && matchesPriority && matchesAssignee && matchesProject && matchesStatus;
   });
 
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const priorityMap: Record<string, string> = {
+        'High': 'HIGH',
+        'Medium': 'MEDIUM',
+        'Low': 'LOW'
+      };
+
+      const statusMap: Record<string, string> = {
+        'To Do': 'TODO',
+        'In Progress': 'IN_PROGRESS',
+        'Review': 'REVIEW',
+        'Completed': 'DONE'
+      };
+
+      const params = new URLSearchParams({
+        search: searchQuery,
+        page: '0',
+        size: '100',
+        sort: 'id,desc'
+      });
+
+      if (filters.priority.length > 0) {
+        params.append('priority', priorityMap[filters.priority[0]] || '');
+      }
+      if (filters.status.length > 0) {
+        params.append('status', statusMap[filters.status[0]] || '');
+      }
+      // Note: projectId and assigneeId can be added here if available in FilterState
+
+      const baseUrl = 'http://43.205.137.114:8080/api/v1/tasks';
+      const response = await axios.get(`${baseUrl}?${params.toString()}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+        },
+      });
+
+      const data = response.data.content || response.data.data || [];
+
+      const mappedTasks: Task[] = data.map((item: any) => ({
+        id: item.id.toString(),
+        title: item.title,
+        assignee: {
+          name: item.assigneeName || 'Unassigned',
+          avatar: "https://via.placeholder.com/150",
+          alt: item.assigneeName || 'Unassigned'
+        },
+        priority: (item.priority?.charAt(0) + item.priority?.slice(1).toLowerCase()) as any || 'Medium',
+        status: item.status === 'TODO' ? 'To Do'
+          : item.status === 'IN_PROGRESS' ? 'In Progress'
+            : item.status === 'REVIEW' ? 'Review'
+              : 'Completed',
+        startDate: item.startDate || '',
+        endDate: item.endDate || '',
+        progress: item.progressPercentage || 0,
+        project: item.projectName || 'General',
+        subtasks: item.subTasks?.length || 0,
+        completedSubtasks: item.subTasks?.filter((st: any) => st.status === 'DONE').length || 0,
+        description: item.description || '',
+        timeTracked: '0h', // Not in API yet
+        estimatedTime: '0h', // Not in API yet
+        comments: '', // Summary of comments if needed
+        subtaskList: item.subTasks?.map((st: any) => ({
+          id: st.id.toString(),
+          title: st.name,
+          status: st.status === 'TODO' ? 'To Do'
+            : st.status === 'IN_PROGRESS' ? 'In Progress'
+              : st.status === 'REVIEW' ? 'Review'
+                : 'Completed',
+        })) || []
+      }));
+
+      setTasks(mappedTasks);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError('Failed to load tasks. Please ensure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery, filters]);
+
+  useEffect(() => {
+    fetchTasks();
+    setIsHydrated(true);
+  }, [fetchTasks]);
+
+
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const handleTaskClick = (taskId: string) => {
+    // Optionally: open details, not edit
+  };
+  const handleEditTask = (taskId: string) => {
+    setEditTaskId(taskId);
+  };
+  const handleSaveTask = (updatedTask: Task) => {
+    // Optimistic update
+    setTasks(tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+    setEditTaskId(null);
+    // Persist from backend
+    fetchTasks();
+  };
+
+  const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
+    setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
+  };
+
+  const handleTaskCreate = (newTask: any) => {
+    console.log('New task created:', newTask);
+    fetchTasks();
+  };
+
   if (!isHydrated) {
     return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground font-caption animate-pulse">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <div className="w-16 h-16 bg-error/10 text-error rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="XCircleIcon" size={32} />
+          </div>
+          <h2 className="text-2xl font-heading font-bold text-foreground">Failed to load tasks</h2>
+          <p className="text-muted-foreground font-caption text-sm mb-6">{error}</p>
+          <button
+            onClick={() => fetchTasks()}
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-smooth"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
       <NavigationSidebar
         isCollapsed={isSidebarCollapsed}
-        onCollapsedChange={setIsSidebarCollapsed} />
-
+        onCollapsedChange={setIsSidebarCollapsed}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
+      />
 
       <div
-        className={`transition-smooth ${
-        isSidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`
-        }>
+        className={`transition-smooth min-h-screen ${isSidebarCollapsed ? 'md:ml-[60px]' : 'md:ml-[240px]'} 
+        ml-0`}
+      >
 
-        <header className="sticky top-0 z-[999] bg-card border-b border-border">
-          <div className="flex items-center justify-between px-6 py-4">
+        <header className="sticky top-0 z-[50] bg-card border-b border-border shadow-sm">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4">
             <div className="flex items-center gap-4 flex-1">
-              <h1 className="font-heading text-2xl font-semibold text-foreground">Task Management</h1>
+              <button
+                className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                onClick={() => setIsSidebarMobileOpen(true)}
+              >
+                <Icon name="Bars3Icon" size={24} variant="outline" />
+              </button>
+              <h1 className="font-heading text-xl sm:text-2xl font-semibold text-foreground truncate">Task Management</h1>
               <div className="hidden md:flex items-center gap-2 flex-1 max-w-md">
                 <div className="relative flex-1">
                   <Icon
@@ -345,34 +336,26 @@ const TaskManagementInteractive = () => {
           <FilterToolbar onFilterChange={setFilters} />
 
           {currentView === 'list' &&
-          <TaskListView
-            tasks={filteredTasks.map((task) => ({
-              ...task,
-              assignee: task.assignee.name, // Convert `assignee` object to `name` string
-              subtaskList: task.subtaskList?.map((subtask) => ({
-                ...subtask,
-                assignee: '', // Default value for `assignee`
-                startDate: '', // Default value for `startDate`
-                endDate: '', // Default value for `endDate`
-              })),
-            }))}
-            onTaskClick={handleTaskClick}
-            onStatusChange={handleStatusChange}
-            onEditTask={handleEditTask}
-          />
+            <TaskListView
+              tasks={filteredTasks}
+              onTaskClick={handleTaskClick}
+              onStatusChange={handleStatusChange}
+              onEditTask={handleEditTask}
+              onTaskUpdate={handleSaveTask}
+            />
 
           }
 
           {currentView === 'kanban' &&
-          <TaskKanbanView
-            tasks={filteredTasks}
-            onTaskClick={handleTaskClick}
-            onStatusChange={handleStatusChange} />
+            <TaskKanbanView
+              tasks={filteredTasks}
+              onTaskClick={handleTaskClick}
+              onStatusChange={handleStatusChange} />
 
           }
 
           {currentView === 'focus' &&
-          <TaskFocusView tasks={filteredTasks} onTaskClick={handleTaskClick} />
+            <TaskFocusView tasks={filteredTasks} onTaskClick={handleTaskClick} />
           }
         </main>
       </div>

@@ -1,7 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Icon from '@/components/ui/AppIcon';
+
+interface Assignee {
+  id: number;
+  fullName: string;
+}
+
+interface Project {
+  id: number;
+  name: string;
+}
 
 interface TaskCreationPanelProps {
   isOpen: boolean;
@@ -18,19 +29,109 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
     project: '',
     startDate: '',
     endDate: '',
+    status: 'To Do',
     isRecurring: false,
     recurringPattern: 'daily',
   });
 
-  const [subtasks, setSubtasks] = useState<string[]>(['']);
+  const [assignees, setAssignees] = useState<Assignee[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+        
+        const [assigneesRes, projectsRes] = await Promise.all([
+          axios.get('http://43.205.137.114:8080/api/v1/users/assignees', {
+            headers: { Authorization: token }
+          }),
+          axios.get('http://43.205.137.114:8080/api/v1/projects?search=&status=&page=0&size=500&sort=id,desc', {
+            headers: { Authorization: token }
+          })
+        ]);
+
+        setAssignees(assigneesRes.data);
+        if (projectsRes.data && projectsRes.data.content) {
+          setProjects(projectsRes.data.content);
+        }
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
+
+  const [subtasks, setSubtasks] = useState<string[]>(['']);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onTaskCreate({
-      ...taskData,
-      subtasks: subtasks.filter((s) => s.trim() !== ''),
-    });
-    onClose();
+    setSubmitting(true);
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      const payload = {
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority.toUpperCase(),
+        status: taskData.status === 'To Do' ? 'TODO' 
+                : taskData.status === 'In Progress' ? 'IN_PROGRESS'
+                : taskData.status === 'Review' ? 'REVIEW'
+                : 'DONE',
+        assigneeId: parseInt(taskData.assignee),
+        projectId: parseInt(taskData.project),
+        startDate: taskData.startDate,
+        endDate: taskData.endDate,
+        recurring: taskData.isRecurring,
+        recurrencePattern: taskData.isRecurring ? taskData.recurringPattern : null,
+        subTasks: subtasks
+          .filter(s => s.trim() !== '')
+          .map(s => ({ 
+            name: s, // Backend requires 'name' for subtasks
+            completed: false 
+          }))
+      };
+
+      const response = await axios.post('http://43.205.137.114:8080/api/v1/tasks', payload, {
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: token 
+        }
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        onTaskCreate(response.data);
+        onClose();
+        // Reset form
+        setTaskData({
+          title: '',
+          description: '',
+          priority: 'Medium',
+          assignee: '',
+          project: '',
+          startDate: '',
+          endDate: '',
+          status: 'To Do',
+          isRecurring: false,
+          recurringPattern: 'daily',
+        });
+        setSubtasks(['']);
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('Failed to create task. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAddSubtask = () => {
@@ -56,7 +157,7 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
         onClick={onClose}
       />
       <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4">
-        <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto">
+        <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] pointer-events-auto mx-auto mt-auto sm:mt-0">
           <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
             <div>
               <h2 className="font-heading font-bold text-xl text-foreground">Create New Task</h2>
@@ -127,10 +228,11 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
                 required
               >
                 <option value="">Select assignee</option>
-                <option value="Sarah Chen">Sarah Chen</option>
-                <option value="Michael Rodriguez">Michael Rodriguez</option>
-                <option value="Emily Watson">Emily Watson</option>
-                <option value="David Kim">David Kim</option>
+                {assignees.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.fullName}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -147,10 +249,11 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
                 required
               >
                 <option value="">Select project</option>
-                <option value="Website Redesign">Website Redesign</option>
-                <option value="Mobile App">Mobile App</option>
-                <option value="API Integration">API Integration</option>
-                <option value="Marketing Campaign">Marketing Campaign</option>
+                {projects.map((proj) => (
+                  <option key={proj.id} value={proj.id}>
+                    {proj.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -168,16 +271,34 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
             </div>
           </div>
 
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-2">
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={taskData.startDate}
-              onChange={(e) => setTaskData({ ...taskData, startDate: e.target.value })}
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={taskData.startDate}
+                onChange={(e) => setTaskData({ ...taskData, startDate: e.target.value })}
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block font-caption font-medium text-sm text-foreground mb-2">
+                Status
+              </label>
+              <select
+                value={taskData.status}
+                onChange={(e) => setTaskData({ ...taskData, status: e.target.value })}
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Review">Review</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
           </div>
 
           <div>
@@ -251,10 +372,17 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
+              disabled={submitting}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Icon name="PlusIcon" size={18} variant="outline" />
-              Create Task
+              {submitting ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Icon name="PlusIcon" size={18} variant="outline" />
+                  Create Task
+                </>
+              )}
             </button>
           </div>
         </form>

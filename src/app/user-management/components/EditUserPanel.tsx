@@ -182,8 +182,9 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
               type="text"
               name="username"
               value={form.username || ''}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+              readOnly
+              tabIndex={-1}
+              className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -208,16 +209,7 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
               />
             </div>
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            />
-          </div>
+          {/* Email field hidden in Edit mode */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Role</label>
             <select
