@@ -34,50 +34,65 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
         <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
         <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Subtask</h3>
         <form className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Subtask Name"
-            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          />
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as Subtask["status"])}
-            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          >
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Review">Review</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <select
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
-            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          >
-            <option value="">Select Assignee</option>
-            {assigneeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">Subtask Name</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Subtask Name"
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as Subtask["status"])}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+            >
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Review">Review</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">Assignee</label>
+            <select
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+            >
+              <option value="">Select Assignee</option>
+              {assigneeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+            />
+          </div>
           <button
             type="button"
-            className="bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition"
+            className="mt-2 bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition shadow-lg"
             onClick={handleSave}
           >
             Save Changes

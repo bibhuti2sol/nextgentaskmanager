@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import EditUserPanel from './EditUserPanel';
@@ -25,6 +25,20 @@ const UserTable = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 10;
+  const totalRecords = users.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const paginatedUsers = users.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+  // Reset to first page when users list changes (e.g. filters applied)
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [users.length]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const handleSort = (column: keyof User) => {
     if (sortColumn === column) {
@@ -155,7 +169,7 @@ const UserTable = ({
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {paginatedUsers.map((user) => (
               <tr
                 key={user.id}
                 className="border-b border-border hover:bg-muted/30 transition-smooth"
@@ -252,6 +266,31 @@ const UserTable = ({
           <p className="font-caption text-sm text-muted-foreground">
             No users found matching your filters
           </p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalRecords > 0 && (
+        <div className="flex justify-between items-center px-4 py-3">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage + 1} of {totalPages}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage + 1 >= totalPages}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

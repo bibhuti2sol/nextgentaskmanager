@@ -25,6 +25,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
   const [teams, setTeams] = useState<Team[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [formData, setFormData] = useState<Omit<Team, 'id'>>({
@@ -40,6 +41,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const mockTeams: Team[] = [
@@ -102,7 +104,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
 
@@ -128,7 +130,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
 
@@ -165,6 +167,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
       status: 'Active',
       description: ''
     });
+    setFormErrors({});
     setIsFormOpen(true);
   };
 
@@ -178,6 +181,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
       status: team.status,
       description: team.description
     });
+    setFormErrors({});
     setIsFormOpen(true);
   };
 
@@ -188,7 +192,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         });
 
@@ -217,7 +221,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
 
@@ -238,11 +242,12 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
               description: team.description,
             };
           });
-          setTeams(formattedTeams);
-          setFilteredTeams(formattedTeams);
+          const sortedTeams = formattedTeams.sort((a: any, b: any) => parseInt(b.id) - parseInt(a.id));
+          setTeams(sortedTeams);
+          setFilteredTeams(sortedTeams);
           setTotalPages(data.totalPages || 0); // Update total pages
           setTotalRecords(data.totalElements || 0); // Update total record count
-          onTeamUpdate?.(formattedTeams);
+          onTeamUpdate?.(sortedTeams);
         } else {
           console.error('Unexpected response format: content is missing or not an array', data);
         }
@@ -263,7 +268,20 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
     fetchAllTeams(searchQuery, '', currentPage, 10, 'id,desc'); // Fetch teams for the current page with max 10 records
   }, [searchQuery, currentPage]);
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!formData.name.trim()) errors.name = 'Team name is required';
+    if (!formData.department) errors.department = 'Department is required';
+    if (!formData.teamLead) errors.teamLead = 'Team lead is required';
+    if (!formData.status) errors.status = 'Status is required';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSaveTeam = async () => {
+    if (!validateForm()) return;
+
     const updatedTeam = {
       name: formData.name,
       description: formData.description,
@@ -279,7 +297,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
           body: JSON.stringify(updatedTeam),
         });
@@ -303,7 +321,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
           body: JSON.stringify(newTeam),
         });
@@ -341,6 +359,55 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         </button>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedTeams.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <span className="font-caption text-sm text-foreground">
+            {selectedTeams.length} team{selectedTeams.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const updated = teams.map((t) =>
+                  selectedTeams.includes(t.id) ? { ...t, status: 'Active' as const } : t
+                );
+                setTeams(updated);
+                setSelectedTeams([]);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-md text-xs font-caption font-medium text-success hover:bg-success/20 transition-smooth"
+            >
+              <Icon name="CheckCircleIcon" size={14} variant="outline" />
+              Activate
+            </button>
+            <button
+              onClick={() => {
+                const updated = teams.map((t) =>
+                  selectedTeams.includes(t.id) ? { ...t, status: 'Inactive' as const } : t
+                );
+                setTeams(updated);
+                setSelectedTeams([]);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-md text-xs font-caption font-medium text-warning hover:bg-warning/20 transition-smooth"
+            >
+              <Icon name="XCircleIcon" size={14} variant="outline" />
+              Deactivate
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Are you sure you want to delete ${selectedTeams.length} team(s)?`)) {
+                  setTeams(teams.filter((t) => !selectedTeams.includes(t.id)));
+                  setSelectedTeams([]);
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-error/10 border border-error/20 rounded-md text-xs font-caption font-medium text-error hover:bg-error/20 transition-smooth"
+            >
+              <Icon name="TrashIcon" size={14} variant="outline" />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="relative">
         <Icon
@@ -364,6 +431,20 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
+                <th className="px-4 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedTeams.length === filteredTeams.length && filteredTeams.length > 0}
+                    onChange={() => {
+                      if (selectedTeams.length === filteredTeams.length) {
+                        setSelectedTeams([]);
+                      } else {
+                        setSelectedTeams(filteredTeams.map((t) => t.id));
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                   Team Name
                 </th>
@@ -387,6 +468,20 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
             <tbody className="divide-y divide-border">
               {filteredTeams.map((team) => (
                 <tr key={team.id} className="hover:bg-muted/30 transition-smooth">
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedTeams.includes(team.id)}
+                      onChange={() => {
+                        if (selectedTeams.includes(team.id)) {
+                          setSelectedTeams(selectedTeams.filter((id) => id !== team.id));
+                        } else {
+                          setSelectedTeams([...selectedTeams, team.id]);
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div>
                       <div className="font-caption font-medium text-sm text-foreground">
@@ -475,24 +570,31 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
             <div className="p-6 space-y-4">
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team Name
+                  Team Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.name ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                   placeholder="Enter team name"
                 />
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Department
+                  Department <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, department: e.target.value });
+                    if (formErrors.department) setFormErrors({ ...formErrors, department: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.department ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
                   <option value="">Select department</option>
                   {fetchedDepartments.map((dept) => (
@@ -501,15 +603,19 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
                     </option>
                   ))}
                 </select>
+                {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team Lead
+                  Team Lead <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.teamLead}
-                  onChange={(e) => setFormData({ ...formData, teamLead: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, teamLead: e.target.value });
+                    if (formErrors.teamLead) setFormErrors({ ...formErrors, teamLead: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.teamLead ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
                   <option value="">Select team lead</option>
                   {teamLeads.map((lead, index) => (
@@ -518,6 +624,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
                     </option>
                   ))}
                 </select>
+                {formErrors.teamLead && <p className="text-red-500 text-xs mt-1">{formErrors.teamLead}</p>}
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
@@ -533,16 +640,20 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Status
+                  Status <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' });
+                    if (formErrors.status) setFormErrors({ ...formErrors, status: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.status ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
+                {formErrors.status && <p className="text-red-500 text-xs mt-1">{formErrors.status}</p>}
               </div>
             </div>
             <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex items-center justify-end gap-3">

@@ -127,13 +127,7 @@ const features = [
       ["Marketing", "Pending", "Mar 10"],
     ],
   },
-  {
-    name: "Chat Discussions",
-    desc: "Collaborate instantly with team chat and group discussions.",
-    type: "pie",
-    style: "donut",
-    pie: [40, 30, 30],
-  },
+
   {
     name: "Doc And Attachment",
     desc: "Attach files and documents to tasks and projects for easy access.",
@@ -144,20 +138,7 @@ const features = [
       ["Design.png", "Image", "1.2MB"],
     ],
   },
-  {
-    name: "Workflow Management",
-    desc: "Automate and streamline your business processes.",
-    type: "bar",
-    style: "horizontal",
-    chartData: [5, 8, 12, 6, 9],
-  },
-  {
-    name: "Time Sheet",
-    desc: "Track work hours and productivity for each team member.",
-    type: "pie",
-    style: "segment",
-    pie: [50, 25, 25],
-  },
+
   {
     name: "Reports",
     desc: "Generate insightful reports for tasks, projects, and teams.",
@@ -176,12 +157,7 @@ const features = [
       ["Jira", "Pending"],
     ],
   },
-  {
-    name: "Additional Features",
-    desc: "Explore more advanced options for power users.",
-    type: "line",
-    chartData: [7, 11, 9, 13, 6],
-  },
+
   {
     name: "Task Delegation",
     desc: "Assign tasks to the right people and monitor progress.",

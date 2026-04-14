@@ -6,7 +6,7 @@ export interface EditProjectModalProps {
   project: {
     id: string;
     name: string;
-    status: 'active' | 'on-hold' | 'completed' | 'at-risk';
+    status: 'planning' | 'in-progress' | 'on-hold' | 'completed';
     progress: number;
     startDate: string;
     endDate: string;
@@ -14,6 +14,7 @@ export interface EditProjectModalProps {
     budget: string;
     team: number;
     priority: 'High' | 'Medium' | 'Low';
+    description: string;
     projectType?: 'normal' | 'budget';
   };
   onSave: (updatedProject: EditProjectModalProps['project']) => void;
@@ -34,25 +35,41 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onSave, on
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users'); // Replace with your API endpoint
+      const response = await fetch('http://43.205.137.114:8080/api/v1/teams/leads/eligible', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Response is not valid JSON');
-      }
-      const data: User[] = await response.json();
-      setUsers(data);
+      const data = await response.json();
+      const mappedUsers: User[] = (data || []).map((manager: any) => ({
+        id: manager.id.toString(),
+        name: manager.fullName,
+      }));
+      setUsers(mappedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       // Fallback data for development purposes
       setUsers([
-        { id: '1', name: 'John Doe' },
-        { id: '2', name: 'Jane Smith' },
+        { id: '1', name: 'Sarah Johnson' },
+        { id: '2', name: 'Michael Chen' },
+        { id: '3', name: 'Emily Rodriguez' },
+        { id: '4', name: 'David Kim' },
+        { id: '5', name: 'Jessica Taylor' },
+        { id: '6', name: 'Amanda Wilson' },
       ]);
     }
   };
+
+  useEffect(() => {
+    setForm({
+      ...project,
+      projectType: project.projectType || 'normal',
+    });
+  }, [project]);
 
   useEffect(() => {
     fetchUsers();
@@ -97,10 +114,10 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onSave, on
               value={form.status}
               onChange={handleChange}
             >
-              <option value="active">Active</option>
+              <option value="planning">Planning</option>
+              <option value="in-progress">In Progress</option>
               <option value="on-hold">On Hold</option>
               <option value="completed">Completed</option>
-              <option value="at-risk">At Risk</option>
             </select>
           </div>
           <div className="mb-4">
@@ -145,17 +162,17 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onSave, on
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="owner" className="block text-sm font-medium text-gray-700">
-              Owner
+            <label className="block font-caption text-sm font-medium text-foreground mb-2">
+              Project Manager
             </label>
             <select
               id="owner"
               name="owner"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
               value={form.owner}
               onChange={handleChange}
+              className="w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth border-border"
             >
-              <option value="">Select Owner</option>
+              <option value="">Select Project Manager</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
@@ -188,20 +205,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onSave, on
               name="budget"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
               value={form.budget}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="team" className="block text-sm font-medium text-gray-700">
-              Team Size
-            </label>
-            <input
-              type="number"
-              id="team"
-              name="team"
-              min="1"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-              value={form.team}
               onChange={handleChange}
             />
           </div>

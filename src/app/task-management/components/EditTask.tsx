@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Icon from '@/components/ui/AppIcon';
 
 interface EditTaskProps {
   task: {
@@ -61,11 +62,28 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card rounded-2xl shadow-2xl p-6 max-w-4xl w-full relative animate-fade-in" style={{ margin: '12vh auto', maxHeight: '70vh', overflowY: 'auto' }}>
-        <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
-        <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Task</h3>
-        <form className="grid grid-cols-4 gap-4">
+    <>
+      <div
+        className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4">
+        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto">
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-foreground">Edit Task</h2>
+              <p className="font-caption text-sm text-muted-foreground mt-1">Update task details and progress</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
+              aria-label="Close panel"
+            >
+              <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
+            </button>
+          </div>
+
+          <form className="p-6 grid grid-cols-4 gap-4 overflow-y-auto">
           <div className="col-span-4">
             <label className="block text-sm font-medium text-muted-foreground mb-1">Task Title</label>
             <input
@@ -190,25 +208,27 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
               Add Comment
             </button>
           </div>
-          <div className="col-span-4 flex justify-end gap-4">
+          <div className="col-span-4 flex gap-3 pt-4 mt-2 border-t border-border shrink-0">
             <button
               type="button"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground border border-border rounded-lg hover:bg-muted"
               onClick={onClose}
+              className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
             >
               Cancel
             </button>
             <button
               type="button"
-              className="bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition"
               onClick={handleSave}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
             >
+              <Icon name="PencilIcon" size={18} variant="outline" />
               Save Changes
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

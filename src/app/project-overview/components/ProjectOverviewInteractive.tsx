@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@/components/common/UserContext';
-// ...existing code...
 import ProjectListView from './ProjectListView';
 import EditProjectModal from './EditProjectModal';
 import ProjectHealthDashboard from './ProjectHealthDashboard';
@@ -78,11 +77,10 @@ const ProjectOverviewInteractive = () => {
       description: 'A comprehensive task management tool for modern teams.',
       status: 'In Progress',
       progress: 78,
+      team: 8,
       startDate: '2026-01-15',
       endDate: '2026-04-30',
-      owner: 'Sarah Johnson',
       budget: '$125,000',
-      team: 8,
       priority: 'High',
       projectManager: 'Sarah Johnson',
       teamMembers: ['Michael Chen', 'Emily Rodriguez', 'David Kim'],
@@ -94,11 +92,10 @@ const ProjectOverviewInteractive = () => {
       description: 'Developing a cross-platform mobile application.',
       status: 'In Progress',
       progress: 45,
+      team: 5,
       startDate: '2026-02-01',
       endDate: '2026-06-15',
-      owner: 'Michael Chen',
       budget: '$85,000',
-      team: 5,
       priority: 'High',
       projectManager: 'Michael Chen',
       teamMembers: ['Emily Rodriguez', 'Jessica Taylor'],
@@ -110,11 +107,10 @@ const ProjectOverviewInteractive = () => {
       description: 'Integrating third-party APIs for enhanced functionality.',
       status: 'On Hold',
       progress: 30,
+      team: 4,
       startDate: '2026-01-20',
       endDate: '2026-05-10',
-      owner: 'Emily Rodriguez',
       budget: '$45,000',
-      team: 3,
       priority: 'Medium',
       projectManager: 'Emily Rodriguez',
       teamMembers: ['David Kim'],
@@ -126,11 +122,10 @@ const ProjectOverviewInteractive = () => {
       description: 'Migrating legacy databases to a modern cloud platform.',
       status: 'Completed',
       progress: 100,
+      team: 12,
       startDate: '2025-12-01',
       endDate: '2026-01-31',
-      owner: 'Jessica Taylor',
       budget: '$32,000',
-      team: 4,
       priority: 'High',
       projectManager: 'Jessica Taylor',
       teamMembers: ['Michael Chen', 'David Kim'],
@@ -142,11 +137,10 @@ const ProjectOverviewInteractive = () => {
       description: 'Launching a new marketing website for the company.',
       status: 'Completed',
       progress: 100,
+      team: 6,
       startDate: '2025-11-01',
       endDate: '2026-01-15',
-      owner: 'Amanda Wilson',
       budget: '$28,000',
-      team: 3,
       priority: 'Low',
       projectManager: 'Amanda Wilson',
       teamMembers: ['Sarah Johnson'],
@@ -160,254 +154,254 @@ const ProjectOverviewInteractive = () => {
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
 
   const mockTasks: Task[] = [
-  {
-    id: 'task-1',
-    name: 'Project Planning & Requirements',
-    startDate: '2026-01-15',
-    endDate: '2026-01-28',
-    progress: 100,
-    dependencies: [],
-    assignee: 'Sarah Johnson',
-    priority: 'High',
-    isMilestone: true,
-    isCriticalPath: true
-  },
-  {
-    id: 'task-2',
-    name: 'UI/UX Design Phase',
-    startDate: '2026-01-29',
-    endDate: '2026-02-18',
-    progress: 75,
-    dependencies: ['task-1'],
-    assignee: 'Michael Chen',
-    priority: 'High',
-    isMilestone: false,
-    isCriticalPath: true
-  },
-  {
-    id: 'task-3',
-    name: 'Frontend Development',
-    startDate: '2026-02-19',
-    endDate: '2026-03-25',
-    progress: 45,
-    dependencies: ['task-2'],
-    assignee: 'Emily Rodriguez',
-    priority: 'High',
-    isMilestone: false,
-    isCriticalPath: true
-  },
-  {
-    id: 'task-4',
-    name: 'Backend API Development',
-    startDate: '2026-02-12',
-    endDate: '2026-03-18',
-    progress: 60,
-    dependencies: ['task-1'],
-    assignee: 'David Kim',
-    priority: 'Medium',
-    isMilestone: false,
-    isCriticalPath: false
-  },
-  {
-    id: 'task-5',
-    name: 'Database Setup & Migration',
-    startDate: '2026-02-05',
-    endDate: '2026-02-25',
-    progress: 85,
-    dependencies: ['task-1'],
-    assignee: 'Jessica Taylor',
-    priority: 'Medium',
-    isMilestone: false,
-    isCriticalPath: false
-  },
-  {
-    id: 'task-6',
-    name: 'Integration Testing',
-    startDate: '2026-03-26',
-    endDate: '2026-04-08',
-    progress: 20,
-    dependencies: ['task-3', 'task-4'],
-    assignee: 'Robert Martinez',
-    priority: 'High',
-    isMilestone: false,
-    isCriticalPath: true
-  },
-  {
-    id: 'task-7',
-    name: 'Beta Testing & QA',
-    startDate: '2026-04-09',
-    endDate: '2026-04-22',
-    progress: 0,
-    dependencies: ['task-6'],
-    assignee: 'Amanda Wilson',
-    priority: 'High',
-    isMilestone: true,
-    isCriticalPath: true
-  },
-  {
-    id: 'task-8',
-    name: 'Production Deployment',
-    startDate: '2026-04-23',
-    endDate: '2026-04-30',
-    progress: 0,
-    dependencies: ['task-7'],
-    assignee: 'Christopher Lee',
-    priority: 'High',
-    isMilestone: true,
-    isCriticalPath: true
-  }];
+    {
+      id: 'task-1',
+      name: 'Project Planning & Requirements',
+      startDate: '2026-01-15',
+      endDate: '2026-01-28',
+      progress: 100,
+      dependencies: [],
+      assignee: 'Sarah Johnson',
+      priority: 'High',
+      isMilestone: true,
+      isCriticalPath: true
+    },
+    {
+      id: 'task-2',
+      name: 'UI/UX Design Phase',
+      startDate: '2026-01-29',
+      endDate: '2026-02-18',
+      progress: 75,
+      dependencies: ['task-1'],
+      assignee: 'Michael Chen',
+      priority: 'High',
+      isMilestone: false,
+      isCriticalPath: true
+    },
+    {
+      id: 'task-3',
+      name: 'Frontend Development',
+      startDate: '2026-02-19',
+      endDate: '2026-03-25',
+      progress: 45,
+      dependencies: ['task-2'],
+      assignee: 'Emily Rodriguez',
+      priority: 'High',
+      isMilestone: false,
+      isCriticalPath: true
+    },
+    {
+      id: 'task-4',
+      name: 'Backend API Development',
+      startDate: '2026-02-12',
+      endDate: '2026-03-18',
+      progress: 60,
+      dependencies: ['task-1'],
+      assignee: 'David Kim',
+      priority: 'Medium',
+      isMilestone: false,
+      isCriticalPath: false
+    },
+    {
+      id: 'task-5',
+      name: 'Database Setup & Migration',
+      startDate: '2026-02-05',
+      endDate: '2026-02-25',
+      progress: 85,
+      dependencies: ['task-1'],
+      assignee: 'Jessica Taylor',
+      priority: 'Medium',
+      isMilestone: false,
+      isCriticalPath: false
+    },
+    {
+      id: 'task-6',
+      name: 'Integration Testing',
+      startDate: '2026-03-26',
+      endDate: '2026-04-08',
+      progress: 20,
+      dependencies: ['task-3', 'task-4'],
+      assignee: 'Robert Martinez',
+      priority: 'High',
+      isMilestone: false,
+      isCriticalPath: true
+    },
+    {
+      id: 'task-7',
+      name: 'Beta Testing & QA',
+      startDate: '2026-04-09',
+      endDate: '2026-04-22',
+      progress: 0,
+      dependencies: ['task-6'],
+      assignee: 'Amanda Wilson',
+      priority: 'High',
+      isMilestone: true,
+      isCriticalPath: true
+    },
+    {
+      id: 'task-8',
+      name: 'Production Deployment',
+      startDate: '2026-04-23',
+      endDate: '2026-04-30',
+      progress: 0,
+      dependencies: ['task-7'],
+      assignee: 'Christopher Lee',
+      priority: 'High',
+      isMilestone: true,
+      isCriticalPath: true
+    }];
 
 
   const mockHealthMetrics: HealthMetric[] = [
-  {
-    label: 'Tasks Completed',
-    value: 42,
-    target: 68,
-    status: 'on-track',
-    icon: 'CheckCircleIcon',
-    unit: ''
-  },
-  {
-    label: 'Budget Utilized',
-    value: 68,
-    target: 100,
-    status: 'on-track',
-    icon: 'CurrencyDollarIcon',
-    unit: '%'
-  },
-  {
-    label: 'Team Velocity',
-    value: 7.8,
-    target: 10,
-    status: 'at-risk',
-    icon: 'BoltIcon',
-    unit: ''
-  },
-  {
-    label: 'Risk Score',
-    value: 3,
-    target: 10,
-    status: 'on-track',
-    icon: 'ShieldExclamationIcon',
-    unit: ''
-  }];
+    {
+      label: 'Tasks Completed',
+      value: 42,
+      target: 68,
+      status: 'on-track',
+      icon: 'CheckCircleIcon',
+      unit: ''
+    },
+    {
+      label: 'Budget Utilized',
+      value: 68,
+      target: 100,
+      status: 'on-track',
+      icon: 'CurrencyDollarIcon',
+      unit: '%'
+    },
+    {
+      label: 'Team Velocity',
+      value: 7.8,
+      target: 10,
+      status: 'at-risk',
+      icon: 'BoltIcon',
+      unit: ''
+    },
+    {
+      label: 'Risk Score',
+      value: 3,
+      target: 10,
+      status: 'on-track',
+      icon: 'ShieldExclamationIcon',
+      unit: ''
+    }];
 
 
   const mockTeamMembers: TeamMember[] = [
-  {
-    id: 'member-1',
-    name: 'Sarah Johnson',
-    role: 'Project Manager',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1a9e8814c-1763296696290.png",
-    alt: 'Professional woman with brown hair in business attire smiling at camera',
-    allocation: 95,
-    availability: 'busy',
-    currentTasks: 8,
-    capacity: 10
-  },
-  {
-    id: 'member-2',
-    name: 'Michael Chen',
-    role: 'UI/UX Designer',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1cd09ec58-1763296862264.png",
-    alt: 'Asian man with glasses in casual blue shirt smiling outdoors',
-    allocation: 85,
-    availability: 'busy',
-    currentTasks: 6,
-    capacity: 8
-  },
-  {
-    id: 'member-3',
-    name: 'Emily Rodriguez',
-    role: 'Frontend Developer',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19dc372df-1763294269106.png",
-    alt: 'Hispanic woman with long dark hair in professional attire',
-    allocation: 78,
-    availability: 'available',
-    currentTasks: 5,
-    capacity: 8
-  },
-  {
-    id: 'member-4',
-    name: 'David Kim',
-    role: 'Backend Developer',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1cf9d07e2-1763295152029.png",
-    alt: 'Young man with short black hair in casual attire smiling',
-    allocation: 60,
-    availability: 'available',
-    currentTasks: 4,
-    capacity: 8
-  },
-  {
-    id: 'member-5',
-    name: 'Jessica Taylor',
-    role: 'Database Administrator',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_152c5c9f3-1763296503496.png",
-    alt: 'Woman with blonde hair in professional white blouse',
-    allocation: 72,
-    availability: 'available',
-    currentTasks: 5,
-    capacity: 8
-  }];
+    {
+      id: 'member-1',
+      name: 'Sarah Johnson',
+      role: 'Project Manager',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1a9e8814c-1763296696290.png",
+      alt: 'Professional woman with brown hair in business attire smiling at camera',
+      allocation: 95,
+      availability: 'busy',
+      currentTasks: 8,
+      capacity: 10
+    },
+    {
+      id: 'member-2',
+      name: 'Michael Chen',
+      role: 'UI/UX Designer',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1cd09ec58-1763296862264.png",
+      alt: 'Asian man with glasses in casual blue shirt smiling outdoors',
+      allocation: 85,
+      availability: 'busy',
+      currentTasks: 6,
+      capacity: 8
+    },
+    {
+      id: 'member-3',
+      name: 'Emily Rodriguez',
+      role: 'Frontend Developer',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19dc372df-1763294269106.png",
+      alt: 'Hispanic woman with long dark hair in professional attire',
+      allocation: 78,
+      availability: 'available',
+      currentTasks: 5,
+      capacity: 8
+    },
+    {
+      id: 'member-4',
+      name: 'David Kim',
+      role: 'Backend Developer',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1cf9d07e2-1763295152029.png",
+      alt: 'Young man with short black hair in casual attire smiling',
+      allocation: 60,
+      availability: 'available',
+      currentTasks: 4,
+      capacity: 8
+    },
+    {
+      id: 'member-5',
+      name: 'Jessica Taylor',
+      role: 'Database Administrator',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_152c5c9f3-1763296503496.png",
+      alt: 'Woman with blonde hair in professional white blouse',
+      allocation: 72,
+      availability: 'available',
+      currentTasks: 5,
+      capacity: 8
+    }];
 
 
   const mockMilestones: Milestone[] = [
-  {
-    id: 'milestone-1',
-    name: 'Project Kickoff & Planning',
-    dueDate: '2026-01-28',
-    status: 'completed',
-    progress: 100,
-    tasksCompleted: 12,
-    totalTasks: 12,
-    owner: 'Sarah Johnson'
-  },
-  {
-    id: 'milestone-2',
-    name: 'Design Phase Completion',
-    dueDate: '2026-02-18',
-    status: 'in-progress',
-    progress: 75,
-    tasksCompleted: 9,
-    totalTasks: 12,
-    owner: 'Michael Chen'
-  },
-  {
-    id: 'milestone-3',
-    name: 'Development Phase Complete',
-    dueDate: '2026-03-25',
-    status: 'in-progress',
-    progress: 52,
-    tasksCompleted: 18,
-    totalTasks: 35,
-    owner: 'Emily Rodriguez'
-  },
-  {
-    id: 'milestone-4',
-    name: 'Beta Testing Complete',
-    dueDate: '2026-04-22',
-    status: 'upcoming',
-    progress: 0,
-    tasksCompleted: 0,
-    totalTasks: 15,
-    owner: 'Amanda Wilson'
-  },
-  {
-    id: 'milestone-5',
-    name: 'Production Launch',
-    dueDate: '2026-04-30',
-    status: 'upcoming',
-    progress: 0,
-    tasksCompleted: 0,
-    totalTasks: 8,
-    owner: 'Christopher Lee'
-  }];
+    {
+      id: 'milestone-1',
+      name: 'Project Kickoff & Planning',
+      dueDate: '2026-01-28',
+      status: 'completed',
+      progress: 100,
+      tasksCompleted: 12,
+      totalTasks: 12,
+      owner: 'Sarah Johnson'
+    },
+    {
+      id: 'milestone-2',
+      name: 'Design Phase Completion',
+      dueDate: '2026-02-18',
+      status: 'in-progress',
+      progress: 75,
+      tasksCompleted: 9,
+      totalTasks: 12,
+      owner: 'Michael Chen'
+    },
+    {
+      id: 'milestone-3',
+      name: 'Development Phase Complete',
+      dueDate: '2026-03-25',
+      status: 'in-progress',
+      progress: 52,
+      tasksCompleted: 18,
+      totalTasks: 35,
+      owner: 'Emily Rodriguez'
+    },
+    {
+      id: 'milestone-4',
+      name: 'Beta Testing Complete',
+      dueDate: '2026-04-22',
+      status: 'upcoming',
+      progress: 0,
+      tasksCompleted: 0,
+      totalTasks: 15,
+      owner: 'Amanda Wilson'
+    },
+    {
+      id: 'milestone-5',
+      name: 'Production Launch',
+      dueDate: '2026-04-30',
+      status: 'upcoming',
+      progress: 0,
+      tasksCompleted: 0,
+      totalTasks: 8,
+      owner: 'Christopher Lee'
+    }];
 
 
   const tabs = [
-  { id: 'list', label: 'List View', icon: 'TableCellsIcon' },
-  { id: 'resources', label: 'Resource Management', icon: 'UsersIcon' },
-  { id: 'milestones', label: 'Milestone Tracking', icon: 'FlagIcon' }];
+    { id: 'list', label: 'List View', icon: 'TableCellsIcon' },
+    { id: 'resources', label: 'Resource Management', icon: 'UsersIcon' },
+    { id: 'milestones', label: 'Milestone Tracking', icon: 'FlagIcon' }];
 
   const handleExportSubmit = (format: string) => {
     console.log(`Exporting report in ${format} format`);
@@ -434,6 +428,10 @@ const ProjectOverviewInteractive = () => {
     // Show success notification (optional)
   };
 
+  const mapProjectManager = (projectManagerId: string) => {
+    const manager = mockTeamMembers.find((member) => member.id === projectManagerId);
+    return manager ? manager.name : 'Unknown';
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -443,8 +441,7 @@ const ProjectOverviewInteractive = () => {
 
 
       <div
-        className={`transition-smooth ${
-        isSidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`
+        className={`transition-smooth ${isSidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`
         }>
 
         {/* Top Header */}
@@ -459,14 +456,14 @@ const ProjectOverviewInteractive = () => {
             <div className="flex items-center gap-4">
               {(currentRole !== 'Associate') && (
                 <>
-                  <button 
+                  <button
                     onClick={() => setIsExportModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
                   >
                     <Icon name="ArrowDownTrayIcon" size={18} variant="outline" />
                     <span className="font-caption text-sm">Export Report</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsSettingsModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-md text-muted-foreground hover:text-foreground hover:border-primary transition-smooth"
                   >
@@ -498,14 +495,13 @@ const ProjectOverviewInteractive = () => {
             {/* Tab Navigation */}
             <div className="flex items-center gap-2 px-6 py-4 border-b border-border bg-muted/30">
               {tabs.map((tab) =>
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-smooth ${
-                activeTab === tab.id ?
-                'bg-primary text-primary-foreground' :
-                'text-muted-foreground hover:text-foreground hover:bg-muted'}`
-                }>
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-smooth ${activeTab === tab.id ?
+                    'bg-primary text-primary-foreground' :
+                    'text-muted-foreground hover:text-foreground hover:bg-muted'}`
+                  }>
 
                   <Icon name={tab.icon as any} size={18} variant="outline" />
                   <span className="font-caption text-sm font-medium">{tab.label}</span>
@@ -519,28 +515,122 @@ const ProjectOverviewInteractive = () => {
                 <ProjectListView
                   projects={projects.map((project) => ({
                     ...project,
-                    status: project.status === 'In Progress' ? 'active'
-                           : project.status === 'Completed' ? 'completed'
-                           : project.status === 'On Hold' ? 'on-hold'
-                           : 'at-risk', // Default mapping for unmatched statuses
+                    owner: project.projectManager, // Map projectManager to owner for ProjectListView
+                    status: project.status === 'In Progress' ? 'in-progress'
+                      : project.status === 'Completed' ? 'completed'
+                        : project.status === 'On Hold' ? 'on-hold'
+                          : 'planning', // Default mapping for unmatched statuses
+                    projectManager: mapProjectManager(project.projectManager), // Map projectManagerId to fullName
                   }))}
-                  onEdit={setEditProjectId}
-                  onDelete={(id) => setProjects(projects.filter(p => p.id !== id))}
+                  onEdit={async (id) => {
+                    const idStr = id.toString();
+                    const numericId = idStr.includes('-') && !isNaN(parseInt(idStr.split('-')[1]))
+                      ? parseInt(idStr.split('-')[1])
+                      : parseInt(idStr);
+
+                    if (isNaN(numericId)) {
+                      console.error('Invalid project ID for editing:', id);
+                      setEditProjectId(id);
+                      return;
+                    }
+
+                    try {
+                      const response = await fetch(`http://43.205.137.114:8080/api/v1/projects/${numericId}`, {
+                        method: 'GET',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+                        },
+                      });
+
+                      if (response.ok) {
+                        const projectData = await response.json();
+
+                        // Map backend data to local state structure
+                        const updatedProject: ProjectFormData = {
+                          id: projectData.id.toString(),
+                          name: projectData.name,
+                          projectName: projectData.name,
+                          description: projectData.description || '',
+                          startDate: projectData.startDate || '',
+                          endDate: projectData.endDate || '',
+                          budget: projectData.budget?.toString() || '',
+                          priority: (projectData.priority?.charAt(0) + projectData.priority?.slice(1).toLowerCase()) as any || 'Medium',
+                          projectManager: projectData.projectManagerId?.toString() || '',
+                          status: (projectData.status === 'IN_PROGRESS' || projectData.status === 'PROGRESS') ? 'In Progress'
+                            : projectData.status === 'ON_HOLD' ? 'On Hold'
+                              : projectData.status === 'COMPLETED' ? 'Completed'
+                                : 'Planning',
+                          progress: projectData.progressPercentage || 0,
+                          team: projectData.teamSize || 0,
+                          teamMembers: []
+                        };
+
+                        setProjects(prev => {
+                          const exists = prev.some(p => p.id === updatedProject.id);
+                          if (exists) {
+                            return prev.map(p => p.id === updatedProject.id ? updatedProject : p);
+                          }
+                          return [...prev, updatedProject];
+                        });
+                        setEditProjectId(updatedProject.id);
+                      } else {
+                        console.error('Failed to fetch project details:', response.status);
+                        setEditProjectId(id);
+                      }
+                    } catch (error) {
+                      console.error('Error fetching project details:', error);
+                      setEditProjectId(id);
+                    }
+                  }}
+                  onDelete={async (id) => {
+                    if (!window.confirm('Are you sure you want to delete this project?')) return;
+
+                    const idStr = id.toString();
+                    const numericId = idStr.includes('-') && !isNaN(parseInt(idStr.split('-')[1]))
+                      ? parseInt(idStr.split('-')[1])
+                      : parseInt(idStr);
+
+                    if (isNaN(numericId)) {
+                      console.log('Skipping backend delete for mock ID:', id);
+                      setProjects(projects.filter(p => p.id !== id));
+                      return;
+                    }
+
+                    try {
+                      const response = await fetch(`http://43.205.137.114:8080/api/v1/projects/${numericId}`, {
+                        method: 'DELETE',
+                        headers: {
+                          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+                        },
+                      });
+
+                      if (response.ok) {
+                        console.log('Project deleted successfully:', id);
+                        setProjects(projects.filter(p => p.id !== id));
+                      } else {
+                        console.error('Failed to delete project:', response.status);
+                        // Optionally alert user
+                      }
+                    } catch (error) {
+                      console.error('Error deleting project:', error);
+                    }
+                  }}
                   currentRole={currentRole}
                 />
               }
               {activeTab === 'resources' &&
-              <ResourceAllocation teamMembers={mockTeamMembers} currentRole={currentRole} />
+                <ResourceAllocation teamMembers={mockTeamMembers} currentRole={currentRole} />
               }
               {activeTab === 'milestones' &&
-              <MilestoneTracker milestones={mockMilestones} />
+                <MilestoneTracker milestones={mockMilestones} />
               }
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
+            <button
               onClick={() => setIsReportModalOpen(true)}
               className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:shadow-elevation-2 transition-smooth">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -553,7 +643,7 @@ const ProjectOverviewInteractive = () => {
               <Icon name="ChevronRightIcon" size={20} variant="outline" className="text-muted-foreground" />
             </button>
 
-            <button 
+            <button
               onClick={() => setIsMeetingModalOpen(true)}
               className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:shadow-elevation-2 transition-smooth">
               <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
@@ -566,7 +656,7 @@ const ProjectOverviewInteractive = () => {
               <Icon name="ChevronRightIcon" size={20} variant="outline" className="text-muted-foreground" />
             </button>
 
-            <button 
+            <button
               onClick={() => setIsAlertsModalOpen(true)}
               className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:shadow-elevation-2 transition-smooth">
               <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
@@ -597,25 +687,113 @@ const ProjectOverviewInteractive = () => {
 
       {editProjectId && (
         <EditProjectModal
-          project={{
-            ...projects.find((p) => p.id === editProjectId)!,
-            status: projects.find((p) => p.id === editProjectId)!.status === 'In Progress' ? 'active'
-                   : projects.find((p) => p.id === editProjectId)!.status === 'Completed' ? 'completed'
-                   : projects.find((p) => p.id === editProjectId)!.status === 'On Hold' ? 'on-hold'
-                   : 'at-risk',
-          }}
-          onSave={(updatedProject) => {
-            const existingProject = projects.find((p) => p.id === updatedProject.id)!;
-            const mappedProject: ProjectFormData = {
-              ...existingProject,
-              ...updatedProject,
-              status: updatedProject.status === 'active' ? 'In Progress'
-                     : updatedProject.status === 'completed' ? 'Completed'
-                     : updatedProject.status === 'on-hold' ? 'On Hold'
-                     : 'Planning',
+          project={(() => {
+            const p = projects.find((p) => p.id === editProjectId) || {
+              id: '',
+              name: '',
+              projectName: '',
+              description: '',
+              status: 'Planning' as const,
+              progress: 0,
+              startDate: '',
+              endDate: '',
+              budget: '0',
+              priority: 'Medium' as const,
+              projectManager: '',
+              teamMembers: [],
+              team: 0,
             };
-            setProjects(projects.map((p) => p.id === updatedProject.id ? mappedProject : p));
-            setEditProjectId(null);
+            return {
+              ...p,
+              status: p.status === 'In Progress' ? 'in-progress' as const
+                : p.status === 'Completed' ? 'completed' as const
+                  : p.status === 'On Hold' ? 'on-hold' as const
+                    : 'planning' as const,
+              owner: p.projectManager,
+              description: p.description,
+            };
+          })()}
+          onSave={async (updatedProject) => {
+            const statusMapping: Record<string, string> = {
+              'in-progress': 'IN_PROGRESS',
+              'on-hold': 'ON_HOLD',
+              'completed': 'COMPLETED',
+              'planning': 'PLANNING',
+            };
+
+            const projectPayload = {
+              name: updatedProject.name,
+              description: updatedProject.description || '',
+              type: (updatedProject.projectType || 'normal').toUpperCase(),
+              budget: parseFloat((updatedProject.budget || '0').toString().replace(/[^0-9.]/g, '')),
+              startDate: updatedProject.startDate,
+              endDate: updatedProject.endDate,
+              priority: updatedProject.priority.toUpperCase(),
+              progressPercentage: updatedProject.progress,
+              projectManagerId: parseInt(updatedProject.owner),
+              status: statusMapping[updatedProject.status] || 'PLANNING',
+            };
+
+            const numericId = updatedProject.id.includes('-') && !isNaN(parseInt(updatedProject.id.split('-')[1]))
+              ? parseInt(updatedProject.id.split('-')[1])
+              : parseInt(updatedProject.id);
+
+            if (isNaN(numericId)) {
+              console.error('Invalid numeric ID for update:', updatedProject.id);
+              // Fallback to local update if ID is not numeric (mock data)
+              updateLocalProjects(updatedProject);
+              setEditProjectId(null);
+              return;
+            }
+
+            try {
+              const response = await fetch(`http://43.205.137.114:8080/api/v1/projects/${numericId}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+                },
+                body: JSON.stringify(projectPayload),
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                console.log('Project updated successfully:', result);
+                updateLocalProjects(updatedProject);
+              } else {
+                console.error('Failed to update project:', response.status, await response.text());
+                // Optionally show error to user
+              }
+            } catch (error) {
+              console.error('Error updating project:', error);
+            } finally {
+              setEditProjectId(null);
+            }
+
+            function updateLocalProjects(updated: any) {
+              setProjects((prevProjects) =>
+                prevProjects.map((project) =>
+                  project.id === updated.id
+                    ? {
+                      ...project,
+                      ...updated,
+                      projectName: updated.name,
+                      projectManager: updated.owner,
+                      status:
+                        updated.status === 'in-progress'
+                          ? 'In Progress'
+                          : updated.status === 'completed'
+                            ? 'Completed'
+                            : updated.status === 'on-hold'
+                              ? 'On Hold'
+                              : updated.status === 'planning'
+                                ? 'Planning'
+                                : 'Planning', // Fallback to Planning if At Risk was somehow present
+                    }
+                    : project
+                )
+              );
+            }
           }}
           onClose={() => setEditProjectId(null)}
         />

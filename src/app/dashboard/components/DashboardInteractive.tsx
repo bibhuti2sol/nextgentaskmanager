@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import MetricsCard from './MetricsCard';
-import TaskPriorityList from './TaskPriorityList';
-import ProjectHealthCard from './ProjectHealthCard';
+import TaskPriorityChart from './TaskPriorityChart';
+import ProjectHealthChart from './ProjectHealthChart';
 import ProductivityChart from './ProductivityChart';
 import SubtaskChart from './SubtaskChart';
 import { BellIcon } from '@heroicons/react/24/outline';
@@ -17,7 +18,6 @@ import CalendarPreview from './CalendarPreview';
 import TeamWorkloadOverview from './TeamWorkloadOverview';
 import Icon from '@/components/ui/AppIcon';
 import ProjectSelector from './ProjectSelector';
-import SubtaskBox from '@/app/subtasks/components/SubtaskBox';
 
 interface DashboardInteractiveProps {
   userRole: 'Admin' | 'Manager' | 'Associate';
@@ -31,14 +31,33 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(2); // Initial unread notifications count
 
-  const allProjects = [
-    { id: 1, name: 'NextGen Mobile App Development' },
-    { id: 2, name: 'Enterprise Dashboard Redesign' },
-    { id: 3, name: 'Cloud Migration Initiative' },
-    { id: 4, name: 'Customer Portal Enhancement' }
-  ];
+  const [projects, setProjects] = useState<{ id: number; name: string }[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
-  const allTasks = [
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get('http://43.205.137.114:8080/api/v1/projects?page=0&size=100&sort=id,desc', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+          },
+        });
+        if (response.data && response.data.content) {
+          setProjects(response.data.content.map((p: any) => ({ id: p.id, name: p.name })));
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const allProjects = projects;
+
+  const mockTasksData = [
     {
       id: 1,
       title: 'Implement user authentication system with OAuth 2.0',
@@ -46,7 +65,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       status: 'In Progress' as const,
       deadline: 'Jan 29, 2026',
       assignee: 'Sarah Johnson',
-      projectId: 1
+      projectId: allProjects[0]?.id || 1
     },
     {
       id: 2,
@@ -55,7 +74,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       status: 'Pending' as const,
       deadline: 'Feb 02, 2026',
       assignee: 'Michael Chen',
-      projectId: 2
+      projectId: allProjects[1]?.id || 2
     },
     {
       id: 3,
@@ -64,7 +83,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       status: 'Completed' as const,
       deadline: 'Jan 25, 2026',
       assignee: 'Emily Rodriguez',
-      projectId: 1
+      projectId: allProjects[0]?.id || 1
     },
     {
       id: 4,
@@ -73,30 +92,17 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
       status: 'In Progress' as const,
       deadline: 'Feb 05, 2026',
       assignee: 'David Kim',
-      projectId: 3
+      projectId: allProjects[2]?.id || 3
     }
   ];
 
-  const subtaskMetrics = {
-    open: allTasks.filter(task => task.status === 'Pending').length,
-    inProgress: allTasks.filter(task => task.status === 'In Progress').length,
-    completed: allTasks.filter(task => task.status === 'Completed').length
-  };
+  const allTasks = mockTasksData;
 
-  // All data with project associations
   const allMetrics = [
     { title: 'Active Tasks', value: 24, change: 12, icon: '📋', variant: 'primary' as const, projectId: null },
     { title: 'Upcoming Deadlines', value: 8, change: -5, icon: '⏰', variant: 'warning' as const, projectId: null },
     { title: 'Team Members', value: 12, change: 8, icon: '👥', variant: 'success' as const, projectId: null },
-    { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null },
-    {
-      title: 'Subtasks',
-      value: `${subtaskMetrics.open} Open, ${subtaskMetrics.inProgress} In Progress, ${subtaskMetrics.completed} Completed`,
-      change: 0,
-      icon: '📝',
-      variant: 'primary' as const,
-      projectId: null
-    }
+    { title: 'Completion Rate', value: '87%', change: 15, icon: '✅', variant: 'success' as const, projectId: null }
   ];
 
   const allProjectsData = [
@@ -135,7 +141,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
   ];
 
   // Filter data based on selected project
-  const filteredTasks = selectedProjectId
+  const filteredTasks = selectedProjectId !== null
     ? allTasks.filter(task => task.projectId === selectedProjectId)
     : allTasks;
 
@@ -146,134 +152,140 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
   // Calculate filtered metrics
   const mockMetrics = selectedProjectId
     ? [
-        { title: 'Active Tasks', value: filteredTasks.filter(t => t.status === 'In Progress').length, change: 12, icon: '📋', variant: 'primary' as const },
-        { title: 'Upcoming Deadlines', value: filteredTasks.filter(t => t.status !== 'Completed').length, change: -5, icon: '⏰', variant: 'warning' as const },
-        { title: 'Team Members', value: new Set(filteredTasks.map(t => t.assignee)).size, change: 8, icon: '👥', variant: 'success' as const },
-        { title: 'Completion Rate', value: filteredProjects[0] ? `${Math.round((filteredProjects[0].tasksCompleted / filteredProjects[0].totalTasks) * 100)}%` : '0%', change: 15, icon: '✅', variant: 'success' as const }
-      ]
+      { title: 'Active Tasks', value: filteredTasks.filter(t => t.status === 'In Progress').length, change: 12, icon: '📋', variant: 'primary' as const },
+      { title: 'Upcoming Deadlines', value: filteredTasks.filter(t => t.status !== 'Completed').length, change: -5, icon: '⏰', variant: 'warning' as const },
+      { title: 'Team Members', value: new Set(filteredTasks.map(t => t.assignee)).size, change: 8, icon: '👥', variant: 'success' as const },
+      { title: 'Completion Rate', value: filteredProjects[0] ? `${Math.round((filteredProjects[0].tasksCompleted / filteredProjects[0].totalTasks) * 100)}%` : '0%', change: 15, icon: '✅', variant: 'success' as const }
+    ]
     : allMetrics;
 
   const mockTasks = filteredTasks;
   const mockProjects = filteredProjects;
 
+  const priorityDistribution = [
+    { name: 'High', value: mockTasks.filter(t => t.priority === 'High').length, color: '#F87171' },
+    { name: 'Medium', value: mockTasks.filter(t => t.priority === 'Medium').length, color: '#FBBF24' },
+    { name: 'Low', value: mockTasks.filter(t => t.priority === 'Low').length, color: '#4ADE80' },
+  ];
+
   const mockChartData = [
-  { day: 'Mon', completed: 12, inProgress: 8 },
-  { day: 'Tue', completed: 15, inProgress: 10 },
-  { day: 'Wed', completed: 18, inProgress: 7 },
-  { day: 'Thu', completed: 14, inProgress: 12 },
-  { day: 'Fri', completed: 20, inProgress: 9 },
-  { day: 'Sat', completed: 8, inProgress: 5 },
-  { day: 'Sun', completed: 6, inProgress: 3 }];
+    { day: 'Mon', completed: 12, inProgress: 8 },
+    { day: 'Tue', completed: 15, inProgress: 10 },
+    { day: 'Wed', completed: 18, inProgress: 7 },
+    { day: 'Thu', completed: 14, inProgress: 12 },
+    { day: 'Fri', completed: 20, inProgress: 9 },
+    { day: 'Sat', completed: 8, inProgress: 5 },
+    { day: 'Sun', completed: 6, inProgress: 3 }];
 
 
   const mockNotifications = [
-  {
-    id: 1,
-    type: 'escalation' as const,
-    title: 'Task Escalated',
-    message: 'Authentication system implementation has been escalated due to deadline proximity',
-    time: '5 minutes ago',
-    isRead: false
-  },
-  {
-    id: 2,
-    type: 'milestone' as const,
-    title: 'Milestone Achieved',
-    message: 'Mobile App Development project reached 80% completion',
-    time: '2 hours ago',
-    isRead: false
-  },
-  {
-    id: 3,
-    type: 'blocker' as const,
-    title: 'Blocker Reported',
-    message: 'API integration blocked by missing credentials from external team',
-    time: '4 hours ago',
-    isRead: true
-  }];
+    {
+      id: 1,
+      type: 'escalation' as const,
+      title: 'Task Escalated',
+      message: 'Authentication system implementation has been escalated due to deadline proximity',
+      time: '5 minutes ago',
+      isRead: false
+    },
+    {
+      id: 2,
+      type: 'milestone' as const,
+      title: 'Milestone Achieved',
+      message: 'Mobile App Development project reached 80% completion',
+      time: '2 hours ago',
+      isRead: false
+    },
+    {
+      id: 3,
+      type: 'blocker' as const,
+      title: 'Blocker Reported',
+      message: 'API integration blocked by missing credentials from external team',
+      time: '4 hours ago',
+      isRead: true
+    }];
 
 
   const mockRecommendations = [
-  {
-    id: 1,
-    type: 'priority' as const,
-    title: 'Prioritize Authentication Task',
-    description: 'Based on deadline analysis, this task should be moved to top priority to avoid delays',
-    action: 'Adjust Priority'
-  },
-  {
-    id: 2,
-    type: 'workload' as const,
-    title: 'Balance Team Workload',
-    description: 'Sarah Johnson has 8 active tasks while Michael Chen has only 3. Consider redistribution',
-    action: 'View Workload'
-  }];
+    {
+      id: 1,
+      type: 'priority' as const,
+      title: 'Prioritize Authentication Task',
+      description: 'Based on deadline analysis, this task should be moved to top priority to avoid delays',
+      action: 'Adjust Priority'
+    },
+    {
+      id: 2,
+      type: 'workload' as const,
+      title: 'Balance Team Workload',
+      description: 'Sarah Johnson has 8 active tasks while Michael Chen has only 3. Consider redistribution',
+      action: 'View Workload'
+    }];
 
 
   const mockQuickActions = [
-  {
-    id: 1,
-    label: 'Create Task',
-    icon: 'PlusCircleIcon',
-    color: 'bg-primary/10 text-primary',
-    onClick: () => console.log('Create task')
-  },
-  {
-    id: 2,
-    label: 'Start Timer',
-    icon: 'PlayIcon',
-    color: 'bg-success/10 text-success',
-    onClick: () => console.log('Start timer')
-  },
-  {
-    id: 3,
-    label: 'View Reports',
-    icon: 'ChartBarIcon',
-    color: 'bg-warning/10 text-warning',
-    onClick: () => console.log('View reports')
-  },
-  {
-    id: 4,
-    label: 'Team Chat',
-    icon: 'ChatBubbleLeftRightIcon',
-    color: 'bg-accent/10 text-accent',
-    onClick: () => console.log('Team chat')
-  }];
+    {
+      id: 1,
+      label: 'Create Task',
+      icon: 'PlusCircleIcon',
+      color: 'bg-primary/10 text-primary',
+      onClick: () => console.log('Create task')
+    },
+    {
+      id: 2,
+      label: 'Start Timer',
+      icon: 'PlayIcon',
+      color: 'bg-success/10 text-success',
+      onClick: () => console.log('Start timer')
+    },
+    {
+      id: 3,
+      label: 'View Reports',
+      icon: 'ChartBarIcon',
+      color: 'bg-warning/10 text-warning',
+      onClick: () => console.log('View reports')
+    },
+    {
+      id: 4,
+      label: 'Team Chat',
+      icon: 'ChatBubbleLeftRightIcon',
+      color: 'bg-accent/10 text-accent',
+      onClick: () => console.log('Team chat')
+    }];
 
 
   const mockCalendarEvents = [
-  { id: 1, title: 'Sprint Planning Meeting', time: '10:00 AM - 11:30 AM', type: 'meeting' as const },
-  { id: 2, title: 'Project Deadline: Mobile App', time: '5:00 PM', type: 'deadline' as const }];
+    { id: 1, title: 'Sprint Planning Meeting', time: '10:00 AM - 11:30 AM', type: 'meeting' as const },
+    { id: 2, title: 'Project Deadline: Mobile App', time: '5:00 PM', type: 'deadline' as const }];
 
 
   const mockTeamMembers = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    role: 'Senior Developer',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1fb6cf439-1763299224286.png",
-    alt: 'Professional woman with brown hair in white blouse smiling at camera',
-    activeTasks: 8,
-    workloadPercentage: 92
-  },
-  {
-    id: 2,
-    name: 'Michael Chen',
-    role: 'UI/UX Designer',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_144f5236b-1763295524542.png",
-    alt: 'Asian man with short black hair in casual blue shirt outdoors',
-    activeTasks: 3,
-    workloadPercentage: 45
-  },
-  {
-    id: 3,
-    name: 'Emily Rodriguez',
-    role: 'Project Manager',
-    avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19dc372df-1763294269106.png",
-    alt: 'Hispanic woman with long dark hair in professional attire',
-    activeTasks: 6,
-    workloadPercentage: 78
-  }];
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      role: 'Senior Developer',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1fb6cf439-1763299224286.png",
+      alt: 'Professional woman with brown hair in white blouse smiling at camera',
+      activeTasks: 8,
+      workloadPercentage: 92
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      role: 'UI/UX Designer',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_144f5236b-1763295524542.png",
+      alt: 'Asian man with short black hair in casual blue shirt outdoors',
+      activeTasks: 3,
+      workloadPercentage: 45
+    },
+    {
+      id: 3,
+      name: 'Emily Rodriguez',
+      role: 'Project Manager',
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_19dc372df-1763294269106.png",
+      alt: 'Hispanic woman with long dark hair in professional attire',
+      activeTasks: 6,
+      workloadPercentage: 78
+    }];
 
 
   const toggleNotifications = () => {
@@ -283,16 +295,12 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
     }
   };
 
-  const subtasks = [
-    { id: '1', title: 'Subtask 1', completed: false },
-    { id: '2', title: 'Subtask 2', completed: true },
-    { id: '3', title: 'Subtask 3', completed: false }
-  ];
+
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationSidebar 
-        isCollapsed={sidebarCollapsed} 
+      <NavigationSidebar
+        isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
         userRole={currentRole}
       />
@@ -354,7 +362,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
           {/* Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {mockMetrics.map((metric, index) =>
-            <MetricsCard key={index} {...metric} value={String(metric.value)} />
+              <MetricsCard key={index} {...metric} value={String(metric.value)} />
             )}
           </div>
 
@@ -377,15 +385,41 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
                     <Icon name="ArrowRightIcon" size={16} variant="outline" />
                   </button>
                 </div>
-                <TaskPriorityList tasks={mockTasks} />
+                <TaskPriorityChart data={priorityDistribution} />
               </div>
 
-              {/* Subtask Box */}
+              {/* Subtask Overview Card */}
               <div className="bg-card border border-border rounded-lg p-6 shadow-elevation-1">
                 <h2 className="font-heading font-semibold text-xl text-foreground mb-4">
-                  Subtasks Overview
+                  Subtask Overview
                 </h2>
-                <SubtaskBox subtasks={subtasks} />
+                <ul className="space-y-2">
+                  <li className="flex items-center justify-between py-2 px-3 rounded-md bg-blue-50">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                      <span className="text-sm font-medium text-gray-700">Total Subtasks</span>
+                    </div>
+                    <span className="text-sm font-semibold text-blue-600">{allTasks.length}</span>
+                  </li>
+                  <li className="flex items-center justify-between py-2 px-3 rounded-md bg-amber-50">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                      <span className="text-sm font-medium text-gray-700">In Progress</span>
+                    </div>
+                    <span className="text-sm font-semibold text-amber-600">
+                      {allTasks.filter(t => t.status !== 'Completed').length}
+                    </span>
+                  </li>
+                  <li className="flex items-center justify-between py-2 px-3 rounded-md bg-green-50">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                      <span className="text-sm font-medium text-gray-700">Closed</span>
+                    </div>
+                    <span className="text-sm font-semibold text-green-600">
+                      {allTasks.filter(t => t.status === 'Completed').length}
+                    </span>
+                  </li>
+                </ul>
               </div>
 
               {/* Productivity Chart */}
@@ -398,7 +432,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
 
               {/* Team Workload (Manager/Admin Only) */}
               {(currentRole === 'Manager' || currentRole === 'Admin') &&
-              <div className="bg-card border border-border rounded-lg p-6 shadow-elevation-1">
+                <div className="bg-card border border-border rounded-lg p-6 shadow-elevation-1">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-heading font-semibold text-xl text-foreground">Team Workload</h2>
                     <button className="text-primary text-sm font-caption font-medium hover:underline flex items-center gap-1">
@@ -422,7 +456,7 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
                     <Icon name="ArrowRightIcon" size={16} variant="outline" />
                   </button>
                 </div>
-                <ProjectHealthCard projects={mockProjects} />
+                <ProjectHealthChart projects={mockProjects} />
               </div>
 
               {/* Calendar Preview */}

@@ -52,7 +52,7 @@ const CalendarWidget = ({ isCollapsed = false }: CalendarWidgetProps) => {
       days.push(
         <div
           key={day}
-          className={`text-center text-xs py-1 rounded ${
+          className={`text-center text-[10px] py-0.5 rounded ${
             isToday
               ? 'bg-primary text-primary-foreground font-semibold'
               : 'text-muted-foreground hover:bg-muted'
@@ -71,40 +71,40 @@ const CalendarWidget = ({ isCollapsed = false }: CalendarWidgetProps) => {
   }
 
   return (
-    <div className="px-3 py-4 border-t border-border">
-      <div className="bg-muted/30 rounded-lg p-3">
+    <div className="px-3 py-3 border-t border-border">
+      <div className="bg-muted/30 rounded-lg p-2">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <button
             onClick={handlePrevMonth}
-            className="p-1 hover:bg-muted rounded transition-smooth"
+            className="p-0.5 hover:bg-muted rounded transition-smooth"
             aria-label="Previous month"
           >
-            <Icon name="ChevronLeftIcon" size={16} variant="outline" />
+            <Icon name="ChevronLeftIcon" size={14} variant="outline" />
           </button>
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-xs font-medium text-foreground">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </span>
           <button
             onClick={handleNextMonth}
-            className="p-1 hover:bg-muted rounded transition-smooth"
+            className="p-0.5 hover:bg-muted rounded transition-smooth"
             aria-label="Next month"
           >
-            <Icon name="ChevronRightIcon" size={16} variant="outline" />
+            <Icon name="ChevronRightIcon" size={14} variant="outline" />
           </button>
         </div>
 
         {/* Day Names */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 mb-1.5">
           {dayNames.map((day, index) => (
-            <div key={index} className="text-center text-xs font-medium text-muted-foreground">
+            <div key={index} className="text-center text-[10px] font-medium text-muted-foreground">
               {day}
             </div>
           ))}
         </div>
 
         {/* Calendar Days */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5">
           {renderCalendarDays()}
         </div>
       </div>

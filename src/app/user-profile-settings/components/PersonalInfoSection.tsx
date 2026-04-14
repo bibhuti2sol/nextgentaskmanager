@@ -27,7 +27,8 @@ const PersonalInfoSection = ({ initialData, onSave }: PersonalInfoSectionProps) 
 
   useEffect(() => {
     setIsHydrated(true);
-  }, []);
+    setFormData(initialData);
+  }, [initialData]);
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
     if (!isHydrated) return;

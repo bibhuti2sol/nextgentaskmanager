@@ -28,18 +28,24 @@ const UserFormPanel = ({
     team: string;
     department: string;
     reportsTo: string;
-    status: 'Active' | 'Inactive'; // Updated type
-    password?: string; // Added password field
+    managerId?: number | null;
+    projectManagerId?: number | null;
+    status: 'Active' | 'Inactive';
+    password?: string;
+    username: string; // Added username field
   }>({
     firstName: '',
     lastName: '',
     email: '',
-    role: ['Associate'], // Default to Associate role
+    role: ['Associate'],
     team: '',
     department: '',
     reportsTo: '',
+    managerId: null,
+    projectManagerId: null,
     status: 'Active',
     password: '',
+    username: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,8 +63,11 @@ const UserFormPanel = ({
         team: editingUser.team,
         department: editingUser.department,
         reportsTo: editingUser.reportsTo,
+        managerId: editingUser.managerId,
+        projectManagerId: editingUser.projectManagerId,
         status: editingUser.status,
-        password: '', // Do not pre-fill password
+        password: '',
+        username: editingUser.email, // Or editingUser.username if available
       });
     } else {
       setFormData({
@@ -69,8 +78,11 @@ const UserFormPanel = ({
         team: '',
         department: '',
         reportsTo: '',
+        managerId: null,
+        projectManagerId: null,
         status: 'Active',
         password: '',
+        username: '',
       });
     }
     setErrors({});
@@ -78,6 +90,8 @@ const UserFormPanel = ({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    /* Username hidden as per user request */
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
@@ -120,42 +134,51 @@ const UserFormPanel = ({
     if (validateForm()) {
       try {
         const userData = {
+          username: formData.username || formData.email, // Use explicit username or fallback to email
           email: formData.email,
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          roles: formData.role.map((role) => `ROLE_${role.toUpperCase()}`), // Convert roles to required format
-          departmentId: parseInt(formData.department), // Assuming department is stored as an ID
-          teamId: parseInt(formData.team), // Assuming team is stored as an ID
-          managerId: parseInt(formData.reportsTo), // Assuming reportsTo is stored as an ID
-          team: formData.team, // Added missing property
-          department: formData.department, // Added missing property
-          reportsTo: formData.reportsTo, // Added missing property
-          status: formData.status, // Added missing property
+          roles: formData.role.map((role) => `ROLE_${role.toUpperCase()}`),
+          departmentId: parseInt(formData.department),
+          teamId: parseInt(formData.team),
+          managerId: formData.managerId,
+          projectManagerId: formData.projectManagerId || formData.managerId,
+          team: formData.team,
+          department: formData.department,
+          reportsTo: formData.reportsTo,
+          status: formData.status,
         };
 
         const response = await axios.post('http://43.205.137.114:8080/api/v1/auth/signup', userData, {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         });
 
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 201) {
           console.log('User created successfully:', response.data);
-          onSave(userData);
+          const savedUser = response.data.data || response.data;
+          onSave({
+            ...userData,
+            id: savedUser.id?.toString(), // Use the real backend ID
+            name: `${formData.firstName} ${formData.lastName}`,
+            role: formData.role[0] || 'Associate',
+          } as any);
           onClose();
         } else {
           console.error(`Unexpected response status: ${response.status}`, response.data);
           alert('Failed to create user. Please try again later.');
         }
       } catch (error) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as AxiosError<{ message?: string }>;
         console.error('Error creating user:', axiosError);
 
         if (axiosError.response) {
           console.error('Server responded with:', axiosError.response.data);
-          alert(`Failed to create user. Server error: ${axiosError.response.status}`);
+          const serverMessage = axiosError.response.data?.message || `Server error: ${axiosError.response.status}`;
+          alert(`Failed to create user: ${serverMessage}`);
         } else {
           console.error('No response received from server:', axiosError.message);
           alert('Failed to create user. Please check your network connection.');
@@ -192,7 +215,7 @@ const UserFormPanel = ({
       const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
       return response.data;
@@ -207,7 +230,7 @@ const UserFormPanel = ({
       const response = await axios.get(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
       return response.data.map((team: any) => ({ id: team.id, name: team.name }));
@@ -287,6 +310,8 @@ const UserFormPanel = ({
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Username Field - Hidden as per user request */}
+
             {/* First Name */}
             <div>
               <label className="block font-caption font-medium text-sm text-foreground mb-2">
@@ -296,9 +321,8 @@ const UserFormPanel = ({
                 type="text"
                 value={formData.firstName || ''}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.firstName ? 'border-error' : 'border-border'
-                }`}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.firstName ? 'border-error' : 'border-border'
+                  }`}
                 placeholder="Enter first name"
                 required
               />
@@ -316,9 +340,8 @@ const UserFormPanel = ({
                 type="text"
                 value={formData.lastName || ''}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.lastName ? 'border-error' : 'border-border'
-                }`}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.lastName ? 'border-error' : 'border-border'
+                  }`}
                 placeholder="Enter last name"
                 required
               />
@@ -336,9 +359,8 @@ const UserFormPanel = ({
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.email ? 'border-error' : 'border-border'
-                }`}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.email ? 'border-error' : 'border-border'
+                  }`}
                 placeholder="user@nextgentask.com"
               />
               {errors.email && (
@@ -355,9 +377,8 @@ const UserFormPanel = ({
                 type="password"
                 value={formData.password || ''}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.password ? 'border-error' : 'border-border'
-                }`}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.password ? 'border-error' : 'border-border'
+                  }`}
                 placeholder="Enter password"
                 required
               />
@@ -446,9 +467,8 @@ const UserFormPanel = ({
                 <select
                   value={formData.department}
                   onChange={(e) => handleInputChange('department', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                    errors.department ? 'border-error' : 'border-border'
-                  }`}
+                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.department ? 'border-error' : 'border-border'
+                    }`}
                 >
                   <option value="">Select department</option>
                   {departments.map((dept) => (
@@ -469,9 +489,8 @@ const UserFormPanel = ({
                 <select
                   value={formData.team}
                   onChange={(e) => handleInputChange('team', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                    errors.team ? 'border-error' : 'border-border'
-                  }`}
+                  className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.team ? 'border-error' : 'border-border'
+                    }`}
                 >
                   <option value="">Select team</option>
                   {teams.map((team) => (
@@ -492,15 +511,24 @@ const UserFormPanel = ({
                 Reports To *
               </label>
               <select
-                value={formData.reportsTo}
-                onChange={(e) => handleInputChange('reportsTo', e.target.value)}
-                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.reportsTo ? 'border-error' : 'border-border'
-                }`}
+                value={formData.managerId?.toString() || ''}
+                onChange={(e) => {
+                  const managerId = parseInt(e.target.value);
+                  const manager = potentialManagers.find(m => parseInt(m.id) === managerId);
+                  setFormData({
+                    ...formData,
+                    managerId: managerId,
+                    projectManagerId: managerId,
+                    reportsTo: manager ? manager.name : ''
+                  });
+                  if (errors.reportsTo) setErrors({ ...errors, reportsTo: '' });
+                }}
+                className={`w-full px-4 py-2.5 bg-background border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${errors.reportsTo ? 'border-error' : 'border-border'
+                  }`}
               >
                 <option value="">Select manager</option>
                 {potentialManagers.map((manager) => (
-                  <option key={manager.id} value={manager.name}>
+                  <option key={manager.id} value={manager.id}>
                     {manager.name} ({manager.role})
                   </option>
                 ))}

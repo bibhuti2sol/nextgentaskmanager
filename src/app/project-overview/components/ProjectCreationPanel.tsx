@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 interface ProjectCreationPanelProps {
@@ -22,7 +22,6 @@ export interface ProjectFormData {
   teamMembers: string[];
   status: 'Planning' | 'In Progress' | 'On Hold' | 'Completed';
   progress: number; // Added `progress` property
-  owner: string; // Added `owner` property
   team: number; // Added `team` property
 }
 
@@ -40,12 +39,46 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
     teamMembers: [],
     status: 'Planning',
     progress: 0, // Initialize progress
-    owner: '', // Initialize owner
     team: 0, // Initialize team
   });
   const [projectType, setProjectType] = useState<'normal' | 'budget'>('normal');
-
+  const [projectManagers, setProjectManagers] = useState<{ id: number; fullName: string }[]>([]); // Store both id and fullName
   const [errors, setErrors] = useState<Partial<Record<keyof ProjectFormData, string>>>({});
+
+  const fetchProjectManagers = async () => {
+    try {
+      const response = await fetch('http://43.205.137.114:8080/api/v1/teams/leads/eligible', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched Project Managers:', data); // Log the API response for debugging
+
+        if (Array.isArray(data) && data.length > 0) {
+          const managers = data
+            .filter((manager: any) => manager.id && manager.fullName) // Filter out invalid data
+            .map((manager: any) => ({ id: manager.id, fullName: manager.fullName }));
+
+          setProjectManagers(managers);
+        } else {
+          console.warn('No valid project managers found in the response:', data);
+        }
+      } else {
+        console.error('Failed to fetch project managers:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('Error fetching project managers:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjectManagers();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof ProjectFormData, string>> = {};
@@ -78,19 +111,53 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
       newErrors.projectManager = 'Project manager is required';
     }
 
-    if (!formData.owner.trim()) {
-      newErrors.owner = 'Owner is required';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
-      handleReset();
+      const statusMapping: Record<string, string> = {
+        'Planning': 'PLANNING',
+        'In Progress': 'IN_PROGRESS', // Required by Backend Enum
+        'On Hold': 'ON_HOLD',
+        'Completed': 'COMPLETED',
+      };
+
+      const projectData = {
+        name: formData.projectName,
+        description: formData.description,
+        type: projectType.toUpperCase(),
+        budget: parseFloat(formData.budget.toString().replace(/[^0-9.]/g, '')),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        priority: formData.priority.toUpperCase(),
+        projectManagerId: parseInt(formData.projectManager),
+        status: statusMapping[formData.status] || 'PLANNING',
+      };
+
+      try {
+        const response = await fetch('http://43.205.137.114:8080/api/v1/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+          },
+          body: JSON.stringify(projectData),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Project created successfully:', result);
+          onSubmit(formData);
+          handleReset();
+        } else {
+          console.error('Failed to create project:', response.status, await response.text()); // Log response body for debugging
+        }
+      } catch (error) {
+        console.error('Error creating project:', error);
+      }
     }
   };
 
@@ -108,7 +175,6 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
       teamMembers: [],
       status: 'Planning',
       progress: 0, // Reset progress
-      owner: '', // Reset owner
       team: 0, // Reset team
     });
     setErrors({});
@@ -126,248 +192,222 @@ const ProjectCreationPanel = ({ isOpen, onClose, onSubmit }: ProjectCreationPane
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-full md:w-[600px] bg-card border-l border-border z-50 overflow-y-auto shadow-elevation-3">
-        {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-heading font-bold text-xl text-foreground">Create New Project</h2>
-            <p className="font-caption text-sm text-muted-foreground mt-1">Fill in the details to create a new project</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
-          >
-            <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Project Name */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Project Name <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.projectName}
-              onChange={(e) => handleChange('projectName', e.target.value)}
-              className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                errors.projectName ? 'border-destructive' : 'border-border'
-              }`}
-              placeholder="Enter project name"
-            />
-            {errors.projectName && (
-              <p className="mt-1 font-caption text-xs text-destructive">{errors.projectName}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Description <span className="text-destructive">*</span>
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              rows={4}
-              className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth resize-none ${
-                errors.description ? 'border-destructive' : 'border-border'
-              }`}
-              placeholder="Describe the project objectives and scope"
-            />
-            {errors.description && (
-              <p className="mt-1 font-caption text-xs text-destructive">{errors.description}</p>
-            )}
-          </div>
-
-          {/* Project Type */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Project Type <span className="text-destructive">*</span>
-            </label>
-            <select
-              value={projectType}
-              onChange={e => setProjectType(e.target.value as 'normal' | 'budget')}
-              className="w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth border-border"
+      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+        <div className="w-full max-w-lg bg-card border border-border z-50 rounded-lg shadow-elevation-3 overflow-hidden">
+          {/* Header */}
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-foreground">Create New Project</h2>
+              <p className="font-caption text-sm text-muted-foreground mt-1">Fill in the details to create a new project</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
             >
-              <option value="normal">Normal</option>
-              <option value="budget">Budget</option>
-            </select>
+              <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
+            </button>
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Project Name */}
             <div>
               <label className="block font-caption text-sm font-medium text-foreground mb-2">
-                Start Date <span className="text-destructive">*</span>
+                Project Name <span className="text-destructive">*</span>
               </label>
               <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleChange('startDate', e.target.value)}
-                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                  errors.startDate ? 'border-destructive' : 'border-border'
-                }`}
+                type="text"
+                value={formData.projectName}
+                onChange={(e) => handleChange('projectName', e.target.value)}
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.projectName ? 'border-destructive' : 'border-border'
+                  }`}
+                placeholder="Enter project name"
               />
-              {errors.startDate && (
-                <p className="mt-1 font-caption text-xs text-destructive">{errors.startDate}</p>
+              {errors.projectName && (
+                <p className="mt-1 font-caption text-xs text-destructive">{errors.projectName}</p>
               )}
             </div>
-            <div>
-              <label className="block font-caption text-sm font-medium text-foreground mb-2">
-                End Date <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => handleChange('endDate', e.target.value)}
-                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                  errors.endDate ? 'border-destructive' : 'border-border'
-                }`}
-              />
-              {errors.endDate && (
-                <p className="mt-1 font-caption text-xs text-destructive">{errors.endDate}</p>
-              )}
-            </div>
-          </div>
 
-          {/* Budget (only for Budget type) */}
-          {projectType === 'budget' && (
+            {/* Description */}
             <div>
               <label className="block font-caption text-sm font-medium text-foreground mb-2">
-                Budget <span className="text-destructive">*</span>
+                Description <span className="text-destructive">*</span>
               </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-caption text-sm">$</span>
+              <textarea
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                rows={4}
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth resize-none ${errors.description ? 'border-destructive' : 'border-border'
+                  }`}
+                placeholder="Describe the project objectives and scope"
+              />
+              {errors.description && (
+                <p className="mt-1 font-caption text-xs text-destructive">{errors.description}</p>
+              )}
+            </div>
+
+            {/* Project Type */}
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                Project Type <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={projectType}
+                onChange={e => setProjectType(e.target.value as 'normal' | 'budget')}
+                className="w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth border-border"
+              >
+                <option value="normal">Normal</option>
+                <option value="budget">Budget</option>
+              </select>
+            </div>
+
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                  Start Date <span className="text-destructive">*</span>
+                </label>
                 <input
-                  type="number"
-                  value={formData.budget}
-                  onChange={(e) => handleChange('budget', e.target.value)}
-                  className={`w-full pl-8 pr-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                    errors.budget ? 'border-destructive' : 'border-border'
-                  }`}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => handleChange('startDate', e.target.value)}
+                  className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.startDate ? 'border-destructive' : 'border-border'
+                    }`}
                 />
+                {errors.startDate && (
+                  <p className="mt-1 font-caption text-xs text-destructive">{errors.startDate}</p>
+                )}
               </div>
-              {errors.budget && (
-                <p className="mt-1 font-caption text-xs text-destructive">{errors.budget}</p>
+              <div>
+                <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                  End Date <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => handleChange('endDate', e.target.value)}
+                  className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.endDate ? 'border-destructive' : 'border-border'
+                    }`}
+                />
+                {errors.endDate && (
+                  <p className="mt-1 font-caption text-xs text-destructive">{errors.endDate}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Budget (only for Budget type) */}
+            {projectType === 'budget' && (
+              <div>
+                <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                  Budget <span className="text-destructive">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-caption text-sm">$</span>
+                  <input
+                    type="number"
+                    value={formData.budget}
+                    onChange={(e) => handleChange('budget', e.target.value)}
+                    className={`w-full pl-8 pr-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.budget ? 'border-destructive' : 'border-border'
+                      }`}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                {errors.budget && (
+                  <p className="mt-1 font-caption text-xs text-destructive">{errors.budget}</p>
+                )}
+              </div>
+            )}
+
+            {/* Priority */}
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                Priority
+              </label>
+              <div className="flex gap-3">
+                {(['High', 'Medium', 'Low'] as const).map((priority) => (
+                  <button
+                    key={priority}
+                    type="button"
+                    onClick={() => handleChange('priority', priority)}
+                    className={`flex-1 px-4 py-2 rounded-md font-caption text-sm font-medium transition-smooth ${formData.priority === priority
+                      ? priority === 'High' ? 'bg-destructive text-destructive-foreground'
+                        : priority === 'Medium' ? 'bg-warning text-warning-foreground' : 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                  >
+                    {priority}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Manager */}
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                Project Manager <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={formData.projectManager}
+                onChange={(e) => handleChange('projectManager', e.target.value)}
+                className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${errors.projectManager ? 'border-destructive' : 'border-border'
+                  }`}
+              >
+                <option value="">Select project manager</option>
+                {projectManagers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>{manager.fullName}</option>
+                ))}
+              </select>
+              {errors.projectManager && (
+                <p className="mt-1 font-caption text-xs text-destructive">{errors.projectManager}</p>
               )}
             </div>
-          )}
 
-          {/* Priority */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Priority
-            </label>
-            <div className="flex gap-3">
-              {(['High', 'Medium', 'Low'] as const).map((priority) => (
-                <button
-                  key={priority}
-                  type="button"
-                  onClick={() => handleChange('priority', priority)}
-                  className={`flex-1 px-4 py-2 rounded-md font-caption text-sm font-medium transition-smooth ${
-                    formData.priority === priority
-                      ? priority === 'High' ?'bg-destructive text-destructive-foreground'
-                        : priority === 'Medium' ?'bg-warning text-warning-foreground' :'bg-success text-success-foreground' :'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  {priority}
-                </button>
-              ))}
+            {/* Status */}
+            <div>
+              <label className="block font-caption text-sm font-medium text-foreground mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleChange('status', e.target.value as ProjectFormData['status'])}
+                className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
+              >
+                <option value="Planning">Planning</option>
+                <option value="In Progress">In Progress</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Completed">Completed</option>
+              </select>
             </div>
-          </div>
 
-          {/* Project Manager */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Project Manager <span className="text-destructive">*</span>
-            </label>
-            <select
-              value={formData.projectManager}
-              onChange={(e) => handleChange('projectManager', e.target.value)}
-              className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                errors.projectManager ? 'border-destructive' : 'border-border'
-              }`}
-            >
-              <option value="">Select project manager</option>
-              <option value="Sarah Johnson">Sarah Johnson</option>
-              <option value="Michael Chen">Michael Chen</option>
-              <option value="Emily Rodriguez">Emily Rodriguez</option>
-              <option value="David Kim">David Kim</option>
-              <option value="Jessica Taylor">Jessica Taylor</option>
-            </select>
-            {errors.projectManager && (
-              <p className="mt-1 font-caption text-xs text-destructive">{errors.projectManager}</p>
-            )}
-          </div>
-
-          {/* Owner */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Owner <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.owner}
-              onChange={(e) => handleChange('owner', e.target.value)}
-              className={`w-full px-4 py-2 bg-background border rounded-md font-caption text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth ${
-                errors.owner ? 'border-destructive' : 'border-border'
-              }`}
-              placeholder="Enter owner's name"
-            />
-            {errors.owner && (
-              <p className="mt-1 font-caption text-xs text-destructive">{errors.owner}</p>
-            )}
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block font-caption text-sm font-medium text-foreground mb-2">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => handleChange('status', e.target.value as ProjectFormData['status'])}
-              className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-smooth"
-            >
-              <option value="Planning">Planning</option>
-              <option value="In Progress">In Progress</option>
-              <option value="On Hold">On Hold</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={() => {
-                handleReset();
-                onClose();
-              }}
-              className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md font-caption text-sm font-medium hover:bg-primary/90 transition-smooth flex items-center justify-center gap-2"
-            >
-              <Icon name="PlusIcon" size={18} variant="outline" />
-              Create Project
-            </button>
-          </div>
-        </form>
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  handleReset();
+                  onClose();
+                }}
+                className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
+              >
+                <Icon name="PlusIcon" size={18} variant="outline" />
+                Create Project
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </>
   );

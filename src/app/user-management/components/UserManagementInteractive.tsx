@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import UserTable from './UserTable';
 import UserFilters from './UserFilters';
 import UserFormPanel from './UserFormPanel';
@@ -11,12 +12,17 @@ import Icon from '@/components/ui/AppIcon';
 
 export interface User {
   id: string;
+  firstName: string;
+  lastName: string;
   name: string;
   email: string;
+  username?: string;
   role: 'Admin' | 'Manager' | 'Associate';
   team: string;
   department: string;
   reportsTo: string;
+  managerId?: number | null;
+  projectManagerId?: number | null;
   status: 'Active' | 'Inactive';
   lastActivity: string;
   avatar: string;
@@ -53,48 +59,76 @@ const UserManagementInteractive = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 0, size = 100) => {
       try {
-        const response = await fetch("http://43.205.137.114:8080/api/v1/users", {
-          method: "GET",
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          size: size.toString(),
+          sort: 'id,desc'
+        });
+        
+        const apiUrl = `http://43.205.137.114:8080/api/v1/users?${queryParams.toString()}`;
+        console.log(`Fetching users from ${apiUrl}...`);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
           headers: {
-            "Content-Type": "application/json",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o",
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
+        if (response.ok) {
+          const result = await response.json();
+          const data = result.data || result.content || result;
+          
+          if (Array.isArray(data)) {
+            const apiUsers: User[] = data.map((user: any) => ({
+              ...user,
+              id: user.id.toString(),
+              firstName: user.firstName,
+              lastName: user.lastName,
+              name: `${user.firstName} ${user.lastName}`,
+              email: user.email,
+              username: user.username,
+              role:
+                user.roles?.[0]?.replace("ROLE_", "") === "ADMIN"
+                  ? "Admin"
+                  : user.roles?.[0]?.replace("ROLE_", "") === "MANAGER"
+                  ? "Manager"
+                  : "Associate",
+              team: user.teamName || "General",
+              department: user.departmentName || "General",
+              reportsTo: user.managerName || "None",
+              managerId: user.managerId || null,
+              projectManagerId: user.projectManagerId || user.managerId || null,
+              status: user.enabled ? "Active" : "Inactive",
+              lastActivity: "Unknown",
+              avatar: "https://via.placeholder.com/150",
+              avatarAlt: `${user.firstName} ${user.lastName} profile picture`,
+            }));
+
+            const sortedUsers = apiUsers.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+            setUsers(sortedUsers);
+            setFilteredUsers(sortedUsers);
+            console.log(`Successfully loaded ${apiUsers.length} users.`);
+          } else if (result.content && Array.isArray(result.content)) {
+             // Handle paginated response if it's nested differently
+             const contentUsers = result.content.map((user: any) => ({
+               ...user,
+               id: user.id.toString(),
+               name: `${user.firstName} ${user.lastName}`,
+               role: user.roles?.[0]?.replace("ROLE_", "") || "Associate",
+               status: user.enabled ? "Active" : "Inactive"
+             }));
+             setUsers(contentUsers as any);
+             setFilteredUsers(contentUsers as any);
+          } else {
+            console.error("Unexpected response format:", result);
+          }
+        } else {
+          console.error(`HTTP error: ${response.status}`);
         }
-
-        const result = await response.json();
-
-        if (!result?.data) {
-          throw new Error("Invalid API response");
-        }
-
-        const apiUsers: User[] = result.data.map((user: any) => ({
-          id: user.id.toString(),
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          role:
-            user.roles?.[0]?.replace("ROLE_", "") === "ADMIN"
-              ? "Admin"
-              : user.roles?.[0]?.replace("ROLE_", "") === "MANAGER"
-              ? "Manager"
-              : "Associate",
-          team: user.teamName || "General",
-          department: user.departmentName || "General",
-          reportsTo: user.managerName || "None",
-          status: user.enabled ? "Active" : "Inactive",
-          lastActivity: "Unknown",
-          avatar: "https://via.placeholder.com/150",
-          avatarAlt: `${user.firstName} ${user.lastName} profile picture`,
-        }));
-
-        setUsers(apiUsers);
-        setFilteredUsers(apiUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -148,6 +182,49 @@ const UserManagementInteractive = () => {
     setDepartments(mockDepartments);
   }, []);
 
+  // Global UI Override - Disabled temporarily for debugging
+  /*
+  useEffect(() => {
+    const applyFieldRestrictions = () => {
+      const modalTitles = document.querySelectorAll('h2');
+      const isEditMode = Array.from(modalTitles).some(h2 => h2.textContent?.includes('Edit User'));
+      
+      if (isEditMode) {
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+          const label = input.parentElement?.querySelector('label')?.textContent?.toLowerCase() || '';
+          const name = input.getAttribute('name')?.toLowerCase() || '';
+          const placeholder = input.getAttribute('placeholder')?.toLowerCase() || '';
+          
+          const isUsername = name === 'username' || label.includes('username');
+          const isEmail = name === 'email' || label.includes('email') || placeholder.includes('@');
+
+          if (isUsername || isEmail) {
+            (input as any).readOnly = true;
+            input.style.backgroundColor = '#f3f4f6';
+            input.style.color = '#6b7280';
+            input.style.cursor = 'not-allowed';
+            input.setAttribute('tabindex', '-1');
+            
+            if (isUsername) {
+              const creationTitle = Array.from(modalTitles).some(h2 => h2.textContent?.includes('Add New User'));
+              if (creationTitle) {
+                const container = input.closest('div');
+                if (container) container.style.display = 'none';
+              }
+            }
+          }
+        });
+      }
+    };
+
+    const observer = new MutationObserver(applyFieldRestrictions);
+    observer.observe(document.body, { childList: true, subtree: true });
+    applyFieldRestrictions();
+    return () => observer.disconnect();
+  }, []);
+  */
+
   useEffect(() => {
     let filtered = users;
 
@@ -195,7 +272,7 @@ const UserManagementInteractive = () => {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         });
 
@@ -251,7 +328,7 @@ const UserManagementInteractive = () => {
       // Add new user
       const newUser: User = {
         ...userData,
-        id: Date.now().toString(),
+        id: (userData as any).id || Date.now().toString(), // Use backend provided ID if available
         lastActivity: 'Just now',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
         avatarAlt: `${userData.name} profile picture`

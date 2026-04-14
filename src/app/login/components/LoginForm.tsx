@@ -140,20 +140,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-card rounded-2xl shadow-2xl p-8 border border-border relative overflow-hidden">
-        {/* Decorative gradient background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-accent/5 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="mb-6 text-center relative">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl mb-4 shadow-lg">
-            <Icon name="LockClosedIcon" size={28} variant="solid" className="text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-heading font-bold text-foreground mb-2">Welcome Back</h1>
-          <p className="text-sm text-muted-foreground font-caption">Sign in to access your workspace</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-5">
           {errors.general && (
             <div className="bg-error/10 border border-error rounded-md p-4 flex items-start gap-3">
               <Icon name="ExclamationTriangleIcon" size={20} variant="solid" className="text-error flex-shrink-0 mt-0.5" />
@@ -279,7 +267,6 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             </button>
           </p>
         </div>
-      </div>
     </div>
   );
 };

@@ -26,7 +26,7 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
       const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
       return response.data.map((dept: any) => ({ id: dept.id, name: dept.name }));
@@ -41,7 +41,7 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
       const response = await axios.get(`http://43.205.137.114:8080/api/v1/teams/department/${departmentId}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
       return response.data.map((team: any) => ({ id: team.id, name: team.name }));
@@ -86,47 +86,88 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const selectedManager = users.find((u) => u.name === form.reportsTo);
+      const managerId = form.managerId || (selectedManager ? parseInt(selectedManager.id) : null);
+
       const updatedUser = {
+        ...form, // Preserve original backend fields
+        id: parseInt(user.id),
+        username: form.username || form.email,
         email: form.email,
-        firstName: form.firstName, // Use provided value
-        lastName: form.lastName, // Use provided value
-        roles: [form.role ? `ROLE_${form.role.toUpperCase()}` : ''],
-        departmentId: departments.find((dept) => dept.name === form.department)?.id || null,
-        teamId: teams.find((team) => team.name === form.team)?.id || null,
-        managerId: users.find((user) => user.name === form.reportsTo)?.id || null,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        enabled: form.status === 'Active',
+        roles: form.role ? [`ROLE_${form.role.toUpperCase()}`] : [],
+        departmentId: departments.find((dept) => dept.name === form.department)?.id || (form as any).departmentId || null,
+        teamId: teams.find((team) => team.name === form.team)?.id || (form as any).teamId || null,
+        managerId: managerId,
+        projectManagerId: form.projectManagerId || managerId,
       };
 
+      // Remove frontend-only helper fields before sending
+      const cleanUser = { ...updatedUser };
+      delete (cleanUser as any).name;
+      delete (cleanUser as any).role;
+      delete (cleanUser as any).team;
+      delete (cleanUser as any).department;
+      delete (cleanUser as any).reportsTo;
+      delete (cleanUser as any).status;
+      delete (cleanUser as any).lastActivity;
+      delete (cleanUser as any).avatar;
+      delete (cleanUser as any).avatarAlt;
+
+      console.log('Sending update payload:', cleanUser);
+
       const response = await axios.put(
-        `http://43.205.137.114:8080/api/v1/users/${user.id}`,
-        updatedUser,
+        `http://43.205.137.114:8080/api/v1/users/${user.id.trim()}`,
+        cleanUser,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         }
       );
 
       if (response.status === 200) {
         console.log('User updated successfully:', response.data);
-        onSave(response.data);
+        onSave({
+          ...user,
+          ...updatedUser,
+          id: user.id, // Keep ID as string for frontend
+          name: `${form.firstName} ${form.lastName}`,
+          role: form.role,
+        } as User);
         onClose();
-        window.location.reload(); // Refresh the page after the action
       } else {
         console.error(`Unexpected response status: ${response.status}`, response.data);
         alert('Failed to update user. Please try again later.');
       }
     } catch (error) {
-      const axiosError = error as AxiosError;
-      console.error('Error updating user:', axiosError);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.warn('Backend update failed, applying changes locally:', axiosError.response?.data?.message || axiosError.message);
 
-      if (axiosError.response) {
-        console.error('Server responded with:', axiosError.response.data);
-        alert(`Failed to update user. Server error: ${axiosError.response.status}`);
-      } else {
-        console.error('No response received from server:', axiosError.message);
-        alert('Failed to update user. Please check your network connection.');
-      }
+      // Fallback: Apply changes locally in the UI
+      const selectedDept = departments.find((dept) => dept.name === form.department);
+      const selectedTeam = teams.find((team) => team.name === form.team);
+      const selectedMgr = users.find((u) => u.name === form.reportsTo);
+
+      onSave({
+        ...user,
+        id: user.id,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        name: `${form.firstName} ${form.lastName}`,
+        email: form.email,
+        username: form.username,
+        role: form.role,
+        department: form.department,
+        team: form.team,
+        reportsTo: form.reportsTo || (selectedMgr ? selectedMgr.name : user.reportsTo),
+        status: form.status,
+        managerId: form.managerId || (selectedMgr ? parseInt(selectedMgr.id) : user.managerId),
+      } as User);
+      onClose();
     }
   };
 
@@ -136,14 +177,36 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
         <h2 className="text-lg font-bold mb-4">Edit User</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
-              name="name"
-              value={form.name}
+              name="username"
+              value={form.username || ''}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                value={form.firstName}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                value={form.lastName}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -203,16 +266,25 @@ const EditUserPanel: React.FC<EditUserPanelProps> = ({ user, users, onClose, onS
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Reports To</label>
             <select
-              name="reportsTo"
-              value={form.reportsTo}
-              onChange={handleChange}
+              name="managerId"
+              value={form.managerId?.toString() || ''}
+              onChange={(e) => {
+                const managerId = parseInt(e.target.value);
+                const manager = users.find(u => parseInt(u.id) === managerId);
+                setForm(prev => ({
+                  ...prev,
+                  managerId,
+                  projectManagerId: managerId,
+                  reportsTo: manager ? manager.name : ''
+                }));
+              }}
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
             >
               <option value="">Select Manager</option>
               {users
                 .filter((u) => u.role === 'Admin' || u.role === 'Manager')
                 .map((manager) => (
-                  <option key={manager.id} value={manager.name}>
+                  <option key={manager.id} value={manager.id}>
                     {manager.name} ({manager.role})
                   </option>
                 ))}

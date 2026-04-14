@@ -37,20 +37,45 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
   });
   const [departmentHeads, setDepartmentHeads] = useState<{ id: string; name: string }[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = async (search = '', page = 0, size = 10, sort = 'id,desc') => {
     try {
-      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+      const queryParams = new URLSearchParams({
+        search,
+        page: page.toString(),
+        size: size.toString(),
+        sort,
+      });
+
+      const response = await axios.get(`http://43.205.137.114:8080/api/v1/departments?${queryParams.toString()}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
 
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setDepartments(response.data);
-        setFilteredDepartments(response.data);
-        onDepartmentUpdate?.(response.data);
+      if (response.status === 200) {
+        const data = response.data;
+        if (data.content && Array.isArray(data.content)) {
+          const sortedContent = data.content.sort((a: any, b: any) => b.id - a.id);
+          setDepartments(sortedContent);
+          setFilteredDepartments(sortedContent);
+          setTotalPages(data.totalPages || 0);
+          setTotalRecords(data.totalElements || 0);
+          onDepartmentUpdate?.(sortedContent);
+        } else if (Array.isArray(data)) {
+          // Fallback if the API returns a simple array (non-paginated)
+          const sortedData = data.sort((a: any, b: any) => b.id - a.id);
+          setDepartments(sortedData);
+          setFilteredDepartments(sortedData);
+          setTotalPages(Math.ceil(data.length / 10)); // Calculate total pages correctly
+          setTotalRecords(data.length);
+          onDepartmentUpdate?.(sortedData);
+        }
       } else {
         console.error('Unexpected response format:', response.data);
       }
@@ -59,9 +84,14 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    fetchDepartments(searchQuery, newPage, 10, 'id,desc');
+  };
+
   useEffect(() => {
-    fetchDepartments(); // Ensure departments are fetched on component mount
-  }, []);
+    fetchDepartments(searchQuery, currentPage, 10, 'id,desc');
+  }, [searchQuery, currentPage]);
 
   useEffect(() => {
     let filtered = departments;
@@ -80,7 +110,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       const response = await axios.get('http://43.205.137.114:8080/api/v1/departments/heads/eligible', {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
 
@@ -125,6 +155,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       status: 'Active',
       description: ''
     });
+    setFormErrors({});
     setIsFormOpen(true);
   };
 
@@ -140,6 +171,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       description: department.description,
     });
 
+    setFormErrors({});
     // Fetch department heads when editing a department
     await loadDepartmentHeads();
 
@@ -153,13 +185,19 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       return;
     }
 
+    const department = departments.find(d => d.id === departmentId);
+    if (department && (department.teamCount > 0 || department.employeeCount > 0)) {
+      alert(`Cannot delete department "${department.name}" because it still has active teams (${department.teamCount}) or employees (${department.employeeCount}). Please reassign or remove them before deleting the department.`);
+      return;
+    }
+
     if (confirm('Are you sure you want to delete this department?')) {
       try {
         console.log(`Attempting to delete department with ID: ${departmentId}`);
         const response = await axios.delete(`http://43.205.137.114:8080/api/v1/departments/${departmentId}`, {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
           },
         });
 
@@ -171,23 +209,34 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           alert('Failed to delete the department. Please try again later.');
         }
       } catch (error) {
-        console.error('Error deleting department:', error);
-        alert('An error occurred while deleting the department. Please try again later.');
+        if (axios.isAxiosError(error)) {
+          console.error('Error deleting department:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message
+          });
+          const serverMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+          alert(`Failed to delete department: ${serverMessage}`);
+        } else {
+          console.error('Error deleting department:', error);
+          alert('An error occurred while deleting the department.');
+        }
       }
     }
   };
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!formData.name.trim()) errors.name = 'Department name is required';
+    if (!formData.head) errors.head = 'Department head is required';
+    if (!formData.status) errors.status = 'Status is required';
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSaveDepartment = async () => {
-    const missingFields = [];
-
-    if (!formData.name) missingFields.push('Name');
-    if (!formData.head) missingFields.push('Department Head');
-    if (!formData.status) missingFields.push('Status');
-
-    if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-      return;
-    }
+    if (!validateForm()) return;
 
     const departmentData = {
       name: formData.name,
@@ -206,7 +255,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
             },
           }
         );
@@ -222,7 +271,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
             },
           }
         );
@@ -270,7 +319,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+              Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
             },
           }
         )
@@ -286,13 +335,23 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
 
   const handleBulkDelete = async () => {
     if (selectedDepartments.length > 0) {
+      const deptsWithChildren = departments.filter(
+        d => selectedDepartments.includes(d.id) && (d.teamCount > 0 || d.employeeCount > 0)
+      );
+
+      if (deptsWithChildren.length > 0) {
+        const names = deptsWithChildren.map(d => d.name).join(', ');
+        alert(`Cannot delete the following departments because they still have active teams or employees: ${names}. Please reassign or remove them first.`);
+        return;
+      }
+
       if (confirm('Are you sure you want to delete the selected departments?')) {
         try {
           const promises = selectedDepartments.map((id) =>
             axios.delete(`http://43.205.137.114:8080/api/v1/departments/${id}`, {
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYWh1bC5nYW5kaGlAZXhhbXBsZS5jb20iLCJpZCI6OCwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImlhdCI6MTc3MzQ3NzY1OCwiZXhwIjoxNzc0MDgyNDU4fQ.nVsbZc2q9Cyl1IQD_iIj8LTv5zwOP0CbOyhEknz8f5o',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
               },
             })
           );
@@ -301,7 +360,12 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           setSelectedDepartments([]);
         } catch (error) {
           console.error('Error deleting departments:', error);
-          alert('An error occurred while deleting the departments. Please try again later.');
+          if (axios.isAxiosError(error)) {
+            const serverMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+            alert(`An error occurred while deleting the departments: ${serverMessage}`);
+          } else {
+            alert('An error occurred while deleting the departments. Please try again later.');
+          }
         }
       }
     }
@@ -410,68 +474,108 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredDepartments.map((department) => (
-                <tr key={department.id} className="hover:bg-muted/30 transition-smooth">
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedDepartments.includes(department.id)}
-                      onChange={() => handleSelectDepartment(department.id)}
-                      className="form-checkbox h-4 w-4 text-primary border-border rounded focus:ring-primary/50"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-caption font-medium text-sm text-foreground">
-                        {department.name}
+              {filteredDepartments
+                .slice(currentPage * 10, (currentPage + 1) * 10)
+                .map((department) => (
+                  <tr key={department.id} className="hover:bg-muted/30 transition-smooth">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedDepartments.includes(department.id)}
+                        onChange={() => handleSelectDepartment(department.id)}
+                        className="form-checkbox h-4 w-4 text-primary border-border rounded focus:ring-primary/50"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="font-caption font-medium text-sm text-foreground">
+                          {department.name}
+                        </div>
+                        <div className="font-caption text-xs text-muted-foreground mt-0.5">
+                          {department.description}
+                        </div>
                       </div>
-                      <div className="font-caption text-xs text-muted-foreground mt-0.5">
-                        {department.description}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-caption text-sm text-foreground">
+                        {department.departmentHeadName || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-caption text-sm text-foreground">{department.teamCount}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-caption text-sm text-foreground">{department.employeeCount}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full font-caption font-medium text-xs ${department.status === 'Active' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
+                          }`}
+                      >
+                        {department.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditDepartment(department)}
+                          className="p-1.5 text-primary hover:bg-primary/10 rounded transition-smooth"
+                          aria-label="Edit department"
+                        >
+                          <Icon name="PencilIcon" size={16} variant="outline" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDepartment(department.id)}
+                          className="p-1.5 text-error hover:bg-error/10 rounded transition-smooth"
+                          aria-label="Delete department"
+                        >
+                          <Icon name="TrashIcon" size={16} variant="outline" />
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-caption text-sm text-foreground">
-                      {department.departmentHeadName || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-caption text-sm text-foreground">{department.teamCount}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-caption text-sm text-foreground">{department.employeeCount}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full font-caption font-medium text-xs ${
-                        department.status === 'Active' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {department.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEditDepartment(department)}
-                        className="p-1.5 text-primary hover:bg-primary/10 rounded transition-smooth"
-                        aria-label="Edit department"
-                      >
-                        <Icon name="PencilIcon" size={16} variant="outline" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDepartment(department.id)}
-                        className="p-1.5 text-error hover:bg-error/10 rounded transition-smooth"
-                        aria-label="Delete department"
-                      >
-                        <Icon name="TrashIcon" size={16} variant="outline" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center px-2">
+        <div className="text-sm font-caption text-muted-foreground">
+          Showing {currentPage * 10 + 1} to {Math.min((currentPage + 1) * 10, totalRecords)} of {totalRecords} departments
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            className="flex items-center gap-1 px-3 py-1.5 bg-card border border-border rounded-lg font-caption font-medium text-xs text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
+          >
+            <Icon name="ChevronLeftIcon" size={14} variant="outline" />
+            Previous
+          </button>
+          <div className="flex items-center gap-1">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => handlePageChange(i)}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg font-caption text-xs font-semibold transition-smooth ${currentPage === i
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage + 1 === totalPages}
+            className="flex items-center gap-1 px-3 py-1.5 bg-card border border-border rounded-lg font-caption font-medium text-xs text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
+          >
+            Next
+            <Icon name="ChevronRightIcon" size={14} variant="outline" />
+          </button>
         </div>
       </div>
 
@@ -487,25 +591,32 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
             <div className="p-6 space-y-4">
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Department Name
+                  Department Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.name ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                   placeholder="Enter department name"
                 />
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Department Head
+                  Department Head <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.head}
-                  onChange={(e) => setFormData({ ...formData, head: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, head: e.target.value });
+                    if (formErrors.head) setFormErrors({ ...formErrors, head: '' });
+                  }}
                   onFocus={handleDropdownFocus}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.head ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
                   <option value="">Select department head</option>
                   {departmentHeads.map((head) => (
@@ -514,6 +625,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
                     </option>
                   ))}
                 </select>
+                {formErrors.head && <p className="text-red-500 text-xs mt-1">{formErrors.head}</p>}
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
@@ -529,16 +641,20 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
               </div>
               <div>
                 <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Status
+                  Status <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  onChange={(e) => {
+                    setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' });
+                    if (formErrors.status) setFormErrors({ ...formErrors, status: '' });
+                  }}
+                  className={`w-full px-3 py-2 bg-background border ${formErrors.status ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
+                {formErrors.status && <p className="text-red-500 text-xs mt-1">{formErrors.status}</p>}
               </div>
             </div>
             <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex items-center justify-end gap-3">

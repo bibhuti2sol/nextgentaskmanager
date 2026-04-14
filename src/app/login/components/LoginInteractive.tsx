@@ -8,10 +8,8 @@ const featureTags = [
 	'Task Management',
 	'Project Management',
 	'Time Tracking',
-	'Workflow Automation',
 	'Document Management',
 	'Attendance Tracking',
-	'Leave Management',
 	'Collaboration',
 ];
 
@@ -87,8 +85,10 @@ const LoginInteractive = () => {
 							<p className="text-xs font-caption text-accent font-semibold tracking-wide">Manager</p>
 						</div>
 					</div>
-					<h3 className="text-xl font-bold mb-2">Sign in</h3>
-					<p className="text-sm text-muted-foreground mb-6">Enter your credentials to access your account.</p>
+					<div className="mb-8 text-center">
+						<h3 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h3>
+						<p className="text-sm text-muted-foreground">Please enter your details to sign in.</p>
+					</div>
 					<LoginForm />
 				</div>
 				<footer className="mt-8 text-xs text-muted-foreground text-center opacity-80">

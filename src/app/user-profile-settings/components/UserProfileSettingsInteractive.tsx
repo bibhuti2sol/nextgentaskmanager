@@ -5,6 +5,7 @@ import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import Icon from '@/components/ui/AppIcon';
+import axios from 'axios';
 import ProfileHeader from './ProfileHeader';
 import PersonalInfoSection from './PersonalInfoSection';
 import NotificationPreferences from './NotificationPreferences';
@@ -43,18 +44,20 @@ interface NotificationSettings {
 const UserProfileSettingsInteractive = () => {
   const [isHydrated, setIsHydrated] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security' | 'appearance' | 'privacy'>('profile');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [personalInfo] = useState<PersonalInfo>({
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.johnson@nextgentask.com',
-    phone: '+1 (555) 123-4567',
-    department: 'Product Management',
-    jobTitle: 'Senior Product Manager',
-    location: 'San Francisco, CA',
-    timezone: 'America/Los_Angeles',
+  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    department: '',
+    jobTitle: '',
+    location: '',
+    timezone: 'Asia/Kolkata',
   });
 
   const [notificationSettings] = useState<NotificationSettings>({
@@ -78,6 +81,44 @@ const UserProfileSettingsInteractive = () => {
   const [density, setDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable');
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://43.205.137.114:8080/api/v1/users/39', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+          },
+        });
+
+        if (response.data && response.data.success) {
+          const userData = response.data.data;
+          setPersonalInfo({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            phone: userData.phone || '+91 98765 43210',
+            department: userData.departmentName || 'Engineering',
+            jobTitle: userData.roles?.[0]?.replace('ROLE_', '') || 'Team Member',
+            location: userData.location || 'New Delhi, India',
+            timezone: userData.timezone || 'Asia/Kolkata',
+          });
+
+          // Sync role
+          const roleRaw = userData.roles?.[0]?.replace('ROLE_', '').toLowerCase();
+          if (roleRaw === 'admin') setCurrentRole('Admin');
+          else if (roleRaw === 'manager') setCurrentRole('Manager');
+          else setCurrentRole('Associate');
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError('Failed to load profile data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
     setIsHydrated(true);
   }, []);
 
@@ -130,6 +171,37 @@ const UserProfileSettingsInteractive = () => {
     return null;
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground font-caption animate-pulse">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <div className="w-16 h-16 bg-error/10 text-error rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="XCircleIcon" size={32} />
+          </div>
+          <h2 className="text-2xl font-heading font-bold text-foreground">Failed to load profile</h2>
+          <p className="text-muted-foreground font-caption text-sm mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-smooth"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const tabs = [
     { id: 'profile' as const, label: 'Profile', icon: 'UserCircleIcon' },
     { id: 'notifications' as const, label: 'Notifications', icon: 'BellIcon' },
@@ -164,8 +236,8 @@ const UserProfileSettingsInteractive = () => {
             userName={`${personalInfo.firstName} ${personalInfo.lastName}`}
             userEmail={personalInfo.email}
             userRole={currentRole}
-            profileImage="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"
-            profileImageAlt="Professional headshot of woman with brown hair in business attire smiling at camera"
+            profileImage={personalInfo.firstName === 'Narendra' ? "https://img.rocket.new/generatedImages/rocket_gen_img_18f2762b3-1763132001404.png" : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"}
+            profileImageAlt={`Professional headshot of ${personalInfo.firstName} ${personalInfo.lastName}`}
             onImageUpload={handleImageUpload}
           />
 

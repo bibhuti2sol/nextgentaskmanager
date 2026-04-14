@@ -126,8 +126,8 @@ export default function SignupPage() {
 				<div className="w-full max-w-4xl mx-auto">
 					<div className="flex flex-wrap gap-4 justify-center items-stretch">
 						{/* Free Card */}
-						<div className="flex-1 bg-white/90 rounded-2xl shadow-xl border border-border p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
-							<h3 className="text-xl font-semibold mb-2 text-primary">Free</h3>
+						<div className="flex-1 bg-white/90 rounded-2xl shadow-xl border border-border p-3 flex flex-col items-center min-w-[150px] max-w-[200px] cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl hover:border-primary/50 group">
+							<h3 className="text-xl font-semibold mb-2 text-primary group-hover:scale-110 transition-transform">Free</h3>
 							<div className="text-3xl font-bold text-primary mb-1">₹0</div>
 							<div className="text-xs text-muted-foreground mb-4">
 								Individuals / Evaluation
@@ -143,13 +143,13 @@ export default function SignupPage() {
 									<span className="text-success">✔</span> No cost, no credit card
 								</li>
 							</ul>
-							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">
+							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
 								Start Free
 							</button>
 						</div>
 						{/* Basic Card */}
-						<div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
-							<h3 className="text-xl font-semibold mb-2 text-primary">Basic</h3>
+						<div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px] cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl hover:border-primary group">
+							<h3 className="text-xl font-semibold mb-2 text-primary group-hover:scale-110 transition-transform">Basic</h3>
 							<div className="text-3xl font-bold text-primary mb-1">₹75,000</div>
 							<div className="text-xs text-muted-foreground mb-4">SMBs / Startups</div>
 							<ul className="text-sm text-left space-y-2 mb-6 w-full">
@@ -163,13 +163,13 @@ export default function SignupPage() {
 									<span className="text-success">✔</span> All features included
 								</li>
 							</ul>
-							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">
+							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
 								Buy Now
 							</button>
 						</div>
 						{/* Enterprise Card (Highlighted) */}
-						<div className="flex-1 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-2xl border-4 border-primary/60 p-4 flex flex-col items-center min-w-[170px] max-w-[220px] relative scale-105 z-10">
-							<h3 className="text-xl font-semibold mb-2 text-white">Enterprise</h3>
+						<div className="flex-1 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-2xl border-4 border-primary/60 p-4 flex flex-col items-center min-w-[170px] max-w-[220px] relative scale-105 z-10 cursor-pointer transition-all duration-300 hover:scale-[1.08] hover:shadow-[0_20px_50px_rgba(37,99,235,0.3)] hover:z-20 group">
+							<h3 className="text-xl font-semibold mb-2 text-white group-hover:scale-110 transition-transform">Enterprise</h3>
 							<div className="text-3xl font-bold text-white mb-1">₹2,00,000</div>
 							<div className="text-xs text-white/80 mb-4">Mid–Large Orgs</div>
 							<div className="flex items-center gap-2 mb-2">
@@ -191,13 +191,13 @@ export default function SignupPage() {
 									<span className="text-success">✔</span> All features included
 								</li>
 							</ul>
-							<button className="mt-auto bg-white text-primary font-bold px-6 py-2 rounded-full shadow hover:scale-105 transition">
+							<button className="mt-auto bg-white text-primary font-bold px-6 py-2 rounded-full shadow transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
 								Buy Now
 							</button>
 						</div>
 						{/* Customized Card */}
-						<div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px]">
-							<h3 className="text-xl font-semibold mb-2 text-primary">Customized</h3>
+						<div className="flex-1 bg-white rounded-2xl shadow-xl border border-primary/30 p-3 flex flex-col items-center min-w-[150px] max-w-[200px] cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl hover:border-primary group">
+							<h3 className="text-xl font-semibold mb-2 text-primary group-hover:scale-110 transition-transform">Customized</h3>
 							<div className="text-3xl font-bold text-primary mb-1">₹3,50,000+</div>
 							<div className="text-xs text-muted-foreground mb-4">Large / Regulated</div>
 							<ul className="text-sm text-left space-y-2 mb-6 w-full">
@@ -211,7 +211,7 @@ export default function SignupPage() {
 									<span className="text-success">✔</span> Custom quote
 								</li>
 							</ul>
-							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow hover:scale-105 transition">
+							<button className="mt-auto bg-gradient-to-r from-primary to-accent text-white font-semibold px-6 py-2 rounded-full shadow transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
 								Contact Us
 							</button>
 						</div>

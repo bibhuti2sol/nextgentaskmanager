@@ -55,21 +55,23 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
         className="fixed inset-0 bg-black/50 z-[2000] transition-smooth"
         onClick={onClose}
       />
-      <div className="fixed right-0 top-0 h-full w-full md:w-[600px] bg-card border-l border-border z-[2001] overflow-y-auto">
-        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <h2 className="font-heading text-xl font-semibold text-foreground">Create New Task</h2>
+      <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4">
+        <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto">
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-foreground">Create New Task</h2>
+              <p className="font-caption text-sm text-muted-foreground mt-1">Fill in the details to create a new task</p>
+            </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
               aria-label="Close panel"
             >
-              <Icon name="XMarkIcon" size={24} variant="outline" />
+              <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
             </button>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
           <div>
             <label className="block font-caption font-medium text-sm text-foreground mb-2">
               Task Title *
@@ -239,22 +241,24 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
             )}
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-border">
+          <div className="flex gap-3 pt-4 border-t border-border shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-muted text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted/80 transition-smooth"
+              className="flex-1 px-4 py-2 bg-background border border-border rounded-md font-caption text-sm font-medium text-foreground hover:bg-muted transition-smooth"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md font-caption text-sm font-medium hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
             >
+              <Icon name="PlusIcon" size={18} variant="outline" />
               Create Task
             </button>
           </div>
         </form>
+        </div>
       </div>
     </>
   );
