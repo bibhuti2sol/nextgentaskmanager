@@ -12,9 +12,9 @@ interface Subtask {
   id: string;
   title: string;
   status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
-  assignee: string;
-  startDate: string;
-  endDate: string;
+  assignee?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface SubtaskEditModalProps {
@@ -110,6 +110,8 @@ interface Task {
   subtaskList?: Subtask[];
   description: string; // Added property
   comments: string; // Added property
+  timeTracked: string;
+  estimatedTime: string;
 }
 
 interface TaskListViewProps {
