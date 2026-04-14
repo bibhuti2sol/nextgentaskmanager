@@ -49,7 +49,34 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
   const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [postingComment, setPostingComment] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const fetchComments = async () => {
+    if (!taskId) return;
+    setLoadingComments(true);
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      const response = await axios.get(`http://43.205.137.114:8080/api/v1/tasks/${taskId}/comments`, {
+        headers: { Authorization: token }
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        const formattedComments = response.data
+          .map((c: any) => {
+            const date = new Date(c.createdAt).toLocaleString();
+            return `[${date}] - ${c.content}`;
+          })
+          .join('\n');
+        setComments(formattedComments);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -86,6 +113,10 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
     fetchOptions();
   }, []);
 
+  useEffect(() => {
+    fetchComments();
+  }, [taskId]);
+
   const handleSave = async () => {
     setSubmitting(true);
     try {
@@ -107,8 +138,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
         startDate,
         endDate,
         recurring: false, // Defaulting as not present in simple form
-        subTasks: [], // Currently not editable here
-        comments: comments ? comments.split('\n').filter(c => c.trim() !== '') : []
+        subTasks: [] // Currently not editable here
       };
 
       const response = await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
@@ -130,11 +160,32 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
     }
   };
 
-  const handleAddComment = () => {
-    if (status !== "Completed" && newComment.trim() !== "") {
-      const updatedComments = `${comments}\n${newComment}`;
-      setComments(updatedComments);
-      setNewComment(""); // Clear the new comment field after adding
+  const handleAddComment = async () => {
+    if (newComment.trim() !== "") {
+      setPostingComment(true);
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+        const response = await axios.post(
+          `http://43.205.137.114:8080/api/v1/tasks/${taskId}/comments`,
+          { content: newComment },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: token
+            }
+          }
+        );
+
+        if (response.status === 200 || response.status === 201) {
+          setNewComment(""); // Clear the new comment field
+          await fetchComments(); // Refresh comments list
+        }
+      } catch (error) {
+        console.error('Error posting comment:', error);
+        alert('Failed to post comment. Please try again.');
+      } finally {
+        setPostingComment(false);
+      }
     }
   };
 
@@ -272,9 +323,9 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             <div className="sm:col-span-2 lg:col-span-4">
               <label className="block text-sm font-medium text-muted-foreground mb-1">Comments</label>
               <textarea
-                value={comments}
-                placeholder="Previous comments will appear here."
-                className="border border-border rounded-lg px-4 py-2 w-full h-20 resize-none bg-background text-foreground"
+                value={loadingComments ? "Loading comments..." : comments}
+                placeholder={loadingComments ? "Loading comments..." : "Previous comments will appear here."}
+                className="border border-border rounded-lg px-4 py-2 w-full h-32 resize-none bg-background text-foreground"
                 readOnly
               />
               <textarea
@@ -285,10 +336,15 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
               />
               <button
                 type="button"
-                className="mt-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark"
+                className="mt-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-smooth disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 onClick={handleAddComment}
+                disabled={postingComment}
               >
-                Add Comment
+                {postingComment ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Add Comment"
+                )}
               </button>
             </div>
             <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-border shrink-0">

@@ -79,14 +79,18 @@ const TaskCreationPanel = ({ isOpen, onClose, onTaskCreate }: TaskCreationPanelP
     try {
       const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
       
+      const statusMap: Record<string, string> = {
+        'To Do': 'TODO',
+        'In Progress': 'IN_PROGRESS',
+        'Review': 'REVIEW',
+        'Completed': 'DONE'
+      };
+
       const payload = {
         title: taskData.title,
         description: taskData.description,
         priority: taskData.priority.toUpperCase(),
-        status: taskData.status === 'To Do' ? 'TODO' 
-                : taskData.status === 'In Progress' ? 'IN_PROGRESS'
-                : taskData.status === 'Review' ? 'REVIEW'
-                : 'DONE',
+        status: statusMap[taskData.status] || 'TODO',
         assigneeId: parseInt(taskData.assignee),
         projectId: parseInt(taskData.project),
         startDate: taskData.startDate,

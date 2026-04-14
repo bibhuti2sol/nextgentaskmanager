@@ -88,9 +88,9 @@ const UserTable = ({
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden w-full max-w-full">
+    <div className="bg-card border border-border rounded-lg overflow-hidden w-full max-w-full shadow-sm">
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
@@ -252,7 +252,7 @@ const UserTable = ({
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden divide-y divide-border">
+      <div className="lg:hidden divide-y divide-border">
         {paginatedUsers.map((user) => (
           <div key={user.id} className="p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -339,7 +339,7 @@ const UserTable = ({
 
       {/* Pagination */}
       {totalRecords > 0 && (
-        <div className="flex justify-between items-center px-4 py-3">
+        <div className="flex flex-col sm:flex-row justify-between items-center px-4 py-4 gap-4 bg-muted/10 border-t border-border">
           <div className="text-sm text-muted-foreground">
             Page {currentPage + 1} of {totalPages}
           </div>

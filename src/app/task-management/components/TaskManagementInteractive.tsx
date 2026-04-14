@@ -34,7 +34,9 @@ interface Task {
   timeTracked: string;
   estimatedTime: string;
   subtaskList?: { id: string; title: string; status: 'To Do' | 'In Progress' | 'Review' | 'Completed' }[];
-  comments: string; // Added property
+  comments: string; 
+  assigneeId?: number;
+  projectId?: number;
 }
 
 const TaskManagementInteractive = () => {
@@ -144,7 +146,9 @@ const TaskManagementInteractive = () => {
             : st.status === 'IN_PROGRESS' ? 'In Progress'
               : st.status === 'REVIEW' ? 'Review'
                 : 'Completed',
-        })) || []
+        })) || [],
+        assigneeId: item.assigneeId,
+        projectId: item.projectId
       }));
 
       setTasks(mappedTasks);
@@ -177,8 +181,54 @@ const TaskManagementInteractive = () => {
     fetchTasks();
   };
 
-  const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
+  const handleStatusChange = async (taskId: string, newStatus: Task['status']) => {
+    // Find the task to update
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+
+    // Save previous state for rollback if needed
+    const previousTasks = [...tasks];
+
+    // Optimistic update
     setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      const statusMap: Record<string, string> = {
+        'To Do': 'TODO',
+        'In Progress': 'IN_PROGRESS',
+        'Review': 'REVIEW',
+        'Completed': 'DONE'
+      };
+
+      const payload = {
+        title: taskToUpdate.title,
+        description: taskToUpdate.description,
+        priority: taskToUpdate.priority.toUpperCase(),
+        status: statusMap[newStatus],
+        assigneeId: taskToUpdate.assigneeId || null,
+        projectId: taskToUpdate.projectId || null,
+        startDate: taskToUpdate.startDate,
+        endDate: taskToUpdate.endDate,
+        recurring: false,
+        subTasks: [] // Subtasks are handled separately in this API
+      };
+
+      await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      });
+
+      console.log(`Successfully updated task ${taskId} status to ${newStatus}`);
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+      // Revert on error
+      setTasks(previousTasks);
+      alert('Failed to update task status on the server. Change has been reverted.');
+    }
   };
 
   const handleTaskCreate = (newTask: any) => {

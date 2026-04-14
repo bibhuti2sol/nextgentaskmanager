@@ -136,13 +136,6 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                        <AppImage
-                          src={task.assignee.avatar}
-                          alt={task.assignee.alt}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
                       <span className="font-caption text-xs text-foreground">
                         {task.assignee.name.split(' ')[0]}
                       </span>

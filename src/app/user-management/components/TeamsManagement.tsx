@@ -426,7 +426,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
       </div>
 
       {/* Teams Table - Desktop View */}
-      <div className="hidden md:block bg-card border border-border rounded-lg overflow-hidden">
+      <div className="hidden lg:block bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
@@ -536,7 +536,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
       </div>
 
       {/* Teams - Mobile View */}
-      <div className="md:hidden space-y-4">
+      <div className="lg:hidden space-y-4">
         {filteredTeams.map((team) => (
           <div key={team.id} className="bg-card border border-border rounded-xl p-4 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
@@ -610,18 +610,18 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         <div className="text-sm text-muted-foreground font-caption">
           Page {currentPage + 1} of {totalPages}
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full lg:w-auto">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className="flex-1 sm:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
+            className="flex-1 lg:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
           >
             Previous
           </button>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage + 1 === totalPages}
-            className="flex-1 sm:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
+            className="flex-1 lg:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
           >
             Next
           </button>

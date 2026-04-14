@@ -235,7 +235,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
         </div>
       )}
       {/* Desktop/Tablet Table View */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
@@ -396,7 +396,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-280px)]">
+      <div className="lg:hidden p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-280px)]">
         {paginatedTasks.map((task) => {
           const today = new Date();
           const endDate = new Date(task.endDate);
@@ -458,7 +458,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
 
       {/* Footer Pagination */}
       {totalElements > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20 hidden md:flex">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20 hidden lg:flex">
           <p className="font-caption text-sm text-muted-foreground">
             Showing <span className="font-medium text-foreground">{currentPage * pageSize + 1}</span> to{' '}
             <span className="font-medium text-foreground">{Math.min((currentPage + 1) * pageSize, totalElements)}</span> of{' '}
@@ -502,7 +502,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
 
       {/* Mobile Pagination */}
       {totalElements > 0 && (
-        <div className="md:hidden flex flex-col items-center gap-3 p-4 border-t border-border bg-muted/20 mt-auto">
+        <div className="lg:hidden flex flex-col items-center gap-3 p-4 border-t border-border bg-muted/20 mt-auto">
            <p className="font-caption text-xs text-muted-foreground">
             {currentPage * pageSize + 1}-{Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements}
           </p>

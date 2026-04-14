@@ -43,7 +43,7 @@ const AddTeamPanel: React.FC<AddTeamPanelProps> = ({ onClose, onSave, department
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-auto animate-fade-in">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-[94%] max-w-3xl overflow-hidden flex flex-col my-auto animate-fade-in transition-all duration-300">
         {/* Header */}
         <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
           <h2 className="font-heading font-bold text-lg text-foreground">Create New Team</h2>
@@ -57,8 +57,8 @@ const AddTeamPanel: React.FC<AddTeamPanelProps> = ({ onClose, onSave, department
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div className="space-y-4">
               <div>
                 <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
