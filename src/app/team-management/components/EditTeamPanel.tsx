@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Icon from '@/components/ui/AppIcon';
 
 interface EditTeamPanelProps {
   team: {
@@ -22,7 +23,14 @@ interface EditTeamPanelProps {
 }
 
 const EditTeamPanel: React.FC<EditTeamPanelProps> = ({ team, onClose, onSave, users }) => {
-  const [form, setForm] = useState(team);
+  const [form, setForm] = useState<{
+    teamName: string;
+    department: string;
+    teamLead: string;
+    memberCount: number;
+    description: string;
+    status: 'Active' | 'Inactive';
+  }>(team);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -35,97 +43,146 @@ const EditTeamPanel: React.FC<EditTeamPanelProps> = ({ team, onClose, onSave, us
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h2 className="text-lg font-bold mb-4">Edit Team</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Team Name</label>
-            <input
-              type="text"
-              name="teamName"
-              value={form.teamName}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-auto animate-fade-in">
+        {/* Header */}
+        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+          <h2 className="font-heading font-bold text-lg text-foreground">Edit Team Details</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-smooth"
+            aria-label="Close panel"
+          >
+            <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Team Name <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="teamName"
+                  value={form.teamName}
+                  onChange={handleChange}
+                  placeholder="Enter team name"
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                />
+              </div>
+
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Department <span className="text-error">*</span>
+                </label>
+                <select
+                  name="department"
+                  value={form.department}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Product Development">Product Development</option>
+                  <option value="Creative">Creative</option>
+                  <option value="Growth">Growth</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Customer Success">Customer Success</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Team Lead <span className="text-error">*</span>
+                </label>
+                <select
+                  name="teamLead"
+                  value={form.teamLead}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                >
+                  <option value="">Select Team Lead</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.name}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Member Count
+                </label>
+                <input
+                  type="number"
+                  name="memberCount"
+                  value={form.memberCount}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Status <span className="text-error">*</span>
+                </label>
+                <div className="flex gap-4">
+                  {['Active', 'Inactive'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, status: status as 'Active' | 'Inactive' }))}
+                      className={`flex-1 py-2.5 rounded-xl border font-caption text-sm font-medium transition-smooth ${
+                        form.status === status 
+                        ? 'bg-primary/10 border-primary text-primary' 
+                        : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Team mission and focus..."
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                />
+              </div>
+            </div>
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Department</label>
-            <select
-              name="department"
-              value={form.department}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            >
-              <option value="">Select Department</option>
-              <option value="Product Development">Product Development</option>
-              <option value="Creative">Creative</option>
-              <option value="Growth">Growth</option>
-              <option value="Operations">Operations</option>
-              <option value="Customer Success">Customer Success</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Team Lead</label>
-            <select
-              name="teamLead"
-              value={form.teamLead}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            >
-              <option value="">Select Team Lead</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.name}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Member Count</label>
-            <input
-              type="number"
-              name="memberCount"
-              value={form.memberCount}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-              rows={3}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-2">
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-border shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className="px-6 py-2.5 border border-border rounded-xl font-caption font-semibold text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-smooth"
             >
-              Cancel
+              Dismiss
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md hover:opacity-90 transition"
+              className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-caption font-semibold text-sm hover:opacity-90 shadow-md transition-smooth"
             >
-              Save Changes
+              Update Team
             </button>
           </div>
         </form>

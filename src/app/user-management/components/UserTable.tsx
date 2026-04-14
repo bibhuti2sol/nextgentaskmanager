@@ -89,7 +89,8 @@ const UserTable = ({
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden w-full max-w-full">
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
@@ -248,6 +249,78 @@ const UserTable = ({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden divide-y divide-border">
+        {paginatedUsers.map((user) => (
+          <div key={user.id} className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedUsers.includes(user.id)}
+                  onChange={() => handleSelectUser(user.id)}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                />
+                <div>
+                  <p className="font-caption font-bold text-sm text-foreground">
+                    {user.name}
+                  </p>
+                  <p className="font-caption text-xs text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full font-caption text-[10px] font-bold uppercase tracking-wider ${
+                  getRoleColor(user.role)
+                }`}
+              >
+                {user.role}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Team</p>
+                <p className="text-xs text-foreground font-medium">{user.team}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Status</p>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded font-caption text-[10px] font-bold ${getStatusColor(user.status)}`}>
+                  {user.status}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Reports To</p>
+                <p className="text-xs text-foreground font-medium">{user.reportsTo || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Last Activity</p>
+                <p className="text-xs text-muted-foreground font-medium">{user.lastActivity}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => handleEditUser(user)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold transition-smooth"
+              >
+                <Icon name="PencilIcon" size={14} variant="outline" />
+                Edit
+              </button>
+              <button
+                onClick={() => onDeleteUser(user.id)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-error/10 text-error rounded-lg text-xs font-bold transition-smooth"
+              >
+                <Icon name="TrashIcon" size={14} variant="outline" />
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {users.length === 0 && (

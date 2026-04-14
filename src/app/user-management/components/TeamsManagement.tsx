@@ -425,8 +425,8 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         />
       </div>
 
-      {/* Teams Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      {/* Teams Table - Desktop View */}
+      <div className="hidden md:block bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
@@ -535,23 +535,93 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         </div>
       </div>
 
+      {/* Teams - Mobile View */}
+      <div className="md:hidden space-y-4">
+        {filteredTeams.map((team) => (
+          <div key={team.id} className="bg-card border border-border rounded-xl p-4 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedTeams.includes(team.id)}
+                  onChange={() => {
+                    if (selectedTeams.includes(team.id)) {
+                      setSelectedTeams(selectedTeams.filter((id) => id !== team.id));
+                    } else {
+                      setSelectedTeams([...selectedTeams, team.id]);
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                />
+                <div>
+                  <h4 className="font-heading font-bold text-sm text-foreground">{team.name}</h4>
+                  <p className="font-caption text-[10px] text-muted-foreground uppercase tracking-wider">{team.department}</p>
+                </div>
+              </div>
+              <span
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                  team.status === 'Active' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {team.status}
+              </span>
+            </div>
+
+            <p className="font-caption text-xs text-muted-foreground line-clamp-1">{team.description}</p>
+
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Lead</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                    {team.teamLead.charAt(0)}
+                  </div>
+                  <span className="text-xs text-foreground font-medium">{team.teamLead}</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Members</p>
+                <span className="text-xs text-foreground font-medium">{team.memberCount} people</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <button
+                onClick={() => handleEditTeam(team)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold transition-smooth"
+              >
+                <Icon name="PencilIcon" size={14} variant="outline" />
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteTeam(team.id)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-error/10 text-error rounded-lg text-xs font-bold transition-smooth"
+              >
+                <Icon name="TrashIcon" size={14} variant="outline" />
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="text-sm text-muted-foreground font-caption">
           Page {currentPage + 1} of {totalPages}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+            className="flex-1 sm:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
           >
             Previous
           </button>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage + 1 === totalPages}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+            className="flex-1 sm:flex-none px-4 py-2 bg-card border border-border text-foreground rounded-lg font-caption font-medium text-sm hover:bg-muted transition-smooth disabled:opacity-50"
           >
             Next
           </button>
@@ -560,117 +630,137 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
       {/* Form Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4">
-              <h3 className="font-heading font-semibold text-lg text-foreground">
-                {editingTeam ? 'Edit Team' : 'Add New Team'}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-3xl shadow-2xl animate-fade-in my-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="font-heading font-bold text-lg text-foreground">
+                {editingTeam ? 'Edit Team Details' : 'Create New Team'}
               </h3>
+              <button 
+                onClick={() => setIsFormOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-smooth"
+              >
+                <Icon name="XMarkIcon" size={20} className="text-muted-foreground" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
-                    if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
-                  }}
-                  className={`w-full px-3 py-2 bg-background border ${formErrors.name ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
-                  placeholder="Enter team name"
-                />
-                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+            
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Team Name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                    }}
+                    className={`w-full px-4 py-2.5 bg-background border ${formErrors.name ? 'border-error' : 'border-border'} rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth`}
+                    placeholder="e.g. Frontend Squad"
+                  />
+                  {formErrors.name && <p className="text-error text-xs mt-1 font-medium">{formErrors.name}</p>}
+                </div>
+                
+                <div>
+                  <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Department <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={formData.department}
+                    onChange={(e) => {
+                      setFormData({ ...formData, department: e.target.value });
+                      if (formErrors.department) setFormErrors({ ...formErrors, department: '' });
+                    }}
+                    className={`w-full px-4 py-2.5 bg-background border ${formErrors.department ? 'border-error' : 'border-border'} rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth`}
+                  >
+                    <option value="">Select department</option>
+                    {fetchedDepartments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.department && <p className="text-error text-xs mt-1 font-medium">{formErrors.department}</p>}
+                </div>
+
+                <div>
+                  <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Team Lead <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={formData.teamLead}
+                    onChange={(e) => {
+                      setFormData({ ...formData, teamLead: e.target.value });
+                      if (formErrors.teamLead) setFormErrors({ ...formErrors, teamLead: '' });
+                    }}
+                    className={`w-full px-4 py-2.5 bg-background border ${formErrors.teamLead ? 'border-error' : 'border-border'} rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth`}
+                  >
+                    <option value="">Select team lead</option>
+                    {teamLeads.map((lead, index) => (
+                      <option key={`${lead.id}-${index}`} value={lead.name}>
+                        {lead.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.teamLead && <p className="text-error text-xs mt-1 font-medium">{formErrors.teamLead}</p>}
+                </div>
               </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Department <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.department}
-                  onChange={(e) => {
-                    setFormData({ ...formData, department: e.target.value });
-                    if (formErrors.department) setFormErrors({ ...formErrors, department: '' });
-                  }}
-                  className={`w-full px-3 py-2 bg-background border ${formErrors.department ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
-                >
-                  <option value="">Select department</option>
-                  {fetchedDepartments.map((dept) => (
-                    <option key={dept.id} value={dept.name}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Team Lead <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.teamLead}
-                  onChange={(e) => {
-                    setFormData({ ...formData, teamLead: e.target.value });
-                    if (formErrors.teamLead) setFormErrors({ ...formErrors, teamLead: '' });
-                  }}
-                  className={`w-full px-3 py-2 bg-background border ${formErrors.teamLead ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
-                >
-                  <option value="">Select team lead</option>
-                  {teamLeads.map((lead, index) => (
-                    <option key={`${lead.id}-${index}`} value={lead.name}>
-                      {lead.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.teamLead && <p className="text-red-500 text-xs mt-1">{formErrors.teamLead}</p>}
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Enter team description"
-                />
-              </div>
-              <div>
-                <label className="block font-caption font-medium text-sm text-foreground mb-2">
-                  Status <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => {
-                    setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' });
-                    if (formErrors.status) setFormErrors({ ...formErrors, status: '' });
-                  }}
-                  className={`w-full px-3 py-2 bg-background border ${formErrors.status ? 'border-red-500' : 'border-border'} rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-                {formErrors.status && <p className="text-red-500 text-xs mt-1">{formErrors.status}</p>}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Status <span className="text-error">*</span>
+                  </label>
+                  <div className="flex gap-4">
+                    {['Active', 'Inactive'].map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, status: status as 'Active' | 'Inactive' })}
+                        className={`flex-1 py-2 rounded-xl border font-caption text-sm font-medium transition-smooth ${
+                          formData.status === status 
+                          ? 'bg-primary/10 border-primary text-primary' 
+                          : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                    placeholder="Describe the team's core responsibilities..."
+                  />
+                </div>
               </div>
             </div>
-            <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex items-center justify-end gap-3">
+
+            <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-3 bg-muted/20 rounded-b-2xl">
               <button
                 onClick={() => {
                   setIsFormOpen(false);
                   setEditingTeam(null);
                 }}
-                className="px-4 py-2 border border-border rounded-lg font-caption font-medium text-sm text-foreground hover:bg-muted transition-smooth"
+                className="px-6 py-2.5 border border-border rounded-xl font-caption font-semibold text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-smooth"
               >
-                Cancel
+                Dismiss
               </button>
               <button
                 onClick={handleSaveTeam}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-caption font-medium text-sm hover:bg-primary/90 transition-smooth"
+                className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-caption font-semibold text-sm hover:opacity-90 shadow-md transition-smooth"
               >
-                {editingTeam ? 'Update Team' : 'Add Team'}
+                {editingTeam ? 'Save Changes' : 'Create Team'}
               </button>
             </div>
           </div>

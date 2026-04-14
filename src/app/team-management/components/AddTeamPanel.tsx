@@ -17,12 +17,18 @@ interface AddTeamPanelProps {
 }
 
 const AddTeamPanel: React.FC<AddTeamPanelProps> = ({ onClose, onSave, departments, users }) => {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    teamName: string;
+    department: string;
+    teamLead: string;
+    description: string;
+    status: 'Active' | 'Inactive';
+  }>({
     teamName: '',
     department: '',
     teamLead: '',
     description: '',
-    status: 'Active' as const,
+    status: 'Active',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -36,14 +42,14 @@ const AddTeamPanel: React.FC<AddTeamPanelProps> = ({ onClose, onSave, department
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-lg shadow-lg w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-auto animate-fade-in">
         {/* Header */}
         <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
-          <h2 className="font-heading font-bold text-lg text-foreground">Add New Team</h2>
+          <h2 className="font-heading font-bold text-lg text-foreground">Create New Team</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-smooth"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-smooth"
             aria-label="Close panel"
           >
             <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
@@ -51,106 +57,118 @@ const AddTeamPanel: React.FC<AddTeamPanelProps> = ({ onClose, onSave, department
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-1">
-              Team Name <span className="text-error">*</span>
-            </label>
-            <input
-              type="text"
-              name="teamName"
-              value={form.teamName}
-              onChange={handleChange}
-              placeholder="Enter team name"
-              required
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Team Name <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="teamName"
+                  value={form.teamName}
+                  onChange={handleChange}
+                  placeholder="e.g. Platform Engineering"
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                />
+              </div>
 
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-1">
-              Department <span className="text-error">*</span>
-            </label>
-            <select
-              name="department"
-              value={form.department}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="">Select Department</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.name}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Department <span className="text-error">*</span>
+                </label>
+                <select
+                  name="department"
+                  value={form.department}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-1">
-              Team Lead <span className="text-error">*</span>
-            </label>
-            <select
-              name="teamLead"
-              value={form.teamLead}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="">Select Team Lead</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.name}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Team Lead <span className="text-error">*</span>
+                </label>
+                <select
+                  name="teamLead"
+                  value={form.teamLead}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                >
+                  <option value="">Select Team Lead</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.name}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Enter team description"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Status <span className="text-error">*</span>
+                </label>
+                <div className="flex gap-4">
+                  {['Active', 'Inactive'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, status: status as 'Active' | 'Inactive' }))}
+                      className={`flex-1 py-2.5 rounded-xl border font-caption text-sm font-medium transition-smooth ${
+                        form.status === status 
+                        ? 'bg-primary/10 border-primary text-primary' 
+                        : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <label className="block font-caption font-medium text-sm text-foreground mb-1">
-              Status <span className="text-error">*</span>
-            </label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+              <div>
+                <label className="block font-caption font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Briefly describe the team's objectives..."
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-border shrink-0 mt-4">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-border shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-border rounded-lg font-caption font-medium text-sm text-foreground hover:bg-muted transition-smooth"
+              className="px-6 py-2.5 border border-border rounded-xl font-caption font-semibold text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-smooth"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg font-caption font-medium text-sm hover:opacity-90 transition-smooth"
+              className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-caption font-semibold text-sm hover:opacity-90 shadow-md transition-smooth"
             >
-              Add Team
+              Start Team
             </button>
           </div>
         </form>
