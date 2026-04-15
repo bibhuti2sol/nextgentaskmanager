@@ -163,11 +163,11 @@ const NavigationSidebar = ({
             </Link>
           )}
           {collapsed && (
-            <Link href="/dashboard" className="flex items-center justify-center w-full">
+            <Link href="/dashboard" className="flex items-center justify-center w-full flex-shrink-0">
               <img
                 src="/assets/images/nextgentask-logo.png"
                 alt="NextGenTask Logo"
-                className="w-10 h-10 rounded-xl shadow-lg"
+                className="w-10 h-10 rounded-xl shadow-lg flex-shrink-0"
                 style={{ objectFit: 'cover' }}
               />
             </Link>
@@ -196,9 +196,7 @@ const NavigationSidebar = ({
                     }`}
                   />
                   {!collapsed && (
-                    <>
-                      <span className="font-caption font-medium text-sm">{item.label}</span>
-                    </>
+                    <span className="font-caption font-medium text-sm truncate flex-1">{item.label}</span>
                   )}
                 </Link>
               </li>

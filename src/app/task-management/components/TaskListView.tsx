@@ -237,7 +237,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
       {/* Desktop/Tablet Table View */}
       <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/50 border-b border-border">
+          <thead className="bg-card border-b border-border">
             <tr>
               <th>
                 <input
@@ -250,7 +250,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('title')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth whitespace-nowrap"
                 >
                   Title
                 </button>
@@ -258,7 +258,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('assignee')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth"
                 >
                   Assignee
                 </button>
@@ -266,7 +266,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('priority')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth"
                 >
                   Priority
                 </button>
@@ -274,7 +274,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('status')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth"
                 >
                   Status
                 </button>
@@ -282,7 +282,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('startDate')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth"
                 >
                   Start Date
                 </button>
@@ -290,19 +290,19 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
               <th className="px-4 py-3 text-left hidden lg:table-cell">
                 <button
                   onClick={() => handleSort('endDate')}
-                  className="flex items-center gap-2 font-caption font-medium text-xs text-muted-foreground hover:text-foreground transition-smooth"
+                  className="flex items-center gap-2 font-caption font-medium text-xs text-slate-600 hover:text-foreground transition-smooth"
                 >
                   End Date
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="font-caption font-medium text-xs text-muted-foreground">Overdue Tasks</span>
+                <span className="font-caption font-medium text-xs text-slate-600">Overdue Tasks</span>
               </th>
               <th className="px-4 py-3 text-left hidden lg:table-cell">
-                <span className="font-caption font-medium text-xs text-muted-foreground">Progress</span>
+                <span className="font-caption font-medium text-xs text-slate-600">Progress</span>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="font-caption font-medium text-xs text-muted-foreground">Actions</span>
+                <span className="font-caption font-medium text-xs text-slate-600">Actions</span>
               </th>
             </tr>
           </thead>
@@ -327,13 +327,13 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
                         <button
                           type="button"
                           aria-label={expandedTaskId === task.id ? 'Collapse subtasks' : 'Expand subtasks'}
-                          className={`transition-transform duration-200 ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
+                          className={`transition-transform duration-200 flex-shrink-0 ${expandedTaskId === task.id ? 'rotate-90' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setExpandedTaskId(expandedTaskId === task.id ? null : task.id);
                           }}
                         >
-                          <span style={{ display: 'inline-block', transform: `rotate(${expandedTaskId === task.id ? 90 : 0}deg)` }}>&#9654;</span>
+                          <span style={{ display: 'inline-block', transform: `rotate(${expandedTaskId === task.id ? 90 : 0}deg)` }} className="flex-shrink-0">&#9654;</span>
                         </button>
                         <div>
                           <p className="font-caption font-medium text-sm text-foreground">{task.title}</p>

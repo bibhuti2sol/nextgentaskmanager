@@ -196,8 +196,8 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
         onClick={onClose}
       />
       <div className="fixed inset-0 flex items-center justify-center z-[2001] pointer-events-none p-4 sm:p-6">
-        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] pointer-events-auto mx-auto mt-auto sm:mt-0">
-          <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="w-full max-w-4xl bg-card border border-border rounded-lg shadow-elevation-3 overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] pointer-events-auto mx-auto mt-auto sm:mt-0">
+          <div className="sticky top-0 bg-card border-b border-border px-6 py-3 flex items-center justify-between shrink-0">
             <div>
               <h2 className="font-heading font-bold text-xl text-foreground">Edit Task</h2>
               <p className="font-caption text-sm text-muted-foreground mt-1">Update task details and progress</p>
@@ -211,7 +211,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
             </button>
           </div>
 
-          <form className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto">
+          <form className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 overflow-y-auto">
             <div className="sm:col-span-2 lg:col-span-4">
               <label className="block text-sm font-medium text-muted-foreground mb-1">Task Title</label>
               <input

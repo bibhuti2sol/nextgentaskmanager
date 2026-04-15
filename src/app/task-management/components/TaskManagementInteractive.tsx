@@ -286,7 +286,7 @@ const TaskManagementInteractive = () => {
       >
 
         <header className="sticky top-0 z-[50] bg-card border-b border-border shadow-sm">
-          <div className="flex items-center justify-between px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3">
             <div className="flex items-center gap-4 flex-1">
               <button
                 className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"

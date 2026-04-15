@@ -44,6 +44,7 @@ interface NotificationSettings {
 const UserProfileSettingsInteractive = () => {
   const [isHydrated, setIsHydrated] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security' | 'appearance' | 'privacy'>('profile');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,6 +216,8 @@ const UserProfileSettingsInteractive = () => {
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
 
       <div
@@ -223,13 +226,21 @@ const UserProfileSettingsInteractive = () => {
         }`}
       >
         <main className="p-6 max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
-              Account Settings
-            </h1>
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+              onClick={() => setIsSidebarMobileOpen(true)}
+            >
+              <Icon name="Bars3Icon" size={24} variant="outline" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
+                Account Settings
+              </h1>
             <p className="text-sm font-caption text-muted-foreground">
               Manage your profile, preferences, and security settings
             </p>
+          </div>
           </div>
 
           <ProfileHeader

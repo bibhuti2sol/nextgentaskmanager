@@ -26,6 +26,7 @@ interface DashboardInteractiveProps {
 
 const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: DashboardInteractiveProps) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>(initialRole);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -303,6 +304,8 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
         userRole={currentRole}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
 
       <div
@@ -311,11 +314,19 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
         {/* Header */}
         <header className="sticky top-0 z-30 bg-card border-b border-border">
           <div className="flex items-center justify-between h-[72px] px-6">
-            <div>
-              <h1 className="font-heading font-bold text-2xl text-foreground">Dashboard</h1>
+            <div className="flex items-center gap-4">
+              <button
+                className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                onClick={() => setIsSidebarMobileOpen(true)}
+              >
+                <Icon name="Bars3Icon" size={24} variant="outline" />
+              </button>
+              <div>
+                <h1 className="font-heading font-bold text-2xl text-foreground">Dashboard</h1>
               <p className="text-sm text-muted-foreground font-caption">
                 Welcome back! Here's your overview for today
               </p>
+            </div>
             </div>
             <div className="flex items-center gap-4">
               <ProjectSelector

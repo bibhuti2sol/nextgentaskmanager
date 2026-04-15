@@ -64,6 +64,7 @@ interface PredictiveInsightData {
 
 const AnalyticsInteractive = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -254,6 +255,8 @@ const AnalyticsInteractive = () => {
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
 
       <div
@@ -265,13 +268,21 @@ const AnalyticsInteractive = () => {
         <header className="sticky top-0 z-30 bg-card border-b border-border">
           <div className="px-8 py-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-heading font-bold text-foreground mb-1">
-                  Analytics & Reports
-                </h1>
+              <div className="flex items-center gap-4">
+                <button
+                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                  onClick={() => setIsSidebarMobileOpen(true)}
+                >
+                  <Icon name="Bars3Icon" size={24} variant="outline" />
+                </button>
+                <div>
+                  <h1 className="text-2xl font-heading font-bold text-foreground mb-1">
+                    Analytics & Reports
+                  </h1>
                 <p className="font-caption text-sm text-muted-foreground">
                   Comprehensive insights and data-driven decision making
                 </p>
+              </div>
               </div>
               <div className="flex items-center gap-3">
                 <ThemeToggle />

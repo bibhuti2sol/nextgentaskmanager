@@ -176,6 +176,7 @@
     -webkit-text-size-adjust: 100%;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }
 
@@ -253,21 +254,25 @@
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.5); /* gray-400 with opacity */
-  border-radius: 4px;
+  background: rgba(156, 163, 175, 0.4); /* gray-400 with opacity */
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.8); /* gray-500 with opacity */
+  background: rgba(107, 114, 128, 0.6); /* gray-500 with opacity */
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 /* Ensure consistent text sizing on mobile to prevent iOS zoom-on-focus */

@@ -69,13 +69,13 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar lg:pb-0 px-2 pr-6">
       {columns.map((column) => {
         const columnTasks = getTasksByStatus(column.id);
         return (
           <div
             key={column.id}
-            className="flex flex-col bg-card border border-border rounded-lg overflow-hidden"
+            className="flex flex-col bg-card border border-border rounded-lg overflow-hidden flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[calc(25%-12px)] min-w-[280px]"
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(column.id)}
           >
@@ -89,8 +89,7 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
                 </span>
               </div>
             </div>
-
-            <div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)]">
+            <div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-220px)] custom-scrollbar">
               {columnTasks.map((task) => (
                 <div
                   key={task.id}

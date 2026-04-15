@@ -9,6 +9,9 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import TeamsManagement from './TeamsManagement';
 import DepartmentsManagement from './DepartmentsManagement';
 import Icon from '@/components/ui/AppIcon';
+import NavigationSidebar from '@/components/common/NavigationSidebar';
+import ThemeToggle from '@/components/common/ThemeToggle';
+import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 
 export interface User {
   id: string;
@@ -44,6 +47,9 @@ export interface Department {
 type TabType = 'users' | 'teams' | 'departments';
 
 const UserManagementInteractive = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
+  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Admin');
   const [activeTab, setActiveTab] = useState<TabType>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -346,136 +352,174 @@ const UserManagementInteractive = () => {
   ];
 
   return (
-    <div className="space-y-6" suppressHydrationWarning>
-      {/* Tab Navigation */}
-      <div className="border-b border-border">
-        <div className="flex gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 font-caption font-medium text-sm transition-smooth relative ${
-                activeTab === tab.id
-                  ? 'text-primary' :'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Icon name={tab.icon as any} size={18} variant="outline" />
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <NavigationSidebar
+        isCollapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        userRole={currentRole}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
+      />
 
-      {/* Tab Content */}
-      {activeTab === 'users' && (
-        <>
-          {/* Header Actions */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-heading font-semibold text-xl text-foreground">All Users</h2>
-              <p className="font-caption text-sm text-muted-foreground mt-1">
-                {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} found
-              </p>
-            </div>
-            <button
-              onClick={handleAddUser}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-emerald-500 text-white rounded-2xl font-caption font-semibold text-sm hover:opacity-95 transition-smooth shadow-sm"
-            >
-              <Icon name="PlusIcon" size={18} variant="outline" />
-              Add User
-            </button>
-          </div>
-
-          {/* Filters */}
-          <UserFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            roleFilter={roleFilter}
-            onRoleFilterChange={setRoleFilter}
-            teamFilter={teamFilter}
-            onTeamFilterChange={setTeamFilter}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter} />
-
-
-          {/* Bulk Actions */}
-          {selectedUsers.length > 0 &&
-          <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
-              <span className="font-caption text-sm text-foreground">
-                {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
-              </span>
-              <div className="flex items-center gap-2">
+      <div className={`transition-smooth ${sidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`}>
+        <main className="flex-1 transition-smooth">
+          <div className="sticky top-0 z-50 bg-card border-b border-border">
+            <div className="flex items-center justify-between h-[72px] px-8">
+              <div className="flex items-center gap-4">
                 <button
-                onClick={() => handleBulkStatusChange('Active')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-md text-xs font-caption font-medium text-success hover:bg-success/20 transition-smooth">
-
-                  <Icon name="CheckCircleIcon" size={14} variant="outline" />
-                  Activate
+                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                  onClick={() => setIsSidebarMobileOpen(true)}
+                >
+                  <Icon name="Bars3Icon" size={24} variant="outline" />
                 </button>
-                <button
-                onClick={() => handleBulkStatusChange('Inactive')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-md text-xs font-caption font-medium text-warning hover:bg-warning/20 transition-smooth">
-
-                  <Icon name="XCircleIcon" size={14} variant="outline" />
-                  Deactivate
-                </button>
-                <button
-                onClick={handleBulkDelete}
-                className="flex items-center gap-2 px-3 py-1.5 bg-error/10 border border-error/20 rounded-md text-xs font-caption font-medium text-error hover:bg-error/20 transition-smooth">
-
-                  <Icon name="TrashIcon" size={14} variant="outline" />
-                  Delete
-                </button>
+                <div>
+                  <h1 className="font-heading font-bold text-2xl text-foreground">User Management</h1>
+                  <p className="font-caption text-sm text-muted-foreground">
+                    Manage users, teams, and organizational hierarchy
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
+                <UserRoleIndicator currentRole={currentRole} onRoleChange={setCurrentRole} />
               </div>
             </div>
-          }
+          </div>
 
-          {/* User Table */}
-          <UserTable
-            users={filteredUsers}
-            selectedUsers={selectedUsers}
-            onSelectUsers={setSelectedUsers}
-            onEditUser={handleEditUser}
-            onDeleteUser={handleDeleteUser} />
+          <div className="p-8 space-y-6" suppressHydrationWarning>
+            {/* Tab Navigation */}
+            <div className="border-b border-border">
+              <div className="flex gap-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-3 font-caption font-medium text-sm transition-smooth relative ${
+                      activeTab === tab.id
+                        ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Icon name={tab.icon as any} size={18} variant="outline" />
+                    {tab.label}
+                    {activeTab === tab.id && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'users' && (
+              <>
+                {/* Header Actions */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-heading font-semibold text-xl text-foreground">All Users</h2>
+                    <p className="font-caption text-sm text-muted-foreground mt-1">
+                      {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} found
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleAddUser}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-emerald-500 text-white rounded-2xl font-caption font-semibold text-sm hover:opacity-95 transition-smooth shadow-sm"
+                  >
+                    <Icon name="PlusIcon" size={18} variant="outline" />
+                    Add User
+                  </button>
+                </div>
+
+                {/* Filters */}
+                <UserFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  roleFilter={roleFilter}
+                  onRoleFilterChange={setRoleFilter}
+                  teamFilter={teamFilter}
+                  onTeamFilterChange={setTeamFilter}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter} />
 
 
-          {/* User Form Panel */}
-          <UserFormPanel
-            isOpen={isFormOpen}
-            onClose={() => {
-              setIsFormOpen(false);
-              setEditingUser(null);
-            }}
-            onSave={handleSaveUser}
-            editingUser={editingUser}
-            existingUsers={users} />
+                {/* Bulk Actions */}
+                {selectedUsers.length > 0 &&
+                  <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <span className="font-caption text-sm text-foreground">
+                      {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleBulkStatusChange('Active')}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-md text-xs font-caption font-medium text-success hover:bg-success/20 transition-smooth">
+
+                        <Icon name="CheckCircleIcon" size={14} variant="outline" />
+                        Activate
+                      </button>
+                      <button
+                        onClick={() => handleBulkStatusChange('Inactive')}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-md text-xs font-caption font-medium text-warning hover:bg-warning/20 transition-smooth">
+
+                        <Icon name="XCircleIcon" size={14} variant="outline" />
+                        Deactivate
+                      </button>
+                      <button
+                        onClick={handleBulkDelete}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-error/10 border border-error/20 rounded-md text-xs font-caption font-medium text-error hover:bg-error/20 transition-smooth">
+
+                        <Icon name="TrashIcon" size={14} variant="outline" />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                {/* User Table */}
+                <UserTable
+                  users={filteredUsers}
+                  selectedUsers={selectedUsers}
+                  onSelectUsers={setSelectedUsers}
+                  onEditUser={handleEditUser}
+                  onDeleteUser={handleDeleteUser} />
 
 
-          {/* Delete Confirmation Modal */}
-          <DeleteConfirmModal
-            isOpen={deleteModalOpen}
-            onClose={() => {
-              setDeleteModalOpen(false);
-              setUserToDelete(null);
-            }}
-            onConfirm={confirmDelete}
-            userName={users.find((u) => u.id === userToDelete)?.name || ''} />
+                {/* User Form Panel */}
+                <UserFormPanel
+                  isOpen={isFormOpen}
+                  onClose={() => {
+                    setIsFormOpen(false);
+                    setEditingUser(null);
+                  }}
+                  onSave={handleSaveUser}
+                  editingUser={editingUser}
+                  existingUsers={users} />
 
-        </>
-      )}
 
-      {/* Teams Tab */}
-      {activeTab === 'teams' && <TeamsManagement departments={departments} users={users} />}
+                {/* Delete Confirmation Modal */}
+                <DeleteConfirmModal
+                  isOpen={deleteModalOpen}
+                  onClose={() => {
+                    setDeleteModalOpen(false);
+                    setUserToDelete(null);
+                  }}
+                  onConfirm={confirmDelete}
+                  userName={users.find((u) => u.id === userToDelete)?.name || ''} />
 
-      {/* Departments Tab */}
-      {activeTab === 'departments' && (
-        <DepartmentsManagement onDepartmentUpdate={setDepartments} />
-      )}
-    </div>);
+              </>
+            )}
 
+            {/* Teams Tab */}
+            {activeTab === 'teams' && <TeamsManagement departments={departments} users={users} />}
+
+            {/* Departments Tab */}
+            {activeTab === 'departments' && (
+              <DepartmentsManagement onDepartmentUpdate={setDepartments} />
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
+
 
 export default UserManagementInteractive;

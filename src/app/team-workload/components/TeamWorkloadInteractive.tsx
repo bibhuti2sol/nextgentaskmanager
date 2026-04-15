@@ -6,6 +6,10 @@ import WorkloadChart from './WorkloadChart';
 import WorkloadFilters from './WorkloadFilters';
 import TeamMetrics from './TeamMetrics';
 import UpcomingDeadlines from './UpcomingDeadlines';
+import NavigationSidebar from '@/components/common/NavigationSidebar';
+import ThemeToggle from '@/components/common/ThemeToggle';
+import UserRoleIndicator from '@/components/common/UserRoleIndicator';
+import Icon from '@/components/ui/AppIcon';
 
 import TeamAvailability from './TeamAvailability';
 
@@ -69,7 +73,10 @@ interface AvailabilitySlot {
 }
 
 const TeamWorkloadInteractive = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
 
   useEffect(() => {
     setIsHydrated(true);
@@ -395,31 +402,69 @@ const TeamWorkloadInteractive = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <TeamMetrics metrics={mockMetrics} />
-      <WorkloadFilters onFilterChange={handleFilterChange} />
-      <WorkloadChart data={mockWorkloadData} />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mockTeamMembers.map((member) =>
-            <TeamMemberCard
-              key={member.id}
-              member={member}
-              onViewDetails={handleViewDetails}
-              onReassignTasks={handleReassignTasks} />
+    <div className="min-h-screen bg-background">
+      <NavigationSidebar
+        isCollapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        userRole={currentRole}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)}
+      />
 
-            )}
+      <div className={`transition-smooth ${sidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`}>
+        <main className="flex-1 transition-smooth">
+          <div className="sticky top-0 z-50 bg-card border-b border-border">
+            <div className="flex items-center justify-between h-[72px] px-8">
+              <div className="flex items-center gap-4">
+                <button
+                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                  onClick={() => setIsSidebarMobileOpen(true)}
+                >
+                  <Icon name="Bars3Icon" size={24} variant="outline" />
+                </button>
+                <div>
+                  <h1 className="font-heading font-bold text-2xl text-foreground">Team Workload</h1>
+                  <p className="font-caption text-sm text-muted-foreground">
+                    Monitor and balance team capacity
+                  </p>
+                </div>
+              </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
+                <UserRoleIndicator currentRole={currentRole} onRoleChange={setCurrentRole} />
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div className="space-y-6">
-          <UpcomingDeadlines deadlines={mockDeadlines} />
-        </div>
-      </div>
-    </div>);
 
+          <div className="p-8 space-y-6">
+            <TeamMetrics metrics={mockMetrics} />
+            <WorkloadFilters onFilterChange={handleFilterChange} />
+            <WorkloadChart data={mockWorkloadData} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {mockTeamMembers.map((member) =>
+                    <TeamMemberCard
+                      key={member.id}
+                      member={member}
+                      onViewDetails={handleViewDetails}
+                      onReassignTasks={handleReassignTasks} />
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <UpcomingDeadlines deadlines={mockDeadlines} />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
+
 
 export default TeamWorkloadInteractive;

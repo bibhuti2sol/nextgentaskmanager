@@ -59,6 +59,7 @@ interface Milestone {
 
 const ProjectOverviewInteractive = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const { user } = useUser();
   const currentRole = user?.userRole || 'Associate';
   const [activeTab, setActiveTab] = useState<'list' | 'resources' | 'milestones'>('list');
@@ -437,7 +438,9 @@ const ProjectOverviewInteractive = () => {
     <div className="min-h-screen bg-background">
       <NavigationSidebar
         isCollapsed={isSidebarCollapsed}
-        onCollapsedChange={setIsSidebarCollapsed} />
+        onCollapsedChange={setIsSidebarCollapsed}
+        isMobileOpen={isSidebarMobileOpen}
+        onMobileClose={() => setIsSidebarMobileOpen(false)} />
 
 
       <div
@@ -447,11 +450,19 @@ const ProjectOverviewInteractive = () => {
         {/* Top Header */}
         <header className="sticky top-0 z-50 bg-card border-b border-border">
           <div className="flex items-center justify-between h-[72px] px-6">
-            <div>
-              <h1 className="font-heading font-bold text-2xl text-foreground">Project Overview</h1>
+            <div className="flex items-center gap-4">
+              <button
+                className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                onClick={() => setIsSidebarMobileOpen(true)}
+              >
+                <Icon name="Bars3Icon" size={24} variant="outline" />
+              </button>
+              <div>
+                <h1 className="font-heading font-bold text-2xl text-foreground">Project Overview</h1>
               <p className="font-caption text-sm text-muted-foreground mt-1">
                 Comprehensive project tracking
               </p>
+            </div>
             </div>
             <div className="flex items-center gap-4">
               {(currentRole !== 'Associate') && (
