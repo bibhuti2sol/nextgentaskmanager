@@ -82,7 +82,7 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
           description,
           status,
           assignee,
-          assigneeId,
+          assigneeId: assigneeId ?? undefined,
           startDate,
           endDate,
         });

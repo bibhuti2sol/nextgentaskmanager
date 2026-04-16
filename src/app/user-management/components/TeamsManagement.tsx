@@ -111,7 +111,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
       if (response.ok) {
         const data = await response.json();
         const content = data.content || data;
-        const activeDepartments = Array.isArray(content) ? content.map((dept: any) => ({ id: dept.id, name: dept.name })) : [];
+        const activeDepartments = Array.isArray(content) ? content.map((dept: any) => ({ id: dept.id, name: dept.name } as Department)) : [];
         setFetchedDepartments(activeDepartments);
       } else {
         console.error('Failed to fetch departments:', response.status);

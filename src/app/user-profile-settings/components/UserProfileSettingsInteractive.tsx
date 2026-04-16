@@ -50,7 +50,7 @@ const UserProfileSettingsInteractive = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     firstName: '',
     lastName: '',
@@ -108,9 +108,10 @@ const UserProfileSettingsInteractive = () => {
 
           // Sync role
           const roleRaw = userData.roles?.[0]?.replace('ROLE_', '').toLowerCase();
-          if (roleRaw === 'admin') setCurrentRole('Admin');
-          else if (roleRaw === 'manager') setCurrentRole('Manager');
-          else setCurrentRole('Associate');
+          const userName = user?.userName || 'User';
+          if (roleRaw === 'admin') setUser({ userName, userRole: 'Admin' });
+          else if (roleRaw === 'manager') setUser({ userName, userRole: 'Manager' });
+          else setUser({ userName, userRole: 'Associate' });
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -283,10 +284,8 @@ const UserProfileSettingsInteractive = () => {
                 <div className="mt-6 pt-6 border-t border-border space-y-2">
                   <ThemeToggle isCollapsed={false} />
                   <UserRoleIndicator
-                    currentRole={currentRole}
                     userName={personalInfo.firstName}
                     isCollapsed={false}
-                    onRoleChange={setCurrentRole}
                   />
                 </div>
               </div>
