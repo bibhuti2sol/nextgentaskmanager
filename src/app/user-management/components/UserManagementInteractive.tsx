@@ -9,6 +9,7 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import TeamsManagement from './TeamsManagement';
 import DepartmentsManagement from './DepartmentsManagement';
 import Icon from '@/components/ui/AppIcon';
+import { useUser } from '@/components/common/UserContext';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
@@ -47,9 +48,9 @@ export interface Department {
 type TabType = 'users' | 'teams' | 'departments';
 
 const UserManagementInteractive = () => {
+  const { user } = useUser();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Admin');
   const [activeTab, setActiveTab] = useState<TabType>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -356,7 +357,7 @@ const UserManagementInteractive = () => {
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
-        userRole={currentRole}
+        userRole={user?.userRole}
         isMobileOpen={isSidebarMobileOpen}
         onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
@@ -381,7 +382,7 @@ const UserManagementInteractive = () => {
               </div>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
-                <UserRoleIndicator currentRole={currentRole} onRoleChange={setCurrentRole} />
+                <UserRoleIndicator />
               </div>
             </div>
           </div>

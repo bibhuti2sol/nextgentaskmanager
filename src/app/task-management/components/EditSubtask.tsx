@@ -1,39 +1,107 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Subtask } from "./types";
 
 interface EditSubtaskProps {
+  taskId: string;
   subtask: Subtask;
   onSave: (updated: Subtask) => void;
   onClose: () => void;
 }
 
-const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
+const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => {
   const [title, setTitle] = useState(subtask?.title || "");
+  const [description, setDescription] = useState(subtask?.description || "");
   const [status, setStatus] = useState<Subtask["status"]>(subtask?.status || "To Do");
   const [assignee, setAssignee] = useState(subtask?.assignee || "");
   const [startDate, setStartDate] = useState(subtask?.startDate || "");
   const [endDate, setEndDate] = useState(subtask?.endDate || "");
+  const [submitting, setSubmitting] = useState(false);
+  const [assignees, setAssignees] = useState<{ id: number; fullName: string }[]>([]);
+  const [loadingAssignees, setLoadingAssignees] = useState(false);
 
-  const assigneeOptions = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown"];
+  useEffect(() => {
+    const fetchAssignees = async () => {
+      setLoadingAssignees(true);
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+        const response = await axios.get('http://43.205.137.114:8080/api/v1/users/assignees', {
+          headers: { Authorization: token }
+        });
+        setAssignees(response.data);
+      } catch (error) {
+        console.error('Error fetching assignees:', error);
+      } finally {
+        setLoadingAssignees(false);
+      }
+    };
+    fetchAssignees();
+  }, []);
 
-  const handleSave = () => {
-    onSave({
-      id: subtask?.id || "", // Ensure id is not undefined
-      title,
-      status,
-      assignee,
-      startDate,
-      endDate,
-    });
-    onClose();
+  const handleSave = async () => {
+    if (!title.trim()) return;
+    setSubmitting(true);
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      const statusMap: Record<string, string> = {
+        'To Do': 'TODO',
+        'In Progress': 'IN_PROGRESS',
+        'Review': 'REVIEW',
+        'Completed': 'DONE'
+      };
+
+      const selectedAssignee = assignees.find(a => a.fullName === assignee);
+      const assigneeId = selectedAssignee ? selectedAssignee.id : (subtask.assigneeId || null);
+
+      const payload = {
+        name: title,
+        description: description,
+        status: statusMap[status] || 'TODO',
+        assigneeId: assigneeId,
+        startDate: startDate || null,
+        endDate: endDate || null
+      };
+
+      const response = await axios.put(
+        `http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks/${subtask.id}`,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+          }
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        onSave({
+          id: subtask.id,
+          title,
+          description,
+          status,
+          assignee,
+          assigneeId,
+          startDate,
+          endDate,
+        });
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error updating subtask:', error);
+      alert('Failed to update subtask. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fade-in">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fade-in pointer-events-auto">
         <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
         <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Subtask</h3>
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-muted-foreground ml-1">Subtask Name</label>
             <input
@@ -41,7 +109,17 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Subtask Name"
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground focus:ring-2 focus:ring-primary outline-none transition-smooth"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-muted-foreground ml-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add description..."
+              rows={3}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground focus:ring-2 focus:ring-primary outline-none transition-smooth resize-none"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -62,12 +140,13 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
             <select
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
-              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+              disabled={loadingAssignees}
+              className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground disabled:opacity-50"
             >
-              <option value="">Select Assignee</option>
-              {assigneeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              <option value="">{loadingAssignees ? "Loading assignees..." : "Select Assignee"}</option>
+              {assignees.map((a) => (
+                <option key={a.id} value={a.fullName}>
+                  {a.fullName}
                 </option>
               ))}
             </select>
@@ -92,10 +171,13 @@ const EditSubtask = ({ subtask, onSave, onClose }: EditSubtaskProps) => {
           </div>
           <button
             type="button"
-            className="mt-2 bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition shadow-lg"
+            disabled={submitting}
+            className="mt-2 bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             onClick={handleSave}
           >
-            Save Changes
+            {submitting ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : "Save Changes"}
           </button>
         </form>
       </div>

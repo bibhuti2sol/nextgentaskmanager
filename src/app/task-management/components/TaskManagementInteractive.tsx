@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import axios from 'axios';
+import { useUser } from '@/components/common/UserContext';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -33,13 +34,23 @@ interface Task {
   description: string;
   timeTracked: string;
   estimatedTime: string;
-  subtaskList?: { id: string; title: string; status: 'To Do' | 'In Progress' | 'Review' | 'Completed' }[];
+  subtaskList?: { 
+    id: string; 
+    title: string; 
+    status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
+    assignee?: string;
+    assigneeId?: number;
+    description?: string;
+    startDate?: string;
+    endDate?: string;
+  }[];
   comments: string; 
   assigneeId?: number;
   projectId?: number;
 }
 
 const TaskManagementInteractive = () => {
+  const { user } = useUser();
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const handleExport = (type: 'csv' | 'pdf' | 'xlsx') => {
     setShowExportDropdown(false);
@@ -49,7 +60,6 @@ const TaskManagementInteractive = () => {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'kanban' | 'focus'>('list');
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [isCreationPanelOpen, setIsCreationPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
@@ -146,6 +156,11 @@ const TaskManagementInteractive = () => {
             : st.status === 'IN_PROGRESS' ? 'In Progress'
               : st.status === 'REVIEW' ? 'Review'
                 : 'Completed',
+          assignee: st.assigneeName || '',
+          assigneeId: st.assigneeId,
+          description: st.description || '',
+          startDate: st.startDate || '',
+          endDate: st.endDate || '',
         })) || [],
         assigneeId: item.assigneeId,
         projectId: item.projectId
@@ -186,6 +201,12 @@ const TaskManagementInteractive = () => {
     const taskToUpdate = tasks.find(t => t.id === taskId);
     if (!taskToUpdate) return;
 
+    // Prevent moving task back from Completed status
+    if (taskToUpdate.status === 'Completed' && newStatus !== 'Completed') {
+      console.warn(`Prevented moving task ${taskId} from Completed to ${newStatus}`);
+      return;
+    }
+
     // Save previous state for rollback if needed
     const previousTasks = [...tasks];
 
@@ -212,7 +233,10 @@ const TaskManagementInteractive = () => {
         startDate: taskToUpdate.startDate,
         endDate: taskToUpdate.endDate,
         recurring: false,
-        subTasks: [] // Subtasks are handled separately in this API
+        subTasks: taskToUpdate.subtaskList?.map(st => ({
+          name: st.title,
+          status: st.status === 'To Do' ? 'TODO' : st.status === 'In Progress' ? 'IN_PROGRESS' : st.status === 'Review' ? 'REVIEW' : 'DONE'
+        })) || []
       };
 
       await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
@@ -228,6 +252,102 @@ const TaskManagementInteractive = () => {
       // Revert on error
       setTasks(previousTasks);
       alert('Failed to update task status on the server. Change has been reverted.');
+    }
+  };
+
+  const handleTaskAddSubtask = async (taskId: string, title: string) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+
+    if (taskToUpdate.status === 'Completed') {
+      console.warn(`Prevented adding subtask to completed task ${taskId}`);
+      return;
+    }
+
+    const previousTasks = [...tasks];
+    const newSubtask = { 
+      id: Math.random().toString(36).substr(2, 9), 
+      title, 
+      status: 'To Do' as const 
+    };
+    
+    const updatedSubtaskList = [...(taskToUpdate.subtaskList || []), newSubtask];
+    
+    // Optimistic update
+    setTasks(tasks.map(t => t.id === taskId ? { 
+      ...t, 
+      subtaskList: updatedSubtaskList,
+      subtasks: updatedSubtaskList.length 
+    } : t));
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      const payload = {
+        title: taskToUpdate.title,
+        description: taskToUpdate.description,
+        priority: taskToUpdate.priority.toUpperCase(),
+        status: taskToUpdate.status === 'To Do' ? 'TODO' : taskToUpdate.status === 'In Progress' ? 'IN_PROGRESS' : taskToUpdate.status === 'Review' ? 'REVIEW' : 'DONE',
+        assigneeId: taskToUpdate.assigneeId,
+        projectId: taskToUpdate.projectId,
+        startDate: taskToUpdate.startDate,
+        endDate: taskToUpdate.endDate,
+        recurring: false,
+        subTasks: updatedSubtaskList.map(st => ({
+          name: st.title,
+          status: st.status === 'To Do' ? 'TODO' : st.status === 'In Progress' ? 'IN_PROGRESS' : st.status === 'Review' ? 'REVIEW' : 'DONE'
+        }))
+      };
+
+      await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
+        headers: { 'Content-Type': 'application/json', Authorization: token }
+      });
+    } catch (err) {
+      console.error('Failed to add subtask:', err);
+      setTasks(previousTasks);
+      alert('Failed to add subtask on the server.');
+    }
+  };
+
+  const handleSubtaskToggle = async (taskId: string, subtaskId: string, completed: boolean) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate || !taskToUpdate.subtaskList) return;
+
+    if (taskToUpdate.status === 'Completed') {
+      console.warn(`Prevented toggling subtask in completed task ${taskId}`);
+      return;
+    }
+
+    const previousTasks = [...tasks];
+    const updatedSubtaskList = taskToUpdate.subtaskList.map(st => 
+      st.id === subtaskId ? { ...st, status: completed ? 'Completed' as const : 'To Do' as const } : st
+    );
+
+    // Optimistic update
+    setTasks(tasks.map(t => t.id === taskId ? { 
+      ...t, 
+      subtaskList: updatedSubtaskList,
+      completedSubtasks: updatedSubtaskList.filter(st => st.status === 'Completed').length
+    } : t));
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      const targetSubtask = updatedSubtaskList.find(st => st.id === subtaskId);
+      if (!targetSubtask) return;
+
+      const payload = {
+        name: targetSubtask.title,
+        status: completed ? 'DONE' : 'TODO'
+      };
+
+      await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks/${subtaskId}`, payload, {
+        headers: { 'Content-Type': 'application/json', Authorization: token }
+      });
+    } catch (err) {
+      console.error('Failed to toggle subtask:', err);
+      // Revert on error
+      setTasks(previousTasks);
     }
   };
 
@@ -276,6 +396,7 @@ const TaskManagementInteractive = () => {
       <NavigationSidebar
         isCollapsed={isSidebarCollapsed}
         onCollapsedChange={setIsSidebarCollapsed}
+        userRole={user?.userRole}
         isMobileOpen={isSidebarMobileOpen}
         onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
@@ -356,7 +477,7 @@ const TaskManagementInteractive = () => {
                 <ThemeToggle isCollapsed={false} />
               </div>
               <div className="hidden lg:block">
-                <UserRoleIndicator isCollapsed={false} onRoleChange={setCurrentRole} />
+                <UserRoleIndicator isCollapsed={false} />
               </div>
             </div>
           </div>
@@ -405,7 +526,12 @@ const TaskManagementInteractive = () => {
           }
 
           {currentView === 'focus' &&
-            <TaskFocusView tasks={filteredTasks} onTaskClick={handleTaskClick} />
+            <TaskFocusView 
+              tasks={filteredTasks} 
+              onTaskClick={handleTaskClick} 
+              onAddSubtask={handleTaskAddSubtask}
+              onSubtaskToggle={handleSubtaskToggle}
+            />
           }
         </main>
       </div>

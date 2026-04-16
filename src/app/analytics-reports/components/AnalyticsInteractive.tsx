@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/components/common/UserContext';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -13,6 +14,7 @@ import RecentReportItem from './RecentReportItem';
 
 import FilterBar from './FilterBar';
 import ExportOptions from './ExportOptions';
+import Icon from '@/components/ui/AppIcon';
 
 interface MetricData {
   title: string;
@@ -63,9 +65,9 @@ interface PredictiveInsightData {
 }
 
 const AnalyticsInteractive = () => {
+  const { user } = useUser();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -286,7 +288,7 @@ const AnalyticsInteractive = () => {
               </div>
               <div className="flex items-center gap-3">
                 <ThemeToggle />
-                <UserRoleIndicator onRoleChange={setCurrentRole} />
+                <UserRoleIndicator />
               </div>
             </div>
           </div>

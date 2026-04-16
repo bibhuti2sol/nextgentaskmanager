@@ -1,17 +1,18 @@
 'use client';
 
 import {
-  ComposedChart,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   Cell,
-  LabelList,
+  PieChart,
+  Pie,
 } from 'recharts';
+import Icon from '@/components/ui/AppIcon';
 
 interface Project {
   id: number;
@@ -27,158 +28,262 @@ interface ProjectHealthChartProps {
 }
 
 const ProjectHealthChart = ({ projects }: ProjectHealthChartProps) => {
-  // Transform data for the chart
-  const chartData = projects.map((project) => ({
-    name: project.name,
-    completed: project.tasksCompleted,
-    total: project.totalTasks,
-    remaining: Math.max(0, project.totalTasks - project.tasksCompleted),
-    health: project.healthScore,
-    status: project.status,
-    healthTrack: 100, // Background track showing 100% capacity
-    taskTrack: project.totalTasks, // Background track showing total task goal
-  }));
+  // 1. Sanitize input: Filter out null/undefined and ensure valid shape
+  const validProjects = (projects || []).filter(
+    (p) => p && typeof p === 'object' && 'id' in p && 'status' in p
+  );
 
-  const getStatusGradient = (status: string) => {
-    switch (status) {
-      case 'On Track': return 'url(#gradientOnTrack)'; // Modern Indigo/Blue
-      case 'At Risk': return 'url(#gradientAtRisk)'; // Modern Amber
-      case 'Delayed': return 'url(#gradientDelayed)'; // Modern Rose
-      default: return '#94A3B8'; // Slate
-    }
-  };
+  // 2. Display empty state if no valid projects
+  if (validProjects.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground font-caption text-sm border-2 border-dashed border-border rounded-xl p-6 text-center">
+        <div>
+          <Icon name="InformationCircleIcon" size={24} className="mx-auto mb-2 opacity-50" />
+          <p>No project health data available.</p>
+          <p className="text-xs opacity-70">Select a project to see details.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isAggregated = validProjects.length > 1;
+
+  if (isAggregated) {
+    // Aggregated Dashboard Logic
+    const statusCounts = {
+      'On Track': validProjects.filter((p) => p.status === 'On Track').length,
+      'At Risk': validProjects.filter((p) => p.status === 'At Risk').length,
+      'Delayed': validProjects.filter((p) => p.status === 'Delayed').length,
+    };
+
+    const statusData = [
+      { name: 'On Track', value: statusCounts['On Track'], color: '#6366F1' },
+      { name: 'At Risk', value: statusCounts['At Risk'], color: '#F59E0B' },
+      { name: 'Delayed', value: statusCounts['Delayed'], color: '#E11D48' },
+    ];
+
+    const healthBrackets = [
+      { name: '80-100', count: validProjects.filter((p) => p.healthScore >= 80).length, color: '#6366F1' },
+      { name: '60-80', count: validProjects.filter((p) => p.healthScore >= 60 && p.healthScore < 80).length, color: '#818CF8' },
+      { name: '40-60', count: validProjects.filter((p) => p.healthScore >= 40 && p.healthScore < 60).length, color: '#F59E0B' },
+      { name: '<40', count: validProjects.filter((p) => p.healthScore < 40).length, color: '#E11D48' },
+    ];
+
+    const averageHealth = Math.round(
+      validProjects.reduce((acc, p) => acc + (p.healthScore || 0), 0) / validProjects.length
+    );
+
+    return (
+      <div className="space-y-6" aria-label="Aggregated Project Health Overview">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Avg. Health</p>
+            <p className="text-xl font-black text-primary">{averageHealth}%</p>
+          </div>
+          <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Projects</p>
+            <p className="text-xl font-black text-foreground">{validProjects.length}</p>
+          </div>
+        </div>
+
+        {/* Status Distribution (Pie) */}
+        <div>
+          <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Portfolio Status</h4>
+          <div className="h-[180px] w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={70}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                   contentStyle={{ 
+                    backgroundColor: 'rgba(var(--color-card-rgb), 0.9)', 
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">Healthy</span>
+              <span className="text-lg font-black text-indigo-500">
+                {Math.round((statusCounts['On Track'] / validProjects.length) * 100)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Health Distribution (Bar) */}
+        <div>
+          <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Health Distribution</h4>
+          <div className="h-[150px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={healthBrackets} margin={{ top: 5, right: 10, left: -30, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--color-muted-foreground)' }} 
+                />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-muted-foreground)' }} />
+                <Tooltip 
+                  cursor={{ fill: 'var(--color-muted)', opacity: 0.1 }}
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(var(--color-card-rgb), 0.9)', 
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={24}>
+                  {healthBrackets.map((entry, index) => (
+                    <Cell key={`cell-bar-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Single Project Detailed View
+  const project = validProjects[0];
+  const styles = getStatusStyles(project.status);
+  const completionPercentage = Math.round(((project.tasksCompleted || 0) / (project.totalTasks || 1)) * 100);
 
   return (
-    <div className="w-full h-[380px]" aria-label="Modern Professional Project Health Chart">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          layout="vertical"
-          data={chartData}
-          margin={{ top: 10, right: 45, left: 10, bottom: 0 }}
-          barGap={6}
-        >
-          <defs>
-            <linearGradient id="gradientOnTrack" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#6366F1" />
-              <stop offset="100%" stopColor="#818CF8" />
-            </linearGradient>
-            <linearGradient id="gradientAtRisk" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#FB7185" />
-            </linearGradient>
-            <linearGradient id="gradientDelayed" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#E11D48" />
-              <stop offset="100%" stopColor="#FB7185" />
-            </linearGradient>
-            <linearGradient id="gradientProgress" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#60A5FA" />
-            </linearGradient>
-          </defs>
+    <div className="space-y-4" aria-label="Detailed Project Health View">
+      <div
+        className="group relative bg-card/50 hover:bg-card border border-border/50 hover:border-border p-5 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-elevation-2 overflow-hidden"
+      >
+        {/* Project Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex-1 pr-4">
+            <h3 className="font-heading font-bold text-base text-foreground mb-2 group-hover:text-primary transition-colors">
+              {project.name}
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles.bg} ${styles.text}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${styles.dot} animate-pulse`} />
+                {project.status}
+              </span>
+            </div>
+          </div>
 
-          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--color-border)" opacity={0.15} />
-          
-          <XAxis type="number" xAxisId="tasks" hide />
-          <XAxis type="number" xAxisId="health" domain={[0, 100]} hide />
+          {/* Health Score Gauge */}
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <svg className="w-16 h-16 transform -rotate-90">
+              <circle
+                cx="32"
+                cy="32"
+                r="28"
+                stroke="currentColor"
+                strokeWidth="6"
+                fill="none"
+                className="text-muted opacity-10"
+              />
+              <circle
+                cx="32"
+                cy="32"
+                r="28"
+                stroke="currentColor"
+                strokeWidth="6"
+                fill="none"
+                strokeDasharray={2 * Math.PI * 28}
+                strokeDashoffset={2 * Math.PI * 28 * (1 - (project.healthScore || 0) / 100)}
+                className={styles.text}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className={`text-sm font-black ${styles.text}`}>
+                {project.healthScore || 0}%
+              </span>
+            </div>
+          </div>
+        </div>
 
-          <YAxis
-            dataKey="name"
-            type="category"
-            width={120}
-            tick={{ fill: 'var(--color-foreground)', fontSize: 10, fontWeight: 700 }}
-            axisLine={false}
-            tickLine={false}
-          />
+        {/* Detailed Insights List */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="space-y-1">
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Tasks Done</p>
+            <p className="text-sm font-black text-foreground">{project.tasksCompleted || 0}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Target</p>
+            <p className="text-sm font-black text-foreground">{project.totalTasks || 0}</p>
+          </div>
+        </div>
+
+        {/* Task Progress Section */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-end mb-1">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Overall Completion
+            </span>
+            <span className={`text-xs font-black ${styles.text}`}>
+              {completionPercentage}%
+            </span>
+          </div>
           
-          <Tooltip
-            cursor={{ fill: 'var(--color-muted)', opacity: 0.1 }}
-            contentStyle={{
-              backgroundColor: 'rgba(var(--color-card-rgb), 0.9)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '12px',
-              padding: '12px',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            }}
-          />
-          
-          <Legend
-            verticalAlign="top"
-            align="right"
-            wrapperStyle={{ paddingBottom: '20px', fontSize: '10px' }}
-            formatter={(value) => <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{value}</span>}
-          />
-          
-          {/* Health Score Component */}
-          {/* Background Track (representing 100% goal) - Using a subtle slate-indigo */}
-          <Bar
-            dataKey="healthTrack"
-            xAxisId="health"
-            barSize={16}
-            fill="#F1F5F9" // slate-100
-            radius={[8, 8, 8, 8]}
-            isAnimationActive={false}
-          />
-          <Bar
-            dataKey="health"
-            name="Health Score"
-            xAxisId="health"
-            barSize={16}
-            radius={[8, 8, 8, 8]}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-health-${index}`} fill={getStatusGradient(entry.status)} />
-            ))}
-            <LabelList 
-              dataKey="health" 
-              position="right" 
-              formatter={(val: number) => `${val}%`}
-              style={{ fill: 'var(--color-foreground)', fontSize: 11, fontWeight: 800 }}
-              offset={12}
+          <div className="relative h-2.5 w-full bg-muted/30 rounded-full overflow-hidden">
+            <div
+              className={`absolute top-0 left-0 h-full rounded-full bg-gradient-to-r ${styles.gradient} transition-all duration-1000 ease-in-out`}
+              style={{ width: `${completionPercentage}%` }}
             />
-          </Bar>
-
-          {/* Spacer between metric groups */}
-          <Bar dataKey="none" barSize={8} xAxisId="health" />
-
-          {/* Task Progress Component */}
-          {/* Background Track (representing Total Tasks goal) - Using a lighter slate */}
-          <Bar
-            dataKey="taskTrack"
-            xAxisId="tasks"
-            barSize={10}
-            fill="#F8FAFC" // slate-50
-            radius={[5, 5, 5, 5]}
-            isAnimationActive={false}
-          />
-          <Bar
-            dataKey="completed"
-            name="Tasks Completed"
-            xAxisId="tasks"
-            barSize={10}
-            fill="url(#gradientProgress)"
-            radius={[5, 5, 5, 5]}
-          >
-            <LabelList 
-              dataKey="completed" 
-              position="right" 
-              content={(props: any) => {
-                const { x, y, value, offset } = props;
-                const totalTasks = chartData[props.index].total;
-                return (
-                  <text x={x + props.width + 12} y={y + 8} fill="var(--color-muted-foreground)" fontSize={10} fontWeight={700}>
-                    {value}/{totalTasks}
-                  </text>
-                );
-              }}
-            />
-          </Bar>
-        </ComposedChart>
-      </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     </div>
-
-
   );
+};
+
+const getStatusStyles = (status: Project['status']) => {
+  switch (status) {
+    case 'On Track':
+      return {
+        bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+        text: 'text-indigo-600 dark:text-indigo-400',
+        dot: 'bg-indigo-500',
+        gradient: 'from-indigo-500 to-blue-500',
+      };
+    case 'At Risk':
+      return {
+        bg: 'bg-amber-50 dark:bg-amber-500/10',
+        text: 'text-amber-600 dark:text-amber-400',
+        dot: 'bg-amber-500',
+        gradient: 'from-amber-500 to-orange-500',
+      };
+    case 'Delayed':
+      return {
+        bg: 'bg-rose-50 dark:bg-rose-500/10',
+        text: 'text-rose-600 dark:text-rose-400',
+        dot: 'bg-rose-500',
+        gradient: 'from-rose-500 to-pink-500',
+      };
+    default:
+      return {
+        bg: 'bg-slate-50 dark:bg-slate-500/10',
+        text: 'text-slate-600 dark:text-slate-400',
+        dot: 'bg-slate-500',
+        gradient: 'from-slate-500 to-slate-400',
+      };
+  }
 };
 
 export default ProjectHealthChart;

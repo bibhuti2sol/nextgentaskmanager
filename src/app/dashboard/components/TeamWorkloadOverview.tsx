@@ -44,7 +44,7 @@ const TeamWorkloadOverview = ({ teamMembers }: TeamWorkloadOverviewProps) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-caption text-muted-foreground">Workload</span>
-              <span className="font-caption font-medium text-foreground">{member.workloadPercentage}%</span>
+              <span className="font-caption font-medium text-foreground">{member.workloadPercentage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <div

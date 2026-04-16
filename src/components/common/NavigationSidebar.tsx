@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
-import CalendarWidget from '@/components/common/CalendarWidget';
+import { useUser } from './UserContext';
 
 interface NavigationItem {
   label: string;
@@ -31,9 +31,11 @@ const NavigationSidebar = ({
 }: NavigationSidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useUser();
   const [collapsed, setCollapsed] = useState(isCollapsed);
   const [mounted, setMounted] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>(userRole || 'Associate');
+
+  const currentRole = user?.userRole || userRole || 'Associate';
 
   useEffect(() => {
     setMounted(true);
@@ -41,16 +43,7 @@ const NavigationSidebar = ({
     if (savedState !== null) {
       setCollapsed(savedState === 'true');
     }
-    
-    // Get user role from localStorage or props
-    const savedRole = localStorage.getItem('userRole') as 'Admin' | 'Manager' | 'Associate' | null;
-    if (savedRole) {
-      setCurrentRole(savedRole);
-    } else if (userRole) {
-      setCurrentRole(userRole);
-      localStorage.setItem('userRole', userRole);
-    }
-  }, [userRole]);
+  }, []);
 
   useEffect(() => {
     setCollapsed(isCollapsed);
@@ -204,8 +197,6 @@ const NavigationSidebar = ({
           </ul>
         </nav>
 
-        {/* Calendar Widget */}
-        <CalendarWidget isCollapsed={collapsed} />
 
         {/* Toggle Button */}
         <div className="p-3 border-t border-border">

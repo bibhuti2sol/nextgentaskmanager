@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/components/common/UserContext';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
 import UserRoleIndicator from '@/components/common/UserRoleIndicator';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -49,7 +50,7 @@ const UserProfileSettingsInteractive = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
+  const { user } = useUser();
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     firstName: '',
     lastName: '',
@@ -216,6 +217,7 @@ const UserProfileSettingsInteractive = () => {
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
+        userRole={user?.userRole}
         isMobileOpen={isSidebarMobileOpen}
         onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
@@ -246,7 +248,7 @@ const UserProfileSettingsInteractive = () => {
           <ProfileHeader
             userName={`${personalInfo.firstName} ${personalInfo.lastName}`}
             userEmail={personalInfo.email}
-            userRole={currentRole}
+            userRole={user?.userRole || 'Associate'}
             profileImage={personalInfo.firstName === 'Narendra' ? "https://img.rocket.new/generatedImages/rocket_gen_img_18f2762b3-1763132001404.png" : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"}
             profileImageAlt={`Professional headshot of ${personalInfo.firstName} ${personalInfo.lastName}`}
             onImageUpload={handleImageUpload}

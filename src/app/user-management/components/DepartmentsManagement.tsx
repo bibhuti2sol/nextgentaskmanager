@@ -42,10 +42,11 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  const fetchDepartments = async (search = '', page = 0, size = 10, sort = 'id,desc') => {
+  const fetchDepartments = async (search = '', status = '', page = 0, size = 10, sort = 'id,DESC') => {
     try {
       const queryParams = new URLSearchParams({
         search,
+        status,
         page: page.toString(),
         size: size.toString(),
         sort,
@@ -86,11 +87,11 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    fetchDepartments(searchQuery, newPage, 10, 'id,desc');
+    fetchDepartments(searchQuery, '', newPage, 10, 'id,DESC');
   };
 
   useEffect(() => {
-    fetchDepartments(searchQuery, currentPage, 10, 'id,desc');
+    fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC');
   }, [searchQuery, currentPage]);
 
   useEffect(() => {
@@ -203,7 +204,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
 
         if (response.status === 200 || response.status === 204) {
           console.log(`Department with ID: ${departmentId} deleted successfully.`);
-          await fetchDepartments(); // Auto-refresh after delete
+          await fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC'); // Auto-refresh after delete
         } else {
           console.error(`Failed to delete department. Status: ${response.status}, Response:`, response.data);
           alert('Failed to delete the department. Please try again later.');
@@ -242,8 +243,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
       name: formData.name,
       description: formData.description,
       status: formData.status.toUpperCase(),
-      departmentHeadId: departmentHeads.find((head) => head.name === formData.head)?.id || null,
-      departmentHeadName: formData.head,
+      departmentHeadId: departmentHeads.find((head) => head.name === formData.head)?.id ? parseInt(departmentHeads.find((head) => head.name === formData.head)!.id) : null,
     };
 
     try {
@@ -261,7 +261,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         );
 
         if (response.status === 200) {
-          await fetchDepartments(); // Auto-refresh after update
+          await fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC');
         }
       } else {
         // Add new department
@@ -276,12 +276,26 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
           }
         );
 
-        if (response.status === 201) {
-          await fetchDepartments(); // Auto-refresh after add
+        if (response.status === 201 || response.status === 200) {
+          await fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC');
         }
       }
+      setIsFormOpen(false);
+      setEditingDepartment(null);
     } catch (error) {
-      console.error('Error saving department:', error);
+       if (axios.isAxiosError(error)) {
+        console.error('Error saving department:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+          payload: departmentData
+        });
+        const serverMessage = error.response?.data?.message || error.response?.data?.error || 'Server error occurred while saving.';
+        alert(`Failed to save department: ${serverMessage}`);
+      } else {
+        console.error('Error saving department:', error);
+        alert('An unexpected error occurred.');
+      }
     }
 
     setIsFormOpen(false);
@@ -325,7 +339,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
         )
       );
       await Promise.all(promises);
-      await fetchDepartments(); // Refresh departments after status update
+      await fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC'); // Refresh departments after status update
       setSelectedDepartments([]);
     } catch (error) {
       console.error('Error updating department status:', error);
@@ -356,7 +370,7 @@ const DepartmentsManagement = ({ onDepartmentUpdate }: DepartmentsManagementProp
             })
           );
           await Promise.all(promises);
-          await fetchDepartments(); // Refresh departments after deletion
+          await fetchDepartments(searchQuery, '', currentPage, 10, 'id,DESC'); // Refresh departments after deletion
           setSelectedDepartments([]);
         } catch (error) {
           console.error('Error deleting departments:', error);

@@ -137,8 +137,7 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
         projectId: foundProject ? foundProject.id : null,
         startDate,
         endDate,
-        recurring: false, // Defaulting as not present in simple form
-        subTasks: [] // Currently not editable here
+        recurring: false // Defaulting as not present in simple form
       };
 
       const response = await axios.put(`http://43.205.137.114:8080/api/v1/tasks/${taskId}`, payload, {
@@ -262,7 +261,8 @@ const EditTask = ({ task, onSave, onClose, assigneeOptions, projectOptions }: Ed
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "To Do" | "In Progress" | "Review" | "Completed")}
-                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground"
+                disabled={task.status === 'Completed'}
+                className="border border-border rounded-lg px-4 py-2 w-full bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>

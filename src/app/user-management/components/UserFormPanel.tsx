@@ -212,13 +212,14 @@ const UserFormPanel = ({
 
   const fetchDepartments = async (): Promise<{ id: number; name: string }[]> => {
     try {
-      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments', {
+      const response = await axios.get('http://43.205.137.114:8080/api/v1/departments?search=&status=&page=0&size=1000&sort=id,DESC', {
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
         },
       });
-      return response.data;
+      const data = response.data.content || response.data;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching departments:', error);
       return [];

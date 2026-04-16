@@ -50,7 +50,7 @@ const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
       };
 
       try {
-        const teamsResponse = await axios.get('http://43.205.137.114:8080/api/v1/teams', { headers });
+        const teamsResponse = await axios.get('http://43.205.137.114:8080/api/v1/teams?search=&status=&page=0&size=100', { headers });
         let teamsArray: TeamData[] = [];
         if (teamsResponse.status === 200) {
           if (Array.isArray(teamsResponse.data)) {
@@ -66,7 +66,7 @@ const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
       }
 
       try {
-        const departmentsResponse = await axios.get('http://43.205.137.114:8080/api/v1/departments', { headers });
+        const departmentsResponse = await axios.get('http://43.205.137.114:8080/api/v1/departments?search=&status=&page=0&size=100', { headers });
         let deptsArray: DepartmentData[] = [];
         if (departmentsResponse.status === 200) {
           if (Array.isArray(departmentsResponse.data)) {

@@ -529,6 +529,7 @@ const TaskListView = ({ tasks, onTaskClick, onStatusChange, onEditTask, onTaskUp
 
       {editingSubtask && (
         <EditSubtask
+          taskId={editingTaskId || ""}
           subtask={editingSubtask}
           onSave={(updated) => {
             if (!editingTaskId) return;

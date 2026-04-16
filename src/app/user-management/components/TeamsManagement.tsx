@@ -100,7 +100,7 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('http://43.205.137.114:8080/api/v1/departments', {
+      const response = await fetch('http://43.205.137.114:8080/api/v1/departments?search=&status=&page=0&size=1000&sort=id,DESC', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,8 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
 
       if (response.ok) {
         const data = await response.json();
-        const activeDepartments = data.map((dept: any) => ({ id: dept.id, name: dept.name }));
+        const content = data.content || data;
+        const activeDepartments = Array.isArray(content) ? content.map((dept: any) => ({ id: dept.id, name: dept.name })) : [];
         setFetchedDepartments(activeDepartments);
       } else {
         console.error('Failed to fetch departments:', response.status);
@@ -329,7 +330,8 @@ const TeamsManagement = ({ onTeamUpdate, departments = [], users = [] }: TeamsMa
         if (response.ok) {
           await fetchAllTeams(); // Refresh teams after adding a new team
         } else {
-          console.error('Failed to add team:', response.status);
+          const errorText = await response.text();
+          console.error('Failed to add team:', response.status, errorText);
         }
       }
     } catch (error) {

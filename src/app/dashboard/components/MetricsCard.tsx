@@ -24,7 +24,7 @@ const MetricsCard = ({ title, value, change, icon, variant }: MetricsCardProps) 
         </div>
         <div className={`flex items-center gap-1 text-sm font-caption font-medium ${isPositive ? 'text-success' : 'text-error'}`}>
           <span>{isPositive ? '↑' : '↓'}</span>
-          <span>{Math.abs(change)}%</span>
+          <span>{Math.abs(change).toFixed(1)}%</span>
         </div>
       </div>
       <h3 className="text-muted-foreground font-caption text-sm mb-1">{title}</h3>

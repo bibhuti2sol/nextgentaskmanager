@@ -6,6 +6,7 @@ interface ChartData {
   day: string;
   completed: number;
   inProgress: number;
+  todo: number;
 }
 
 interface ProductivityChartProps {
@@ -41,8 +42,9 @@ const ProductivityChart = ({ data }: ProductivityChartProps) => {
               fontFamily: 'Inter, sans-serif',
             }}
           />
-          <Bar dataKey="completed" fill="#7ED321" name="Completed" radius={[8, 8, 0, 0]} />
-          <Bar dataKey="inProgress" fill="#4A90E2" name="In Progress" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="completed" fill="#7ED321" name="Completed" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="inProgress" fill="#4A90E2" name="In Progress" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="todo" fill="#FBBF24" name="To Do" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

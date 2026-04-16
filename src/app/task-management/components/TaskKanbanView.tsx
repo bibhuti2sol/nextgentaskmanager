@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
+import StatusChangeConfirmModal from './StatusChangeConfirmModal';
 
 interface Task {
   id: string;
@@ -53,7 +54,14 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
     }
   };
 
-  const handleDragStart = (taskId: string) => {
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; taskId: string; targetStatus: Task['status'] }>({
+    isOpen: false,
+    taskId: '',
+    targetStatus: 'To Do'
+  });
+
+  const handleDragStart = (taskId: string, currentStatus: Task['status']) => {
+    if (currentStatus === 'Completed') return;
     setDraggedTask(taskId);
   };
 
@@ -61,11 +69,34 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
     e.preventDefault();
   };
 
-  const handleDrop = (status: Task['status']) => {
+  const handleDrop = (targetStatus: Task['status']) => {
     if (draggedTask) {
-      onStatusChange(draggedTask, status);
+      const task = tasks.find(t => t.id === draggedTask);
+      if (!task) return;
+
+      // Prevent moving out of Completed (though draggable handle should prevent this anyway)
+      if (task.status === 'Completed') {
+        setDraggedTask(null);
+        return;
+      }
+
+      // If moving from Review to Completed, ask for confirmation
+      if (targetStatus === 'Completed' && task.status === 'Review') {
+        setConfirmModal({
+          isOpen: true,
+          taskId: draggedTask,
+          targetStatus: targetStatus
+        });
+      } else {
+        onStatusChange(draggedTask, targetStatus);
+      }
       setDraggedTask(null);
     }
+  };
+
+  const handleConfirmStatusChange = () => {
+    onStatusChange(confirmModal.taskId, confirmModal.targetStatus);
+    setConfirmModal({ ...confirmModal, isOpen: false });
   };
 
   return (
@@ -93,12 +124,12 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
               {columnTasks.map((task) => (
                 <div
                   key={task.id}
-                  draggable
-                  onDragStart={() => handleDragStart(task.id)}
+                  draggable={task.status !== 'Completed'}
+                  onDragStart={() => handleDragStart(task.id, task.status)}
                   onClick={() => onTaskClick(task.id)}
                   className={`bg-background border-l-4 ${getPriorityColor(task.priority)} border-r border-t border-b border-border rounded-lg p-3 cursor-move hover:shadow-elevation-2 transition-smooth ${
                     draggedTask === task.id ? 'opacity-50' : ''
-                  }`}
+                  } ${task.status === 'Completed' ? 'cursor-not-allowed opacity-80 shadow-none hover:shadow-none bg-muted/20' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h4 className="font-caption font-medium text-sm text-foreground flex-1 pr-2">
@@ -165,6 +196,13 @@ const TaskKanbanView = ({ tasks, onTaskClick, onStatusChange }: TaskKanbanViewPr
           </div>
         );
       })}
+      
+      {/* Confirmation Modal */}
+      <StatusChangeConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={handleConfirmStatusChange}
+        onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/components/common/UserContext';
 import TeamMemberCard from './TeamMemberCard';
 import WorkloadChart from './WorkloadChart';
 import WorkloadFilters from './WorkloadFilters';
@@ -73,10 +74,10 @@ interface AvailabilitySlot {
 }
 
 const TeamWorkloadInteractive = () => {
+  const { user } = useUser();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Manager' | 'Associate'>('Manager');
 
   useEffect(() => {
     setIsHydrated(true);
@@ -406,7 +407,7 @@ const TeamWorkloadInteractive = () => {
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
-        userRole={currentRole}
+        userRole={user?.userRole}
         isMobileOpen={isSidebarMobileOpen}
         onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
@@ -429,10 +430,9 @@ const TeamWorkloadInteractive = () => {
                   </p>
                 </div>
               </div>
-              </div>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
-                <UserRoleIndicator currentRole={currentRole} onRoleChange={setCurrentRole} />
+                <UserRoleIndicator />
               </div>
             </div>
           </div>
