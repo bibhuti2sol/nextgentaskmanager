@@ -28,6 +28,7 @@ interface DashboardData {
   priorityOverview: { high: number; medium: number; low: number };
   weeklyProductivity: { date: string; todo: number; inProgress: number; done: number }[];
   teamWorkload: { userId: number; userName: string; assignedTaskCount: number; workloadPercentage: number }[];
+  subtasks: { total: number; inProgress: number; closed: number };
 }
 
 interface Project {
@@ -269,10 +270,17 @@ const DashboardInteractive = ({ userRole: initialRole, userName = 'User' }: Dash
         {/* Main Content */}
         <main className={`p-6 transition-all duration-300 ${loading ? 'opacity-50 blur-[1px]' : 'opacity-100'}`}>
           {/* Metrics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
             {metrics.map((metric, index) => (
               <MetricsCard key={index} {...metric} />
             ))}
+            {dashboardData && (
+              <SubtaskChart 
+                total={dashboardData.subtasks?.total || 0}
+                inProgress={dashboardData.subtasks?.inProgress || 0}
+                closed={dashboardData.subtasks?.closed || 0}
+              />
+            )}
           </div>
 
           {/* Quick Actions */}

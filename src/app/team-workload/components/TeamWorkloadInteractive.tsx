@@ -81,6 +81,7 @@ const TeamWorkloadInteractive = () => {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [workloadChartData, setWorkloadChartData] = useState<WorkloadData[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -468,6 +469,32 @@ const TeamWorkloadInteractive = () => {
           }));
           setTeamMembers(membersData);
         }
+
+        // Map API data to upcoming deadlines UI
+        if (data.upcomingDeadlines) {
+          const deadlinesData = data.upcomingDeadlines.map((d: any) => {
+            const dueDate = new Date(d.endDate);
+            const today = new Date();
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let status: 'on-track' | 'at-risk' | 'overdue' = 'on-track';
+            if (diffDays < 0) status = 'overdue';
+            else if (diffDays <= 3) status = 'at-risk';
+
+            return {
+              id: d.taskId,
+              taskName: d.taskTitle,
+              assignee: d.assigneeName,
+              assigneeAvatar: "https://ui-avatars.com/api/?name=" + encodeURIComponent(d.assigneeName) + "&background=random",
+              assigneeAvatarAlt: d.assigneeName,
+              dueDate: new Date(d.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              priority: (d.priority?.toLowerCase() || 'medium') as 'high' | 'medium' | 'low',
+              status
+            };
+          });
+          setDeadlines(deadlinesData);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch workload data:', error);
@@ -581,7 +608,7 @@ const TeamWorkloadInteractive = () => {
                   </div>
 
                   <div className="space-y-6">
-                    <UpcomingDeadlines deadlines={mockDeadlines} />
+                    <UpcomingDeadlines deadlines={deadlines} />
                   </div>
                 </div>
               </>

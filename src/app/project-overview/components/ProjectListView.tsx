@@ -15,6 +15,8 @@ interface Project {
   team: number;
   priority: 'High' | 'Medium' | 'Low';
   projectType?: 'normal' | 'budget';
+  totalTasks?: number;
+  completedTasks?: number;
 }
 
 interface ProjectListViewProps {
@@ -68,6 +70,8 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete, currentRole
               budget: project.budget || '0',
               priority: project.priority || 'Low',
               projectType: project.type || 'normal', // Map type to projectType
+              totalTasks: project.totalTasks || 0,
+              completedTasks: project.completedTasks || 0,
             };
           });
           setProjects(formattedProjects); // Replace the current list of projects with the new data
@@ -260,7 +264,13 @@ const ProjectListView = ({ projects: propProjects, onEdit, onDelete, currentRole
                       </div>
                       <div>
                         <p className="font-caption font-medium text-sm text-foreground">{project.name}</p>
-                        <p className="font-caption text-xs text-muted-foreground">ID: {project.id}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="font-caption text-[10px] text-muted-foreground whitespace-nowrap">ID: {project.id}</p>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <p className="font-caption text-[10px] text-primary font-medium whitespace-nowrap">
+                            Tasks: <span className="font-bold">{project.completedTasks || 0}</span>/{project.totalTasks || 0}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </td>

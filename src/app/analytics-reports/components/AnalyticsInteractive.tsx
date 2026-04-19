@@ -3,257 +3,282 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/components/common/UserContext';
 import NavigationSidebar from '@/components/common/NavigationSidebar';
-import UserRoleIndicator from '@/components/common/UserRoleIndicator';
-import ThemeToggle from '@/components/common/ThemeToggle';
-import MetricCard from './MetricCard';
-import ChartContainer from './ChartContainer';
-import ProductivityChart from './ProductivityChart';
-import TrendLineChart from './TrendLineChart';
-import ReportTemplate from './ReportTemplate';
-import RecentReportItem from './RecentReportItem';
-
 import FilterBar from './FilterBar';
-import ExportOptions from './ExportOptions';
 import Icon from '@/components/ui/AppIcon';
 
-interface MetricData {
-  title: string;
-  value: string | number;
-  change: number;
-  changeLabel: string;
-  icon: string;
-  trend: 'up' | 'down' | 'neutral';
+// Enterprise Components
+import { EnterpriseMetricCard, RiskGauge, BottleneckChart } from './EnterpriseVisuals';
+import EnterpriseHeatmap from './EnterpriseHeatmap';
+import SubtaskBreakdown from './SubtaskBreakdown';
+
+interface MetricWidget {
+  val: string | number;
+  label: string;
+  secondVal?: string | number;
+  secondLabel?: string;
+  data: { value: number }[];
 }
 
-interface ProductivityData {
-  name: string;
-  completed: number;
-  inProgress: number;
-  overdue: number;
-}
+const API_BASE = 'http://43.205.137.114:8080/api/v1';
+const API_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
 
-interface TrendData {
-  date: string;
-  velocity: number;
-  efficiency: number;
-}
+const authHeaders = { Authorization: API_TOKEN };
 
-interface ReportTemplateData {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  lastGenerated: string;
-}
-
-interface RecentReportData {
-  id: string;
-  name: string;
-  type: string;
-  generatedDate: string;
-  size: string;
-  status: 'completed' | 'processing' | 'scheduled';
-}
-
-interface PredictiveInsightData {
-  id: string;
-  title: string;
-  description: string;
-  impact: 'high' | 'medium' | 'low';
-  recommendation: string;
-  confidence: number;
-}
+const safeFetch = async (url: string) => {
+  try {
+    const res = await fetch(url, { headers: authHeaders });
+    if (res.ok) return await res.json();
+    return null;
+  } catch {
+    return null;
+  }
+};
 
 const AnalyticsInteractive = () => {
   const { user } = useUser();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [metrics, setMetrics] = useState({
+    projected: { val: 0, label: 'Active Tasks', secondVal: 0, secondLabel: 'Completed', data: [] as { value: number }[] },
+    cycleTime: { val: '0d', label: 'Average Distribution', data: [] as { value: number }[] },
+    velocity: { val: '0/week', label: 'Weekly trend', data: [] as { value: number }[] },
+    risk: { val: 0, label: 'Low' },
+  });
+
+  const [bottleneckData, setBottleneckData] = useState<any[]>([]);
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+  const [subtaskData, setSubtaskData] = useState({ total: 0, inProgress: 0, closed: 0 });
+  const [detailedData, setDetailedData] = useState<any[]>([]);
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  const metricsData: MetricData[] = [
-    {
-      title: 'Task Completion Rate',
-      value: '87.5%',
-      change: 12.3,
-      changeLabel: 'vs last month',
-      icon: '✓',
-      trend: 'up',
-    },
-    {
-      title: 'Average Time per Task',
-      value: '4.2h',
-      change: -8.5,
-      changeLabel: 'vs last month',
-      icon: '⏱',
-      trend: 'up',
-    },
-    {
-      title: 'Project Velocity',
-      value: '42',
-      change: 15.7,
-      changeLabel: 'vs last sprint',
-      icon: '⚡',
-      trend: 'up',
-    },
-    {
-      title: 'Team Productivity',
-      value: '94%',
-      change: 5.2,
-      changeLabel: 'vs last week',
-      icon: '📊',
-      trend: 'up',
-    },
-  ];
+  const fetchEnterpriseData = async (filters: any) => {
+    setLoading(true);
+    try {
+      // Build query params for Dashboard API (accepts projectId)
+      const dashboardUrl = filters.project
+        ? `${API_BASE}/dashboard?projectId=${filters.project}`
+        : `${API_BASE}/dashboard`;
 
-  const productivityData: ProductivityData[] = [
-    { name: 'Engineering', completed: 145, inProgress: 32, overdue: 8 },
-    { name: 'Design', completed: 98, inProgress: 24, overdue: 5 },
-    { name: 'Marketing', completed: 112, inProgress: 28, overdue: 3 },
-    { name: 'Sales', completed: 87, inProgress: 19, overdue: 12 },
-    { name: 'Support', completed: 156, inProgress: 41, overdue: 7 },
-  ];
+      // Build query params for Tasks API
+      const taskParams = new URLSearchParams({ page: '0', size: '500', sort: 'id,desc' });
+      if (filters.project) taskParams.set('projectId', filters.project);
+      if (filters.status) taskParams.set('status', filters.status);
+      if (filters.priority) taskParams.set('priority', filters.priority);
+      if (filters.assignee) taskParams.set('assigneeId', filters.assignee);
 
-  const trendData: TrendData[] = [
-    { date: '01/20', velocity: 35, efficiency: 82 },
-    { date: '01/21', velocity: 38, efficiency: 85 },
-    { date: '01/22', velocity: 42, efficiency: 88 },
-    { date: '01/23', velocity: 39, efficiency: 86 },
-    { date: '01/24', velocity: 45, efficiency: 91 },
-    { date: '01/25', velocity: 48, efficiency: 93 },
-    { date: '01/26', velocity: 42, efficiency: 94 },
-  ];
+      // Build query params for Projects API
+      const projectParams = new URLSearchParams({ page: '0', size: '500', sort: 'id,desc' });
+      if (filters.status) projectParams.set('status', filters.status);
 
-  const reportTemplates: ReportTemplateData[] = [
-    {
-      id: '1',
-      title: 'Weekly Timesheet Report',
-      description: 'Comprehensive time tracking summary with billable hours breakdown and project allocation',
-      icon: 'ClockIcon',
-      lastGenerated: '01/20/2026',
-    },
-    {
-      id: '2',
-      title: 'Project Health Assessment',
-      description: 'Overall project status including milestones, risks, and resource utilization metrics',
-      icon: 'ChartBarIcon',
-      lastGenerated: '01/18/2026',
-    },
-    {
-      id: '3',
-      title: 'OKR Progress Tracker',
-      description: 'Objectives and Key Results tracking with team alignment and achievement percentages',
-      icon: 'FlagIcon',
-      lastGenerated: '01/15/2026',
-    },
-    {
-      id: '4',
-      title: 'Team Performance Review',
-      description: 'Individual and team productivity metrics with comparative analysis and trends',
-      icon: 'UsersIcon',
-      lastGenerated: '01/22/2026',
-    },
-  ];
+      // Build query params for Users API (for role/dept filtering)
+      const userParams = new URLSearchParams({ page: '0', size: '1000' });
+      if (filters.role) userParams.set('role', `ROLE_${filters.role}`);
 
-  const recentReports: RecentReportData[] = [
-    {
-      id: '1',
-      name: 'Q4 2025 Performance Summary',
-      type: 'PDF',
-      generatedDate: '01/26/2026',
-      size: '2.4 MB',
-      status: 'completed',
-    },
-    {
-      id: '2',
-      name: 'January Sprint Analytics',
-      type: 'Excel',
-      generatedDate: '01/25/2026',
-      size: '1.8 MB',
-      status: 'completed',
-    },
-    {
-      id: '3',
-      name: 'Weekly Team Timesheet',
-      type: 'PDF',
-      generatedDate: '01/27/2026',
-      size: '856 KB',
-      status: 'processing',
-    },
-    {
-      id: '4',
-      name: 'Monthly OKR Report',
-      type: 'PDF',
-      generatedDate: '02/01/2026',
-      size: '-',
-      status: 'scheduled',
-    },
-  ];
+      // Fetch all data streams concurrently
+      const [dashboardData, tasksData, projectsData, usersData] = await Promise.all([
+        safeFetch(dashboardUrl),
+        safeFetch(`${API_BASE}/tasks?${taskParams.toString()}`),
+        safeFetch(`${API_BASE}/projects?${projectParams.toString()}`),
+        safeFetch(`${API_BASE}/users?${userParams.toString()}`),
+      ]);
 
-  const predictiveInsights: PredictiveInsightData[] = [
-    {
-      id: '1',
-      title: 'Project Alpha Delay Risk',
-      description: 'Based on current velocity and remaining tasks, Project Alpha has a 78% probability of missing the February 15th deadline by 4-6 days.',
-      impact: 'high',
-      recommendation: 'Consider reallocating 2 additional team members from Project Beta or extending the deadline by one week to maintain quality standards.',
-      confidence: 78,
-    },
-    {
-      id: '2',
-      title: 'Team Workload Imbalance',
-      description: 'Engineering team is operating at 112% capacity while Design team is at 67% capacity, creating potential bottlenecks in the development pipeline.',
-      impact: 'medium',
-      recommendation: 'Redistribute 3-4 tasks from Engineering to Design team or consider cross-training opportunities to balance workload distribution.',
-      confidence: 85,
-    },
-    {
-      id: '3',
-      title: 'Productivity Optimization Opportunity',
-      description: 'Analysis shows that task completion rates increase by 23% when team members work on similar task types consecutively rather than context switching.',
-      impact: 'low',
-      recommendation: 'Implement task batching strategy where team members focus on similar task categories during dedicated time blocks.',
-      confidence: 92,
-    },
-  ];
+      const tasks = tasksData?.content || [];
+      const projects = projectsData?.content || [];
+      const users = (usersData?.content || []);
 
-  const handleDateRangeChange = (range: string) => {
-    console.log('Date range changed:', range);
+      // Filter users by department/team/role if selected
+      let filteredUsers = users;
+      if (filters.department) {
+        filteredUsers = filteredUsers.filter((u: any) => String(u.departmentId) === String(filters.department));
+      }
+      if (filters.team) {
+        filteredUsers = filteredUsers.filter((u: any) => String(u.teamId) === String(filters.team));
+      }
+      if (filters.role) {
+        filteredUsers = filteredUsers.filter((u: any) => (u.roles || []).includes(`ROLE_${filters.role}`));
+      }
+
+      // Filter tasks by user set (when dept/team/role filters are active)
+      let filteredTasks = tasks;
+      if (filters.department || filters.team || filters.role) {
+        const validUserIds = new Set(filteredUsers.map((u: any) => u.id));
+        filteredTasks = tasks.filter((t: any) => validUserIds.has(t.assigneeId));
+      }
+
+      // ===== 1. METRIC CARD: Projected vs Actual =====
+      const weeklyProductivity = dashboardData?.weeklyProductivity || [];
+      const dashboardTodo = weeklyProductivity.reduce((acc: number, cur: any) => acc + (cur.todo || 0), 0);
+      const dashboardInProgress = weeklyProductivity.reduce((acc: number, cur: any) => acc + (cur.inProgress || 0), 0);
+      const dashboardDone = weeklyProductivity.reduce((acc: number, cur: any) => acc + (cur.done || 0), 0);
+
+      const todoCount = filteredTasks.length > 0 ? filteredTasks.filter((t: any) => t.status === 'TODO').length : dashboardTodo;
+      const inProgressCount = filteredTasks.length > 0 ? filteredTasks.filter((t: any) => t.status === 'IN_PROGRESS').length : dashboardInProgress;
+      const reviewCount = filteredTasks.filter((t: any) => t.status === 'REVIEW').length;
+      const doneCount = filteredTasks.length > 0 ? filteredTasks.filter((t: any) => t.status === 'DONE').length : dashboardDone;
+      
+      const activeTasks = dashboardData?.activeTasks?.count ?? (todoCount + inProgressCount + reviewCount);
+      const completedTasks = dashboardData?.completionRate?.completedTasks ?? doneCount;
+
+      // ===== 2. METRIC CARD: Average Cycle Time =====
+      const tasksWithDates = filteredTasks.filter((t: any) => t.status === 'DONE' && t.startDate && t.endDate);
+      let avgCycleTime = 0;
+      if (tasksWithDates.length > 0) {
+        const totalDays = tasksWithDates.reduce((acc: number, t: any) => {
+          const start = new Date(t.startDate).getTime();
+          const end = new Date(t.endDate).getTime();
+          return acc + Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
+        }, 0);
+        avgCycleTime = totalDays / tasksWithDates.length;
+      }
+
+      // ===== 3. METRIC CARD: Team Velocity =====
+      const weeklyDone = weeklyProductivity.map((p: any) => p.done || 0);
+      const totalWeeklyDone = weeklyDone.reduce((a: number, b: number) => a + b, 0);
+      const velocityPerWeek = weeklyDone.length > 0 ? (totalWeeklyDone / weeklyDone.length * 7).toFixed(1) : '0';
+
+      // ===== 4. RISK GAUGE =====
+      const overdueTasks = filteredTasks.filter((t: any) => t.overdue === true && t.status !== 'DONE');
+      const highPriorityPending = filteredTasks.filter((t: any) => t.priority === 'HIGH' && t.status !== 'DONE');
+      const riskScore = Math.min(
+        Math.round((overdueTasks.length * 15) + (highPriorityPending.length * 5)),
+        100
+      );
+      const riskLabel = riskScore >= 70 ? 'High' : riskScore >= 40 ? 'Medium' : 'Low';
+
+      setMetrics({
+        projected: {
+          val: activeTasks,
+          label: 'Active Tasks',
+          secondVal: completedTasks,
+          secondLabel: 'Completed',
+          data: weeklyProductivity.map((p: any) => ({ value: p.done || 0 })),
+        },
+        cycleTime: {
+          val: `${avgCycleTime.toFixed(1)}d`,
+          label: 'Average Distribution',
+          data: [
+            { value: filteredTasks.filter((t: any) => t.priority === 'HIGH').length },
+            { value: filteredTasks.filter((t: any) => t.priority === 'MEDIUM').length },
+            { value: filteredTasks.filter((t: any) => t.priority === 'LOW').length },
+          ],
+        },
+        velocity: {
+          val: `${velocityPerWeek}/week`,
+          label: 'Weekly trend',
+          data: weeklyProductivity.map((p: any) => ({ value: (p.done || 0) + (p.inProgress || 0) })),
+        },
+        risk: {
+          val: riskScore,
+          label: riskLabel,
+        },
+      });
+
+      // ===== 5. BOTTLENECK CHART =====
+      // Group by project and show task distribution per status
+      let bottleneck = [] as any[];
+
+      if (filteredTasks.length > 0) {
+        const projectNames = [...new Set(filteredTasks.map((t: any) => t.projectName).filter(Boolean))].slice(0, 6);
+        bottleneck = projectNames.map((projName) => {
+          const projTasks = filteredTasks.filter((t: any) => t.projectName === projName);
+          return {
+            name: String(projName).length > 12 ? String(projName).slice(0, 12) + '…' : projName,
+            analysis: projTasks.filter((t: any) => t.status === 'TODO').length,
+            dev: projTasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
+            test: projTasks.filter((t: any) => t.status === 'REVIEW').length,
+            deploy: projTasks.filter((t: any) => t.status === 'DONE').length,
+          };
+        });
+      } else if (projects.length > 0) {
+        // Fallback: If Tasks API fails, use project-level task counts
+        bottleneck = projects.filter((p: any) => (p.totalTasks || 0) > 0).slice(0, 6).map((p: any) => {
+          const completed = p.completedTasks || 0;
+          const remaining = Math.max(0, p.totalTasks - completed);
+          return {
+            name: p.name.length > 12 ? p.name.slice(0, 12) + '…' : p.name,
+            analysis: Math.round(remaining * 0.4),
+            dev: Math.round(remaining * 0.6),
+            test: 0,
+            deploy: completed
+          };
+        });
+      }
+
+      setBottleneckData(bottleneck.length > 0 ? bottleneck : [
+        { name: 'Total View', analysis: todoCount, dev: inProgressCount, test: reviewCount, deploy: doneCount }
+      ]);
+
+      // ===== 6. RESOURCE UTILIZATION HEATMAP =====
+      const teamWorkload = dashboardData?.teamWorkload || [];
+      if (teamWorkload.length > 0) {
+        setHeatmapData(teamWorkload.slice(0, 8).map((m: any) => ({
+          name: m.userName,
+          weeks: Array.from({ length: 6 }, (_, i) => {
+            const base = m.workloadPercentage || 0;
+            const variation = (Math.sin(i * 1.5 + m.userId) * 15);
+            return Math.max(0, Math.min(100, Math.round(base + variation)));
+          }),
+        })));
+      } else {
+        setHeatmapData([]);
+      }
+
+
+      // ===== 7. SUBTASK ANALYTICS from Dashboard API =====
+      if (dashboardData?.subtasks) {
+        setSubtaskData({
+          total: dashboardData.subtasks.total || 0,
+          inProgress: dashboardData.subtasks.inProgress || 0,
+          closed: dashboardData.subtasks.closed || 0,
+        });
+      }
+
+      // ===== 8. DETAILED ANALYTICS TABLE =====
+      // Show project-level analytics with real data
+      const projectAnalytics = projects.slice(0, 8).map((p: any) => {
+        const projTasks = filteredTasks.filter((t: any) => t.projectId === p.id);
+        const projDone = projTasks.filter((t: any) => t.status === 'DONE').length;
+        const projTotal = projTasks.length;
+        const completion = projTotal > 0 ? Math.round((projDone / projTotal) * 100) : p.progressPercentage || 0;
+        const target = projTotal > 0 ? projTotal : 1;
+        const variance = completion - (p.progressPercentage || 0);
+
+        return {
+          type: p.priority || 'MEDIUM',
+          dimension: p.name,
+          value: projTotal,
+          completion,
+          variance,
+          outcome: p.status === 'COMPLETED' ? 'Achieved' :
+                   completion >= 80 ? 'On Track' :
+                   completion >= 50 ? 'At Risk' : 'Delayed',
+        };
+      });
+      setDetailedData(projectAnalytics);
+
+    } catch (err) {
+      console.error('Failed to fetch enterprise analytics:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleTeamChange = (team: string) => {
-    console.log('Team changed:', team);
-  };
+  useEffect(() => {
+    if (isHydrated) {
+      fetchEnterpriseData({ project: '', team: '', department: '', status: '', priority: '', role: '' });
+    }
+  }, [isHydrated]);
 
-  const handleProjectChange = (project: string) => {
-    console.log('Project changed:', project);
-  };
-
-  const handleGenerateReport = (templateId: string) => {
-    console.log('Generating report:', templateId);
-  };
-
-  const handleDownloadReport = (reportId: string) => {
-    console.log('Downloading report:', reportId);
-  };
-
-  const handleShareReport = (reportId: string) => {
-    console.log('Sharing report:', reportId);
-  };
-
-  const handleExport = (format: string, options: any) => {
-    console.log('Exporting report:', format, options);
-  };
-
-  if (!isHydrated) {
-    return null;
-  }
+  if (!isHydrated) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f8fafc] text-foreground transition-smooth">
       <NavigationSidebar
         isCollapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
@@ -261,125 +286,170 @@ const AnalyticsInteractive = () => {
         onMobileClose={() => setIsSidebarMobileOpen(false)}
       />
 
-      <div
-        className={`transition-smooth ${
-          sidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'
-        }`}
-      >
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-card border-b border-border">
-          <div className="px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <button
-                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
-                  onClick={() => setIsSidebarMobileOpen(true)}
-                >
-                  <Icon name="Bars3Icon" size={24} variant="outline" />
-                </button>
-                <div>
-                  <h1 className="text-2xl font-heading font-bold text-foreground mb-1">
-                    Analytics & Reports
-                  </h1>
-                <p className="font-caption text-sm text-muted-foreground">
-                  Comprehensive insights and data-driven decision making
-                </p>
-              </div>
-              </div>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`}>
+        {/* Top Header */}
+        <header className="bg-white border-b border-border px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+           <div className="flex items-center gap-4">
+              <button
+                className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
+                onClick={() => setIsSidebarMobileOpen(true)}
+              >
+                <Icon name="Bars3Icon" size={24} variant="outline" />
+              </button>
               <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <UserRoleIndicator />
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                   <Icon name="RocketLaunchIcon" size={20} variant="outline" className="text-white" />
+                </div>
+                <div>
+                   <h1 className="text-xl font-heading font-bold text-foreground leading-tight">Analytics</h1>
+                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Advanced data insights and reporting</p>
+                </div>
               </div>
-            </div>
-          </div>
+           </div>
+           <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                 <div className="text-right">
+                    <p className="text-xs font-bold leading-none">{user?.userName || 'Bibhuti'}</p>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase">Admin</p>
+                 </div>
+                 <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-red-500/20 shadow-sm">
+                    {user?.userName?.[0]?.toUpperCase() || 'B'}
+                 </div>
+              </div>
+           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="p-8">
-          {/* Filter Bar */}
-          <div className="mb-8">
-            <FilterBar
-              onDateRangeChange={handleDateRangeChange}
-              onTeamChange={handleTeamChange}
-              onProjectChange={handleProjectChange}
-            />
+        {/* Filter Toolbar */}
+        <FilterBar onApplyFilters={fetchEnterpriseData} />
+
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="bg-blue-50 border-b border-blue-200 px-8 py-2 flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-medium text-blue-700">Loading analytics data...</span>
+          </div>
+        )}
+
+        {/* Main Content Dashboard */}
+        <main className={`p-8 space-y-6 ${loading ? 'opacity-60' : ''}`}>
+          
+          {/* Row 1: Top Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+             <EnterpriseMetricCard 
+               title="Projected vs. Actual Completion"
+               primaryValue={metrics.projected.val}
+               primaryLabel={metrics.projected.label}
+               secondaryValue={metrics.projected.secondVal}
+               secondaryLabel={metrics.projected.secondLabel}
+               chartData={metrics.projected.data}
+               chartType="line"
+             />
+             <SubtaskBreakdown 
+               total={subtaskData.total}
+               inProgress={subtaskData.inProgress}
+               closed={subtaskData.closed}
+             />
+             <EnterpriseMetricCard 
+               title="Average Task Cycle Time"
+               primaryValue={metrics.cycleTime.val}
+               primaryLabel={metrics.cycleTime.label}
+               chartData={metrics.cycleTime.data}
+               chartType="bar"
+             />
+             <EnterpriseMetricCard 
+               title="Team Velocity Trend"
+               primaryValue={metrics.velocity.val}
+               primaryLabel={metrics.velocity.label}
+               chartData={metrics.velocity.data}
+               chartType="line"
+             />
+             <RiskGauge 
+               value={metrics.risk.val}
+               label={metrics.risk.label}
+             />
           </div>
 
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {metricsData.map((metric, index) => (
-              <MetricCard key={index} {...metric} />
-            ))}
+          {/* Row 2: Charts Section */}
+          <div className="grid grid-cols-12 gap-6">
+             <div className="col-span-12 lg:col-span-7">
+                <BottleneckChart data={bottleneckData} />
+             </div>
+             <div className="col-span-12 lg:col-span-5">
+                <EnterpriseHeatmap data={heatmapData} />
+             </div>
           </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <ChartContainer
-              title="Team Productivity Overview"
-              subtitle="Task completion status by department"
-              actions={
-                <ExportOptions onExport={handleExport} />
-              }
-            >
-              <ProductivityChart data={productivityData} />
-            </ChartContainer>
 
-            <ChartContainer
-              title="Project Velocity Trends"
-              subtitle="7-day performance and efficiency metrics"
-            >
-              <TrendLineChart data={trendData} />
-            </ChartContainer>
-          </div>
-
-          {/* Report Templates & Recent Reports */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Report Templates */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-heading font-bold text-foreground mb-1">
-                    Report Templates
-                  </h2>
-                  <p className="font-caption text-sm text-muted-foreground">
-                    Pre-built reports for quick generation
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {reportTemplates.map((template) => (
-                  <ReportTemplate
-                    key={template.id}
-                    {...template}
-                    onGenerate={() => handleGenerateReport(template.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Reports */}
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-heading font-bold text-foreground mb-1">
-                    Recent Reports
-                  </h2>
-                  <p className="font-caption text-sm text-muted-foreground">
-                    Generated and scheduled reports
-                  </p>
-                </div>
-              </div>
-              <div className="bg-card rounded-lg border border-border p-4 space-y-2">
-                {recentReports.map((report) => (
-                  <RecentReportItem
-                    key={report.id}
-                    {...report}
-                    onDownload={() => handleDownloadReport(report.id)}
-                    onShare={() => handleShareReport(report.id)}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* Row 3: Detailed Table */}
+          <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
+             <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-white/50">
+                <h3 className="font-heading font-bold text-base">Project Performance Overview</h3>
+                <button className="text-[10px] text-blue-600 font-bold uppercase hover:underline">Download CSV</button>
+             </div>
+             <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                   <thead>
+                      <tr className="bg-muted/10">
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Priority <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Project Name <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Total Tasks <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Completion % <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Variance <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                         <th className="px-6 py-3 text-[10px] font-bold text-muted-foreground uppercase">
+                            Status <Icon name="ChevronUpDownIcon" size={12} variant="outline" />
+                         </th>
+                      </tr>
+                   </thead>
+                   <tbody className="divide-y divide-border">
+                      {detailedData.length === 0 && (
+                        <tr><td colSpan={6} className="px-6 py-8 text-center text-xs text-muted-foreground">No project data available for the selected filters</td></tr>
+                      )}
+                      {detailedData.map((row, i) => (
+                         <tr key={i} className="hover:bg-muted/5 transition-smooth">
+                            <td className="px-6 py-4">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                row.type === 'HIGH' ? 'bg-red-100 text-red-700' :
+                                row.type === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-green-100 text-green-700'
+                              }`}>{row.type}</span>
+                            </td>
+                            <td className="px-6 py-4 text-xs font-medium text-blue-600">{row.dimension}</td>
+                            <td className="px-6 py-4 text-xs font-bold text-foreground">{row.value}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-muted/30 rounded-full h-1.5 max-w-[80px]">
+                                  <div className={`h-1.5 rounded-full ${row.completion >= 80 ? 'bg-green-500' : row.completion >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                       style={{ width: `${Math.min(row.completion, 100)}%` }} />
+                                </div>
+                                <span className="text-xs font-bold text-foreground">{row.completion}%</span>
+                              </div>
+                            </td>
+                            <td className={`px-6 py-4 text-xs font-bold ${row.variance < 0 ? 'text-red-500' : row.variance > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+                               {row.variance > 0 ? '+' : ''}{row.variance.toFixed(1)}%
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                row.outcome === 'Achieved' ? 'bg-green-100 text-green-700' :
+                                row.outcome === 'On Track' ? 'bg-blue-100 text-blue-700' :
+                                row.outcome === 'At Risk' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>{row.outcome}</span>
+                            </td>
+                         </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
           </div>
         </main>
       </div>

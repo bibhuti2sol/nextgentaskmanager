@@ -1,251 +1,228 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 interface FilterBarProps {
-  onDateRangeChange: (range: string) => void;
-  onTeamChange: (team: string) => void;
-  onProjectChange: (project: string) => void;
+  onApplyFilters: (filters: any) => void;
 }
 
-const FilterBar = ({ onDateRangeChange, onTeamChange, onProjectChange }: FilterBarProps) => {
-  const [dateRange, setDateRange] = useState('last-30-days');
-  const [team, setTeam] = useState('all-teams');
-  const [project, setProject] = useState('all-projects');
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [advancedFilters, setAdvancedFilters] = useState({
-    status: 'all',
-    priority: 'all',
-    customStartDate: '',
-    customEndDate: '',
-    minTaskCount: '',
-    maxTaskCount: '',
+const API_BASE = 'http://43.205.137.114:8080/api/v1';
+const API_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+
+const FilterBar = ({ onApplyFilters }: FilterBarProps) => {
+  const [filters, setFilters] = useState({
+    project: '',
+    team: '',
+    department: '',
+    period: 'last-30-days',
+    priority: '',
+    status: '',
+    role: '',
   });
 
-  const handleDateRangeChange = (value: string) => {
-    setDateRange(value);
-    onDateRangeChange(value);
+  const [options, setOptions] = useState({
+    projects: [] as any[],
+    teams: [] as any[],
+    departments: [] as any[],
+    priorities: ['HIGH', 'MEDIUM', 'LOW'],
+    statuses: ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'],
+    roles: [] as string[],
+  });
+
+  // Status display labels
+  const statusLabels: Record<string, string> = {
+    'TODO': 'To Do',
+    'IN_PROGRESS': 'In Progress',
+    'REVIEW': 'Review',
+    'DONE': 'Done',
   };
 
-  const handleTeamChange = (value: string) => {
-    setTeam(value);
-    onTeamChange(value);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [projectsRes, deptsRes, usersRes] = await Promise.all([
+          fetch(`${API_BASE}/projects?page=0&size=500&sort=id,desc`, { headers: { Authorization: API_TOKEN } }),
+          fetch(`${API_BASE}/departments?size=100`, { headers: { Authorization: API_TOKEN } }),
+          fetch(`${API_BASE}/users?size=1000`, { headers: { Authorization: API_TOKEN } }),
+        ]);
+
+        const updates: any = {};
+
+        if (projectsRes.ok) {
+          const projects = await projectsRes.json();
+          updates.projects = projects.content || [];
+        }
+        if (deptsRes.ok) {
+          const depts = await deptsRes.json();
+          updates.departments = depts.content || [];
+        }
+        if (usersRes.ok) {
+          const users = await usersRes.json();
+          const uniqueRoles = Array.from(new Set(
+            (users.content || []).flatMap((u: any) => u.roles || [])
+          )).map((r: any) => r.replace('ROLE_', ''));
+          updates.roles = uniqueRoles;
+        }
+
+        setOptions(prev => ({ ...prev, ...updates }));
+      } catch (err) {
+        console.error('Failed to pre-fetch filters:', err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      if (!filters.department) {
+        setOptions(prev => ({ ...prev, teams: [] }));
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/teams/department/${filters.department}`, {
+          headers: { Authorization: API_TOKEN }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setOptions(prev => ({ ...prev, teams: data || [] }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch teams:', err);
+      }
+    };
+    fetchTeams();
+  }, [filters.department]);
+
+  const handleChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleProjectChange = (value: string) => {
-    setProject(value);
-    onProjectChange(value);
+  const handleApply = () => {
+    onApplyFilters(filters);
   };
 
-  const handleApplyAdvancedFilters = () => {
-    console.log('Applying advanced filters:', advancedFilters);
-    // In a real app, this would trigger data filtering
-    setShowMoreFilters(false);
-  };
-
-  const handleResetAdvancedFilters = () => {
-    setAdvancedFilters({
-      status: 'all',
-      priority: 'all',
-      customStartDate: '',
-      customEndDate: '',
-      minTaskCount: '',
-      maxTaskCount: '',
-    });
+  const handleReset = () => {
+    const resetFilters = { project: '', team: '', department: '', period: 'last-30-days', priority: '', status: '', role: '' };
+    setFilters(resetFilters);
+    onApplyFilters(resetFilters);
   };
 
   return (
-    <>
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Icon name="CalendarIcon" size={20} variant="outline" className="text-muted-foreground" />
-          <select
-            value={dateRange}
-            onChange={(e) => handleDateRangeChange(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="today">Today</option>
-            <option value="last-7-days">Last 7 Days</option>
-            <option value="last-30-days">Last 30 Days</option>
-            <option value="last-90-days">Last 90 Days</option>
-            <option value="this-month">This Month</option>
-            <option value="last-month">Last Month</option>
-            <option value="this-quarter">This Quarter</option>
-            <option value="this-year">This Year</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Icon name="UsersIcon" size={20} variant="outline" className="text-muted-foreground" />
-          <select
-            value={team}
-            onChange={(e) => handleTeamChange(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all-teams">All Teams</option>
-            <option value="engineering">Engineering</option>
-            <option value="design">Design</option>
-            <option value="marketing">Marketing</option>
-            <option value="sales">Sales</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Icon name="FolderIcon" size={20} variant="outline" className="text-muted-foreground" />
-          <select
-            value={project}
-            onChange={(e) => handleProjectChange(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all-projects">All Projects</option>
-            <option value="project-alpha">Project Alpha</option>
-            <option value="project-beta">Project Beta</option>
-            <option value="project-gamma">Project Gamma</option>
-          </select>
-        </div>
-
-        <button
-          onClick={() => setShowMoreFilters(true)}
-          className="ml-auto px-4 py-2 bg-muted text-foreground rounded-md font-caption text-sm font-medium hover:bg-muted/80 transition-smooth flex items-center gap-2"
+    <div className="bg-card border-b border-border px-8 py-3 flex flex-wrap items-center gap-x-4 gap-y-3">
+      {/* Project */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Project</label>
+        <select
+          value={filters.project}
+          onChange={(e) => handleChange('project', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary min-w-[140px]"
         >
-          <Icon name="FunnelIcon" size={18} variant="outline" />
-          More Filters
-        </button>
+          <option value="">All Projects</option>
+          {options.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
       </div>
 
-      {/* More Filters Modal */}
-      {showMoreFilters && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-            onClick={() => setShowMoreFilters(false)}
-          >
-            <div
-              className="bg-card rounded-lg shadow-elevation-3 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-                <h3 className="font-heading font-semibold text-lg text-foreground">Advanced Filters</h3>
-                <button
-                  onClick={() => setShowMoreFilters(false)}
-                  className="p-2 hover:bg-muted rounded-md transition-smooth"
-                >
-                  <Icon name="XMarkIcon" size={20} variant="outline" className="text-muted-foreground" />
-                </button>
-              </div>
+      {/* Department */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Department</label>
+        <select
+          value={filters.department}
+          onChange={(e) => handleChange('department', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary min-w-[140px]"
+        >
+          <option value="">All Departments</option>
+          {options.departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+      </div>
 
-              <div className="p-6 space-y-6">
-                {/* Status Filter */}
-                <div>
-                  <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                    Task Status
-                  </label>
-                  <select
-                    value={advancedFilters.status}
-                    onChange={(e) => setAdvancedFilters({ ...advancedFilters, status: e.target.value })}
-                    className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="completed">Completed</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="pending">Pending</option>
-                    <option value="overdue">Overdue</option>
-                  </select>
-                </div>
+      {/* Team (depends on Department) */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Team</label>
+        <select
+          value={filters.team}
+          onChange={(e) => handleChange('team', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary min-w-[140px]"
+          disabled={!filters.department}
+        >
+          <option value="">{filters.department ? 'All Teams' : 'Select Dept first'}</option>
+          {options.teams.map(t => <option key={t.id} value={t.id}>{t.teamName}</option>)}
+        </select>
+      </div>
 
-                {/* Priority Filter */}
-                <div>
-                  <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                    Priority Level
-                  </label>
-                  <select
-                    value={advancedFilters.priority}
-                    onChange={(e) => setAdvancedFilters({ ...advancedFilters, priority: e.target.value })}
-                    className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Priorities</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
+      {/* Time Period */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Time Period</label>
+        <div className="flex items-center bg-background border border-border rounded-md px-2 py-1.5 min-w-[140px]">
+           <select
+             value={filters.period}
+             onChange={(e) => handleChange('period', e.target.value)}
+             className="bg-transparent text-xs font-medium outline-none flex-1"
+           >
+             <option value="last-7-days">Last 7 Days</option>
+             <option value="last-30-days">Last 30 Days</option>
+             <option value="last-90-days">Last 90 Days</option>
+           </select>
+           <Icon name="CalendarIcon" size={14} variant="outline" className="text-muted-foreground ml-2" />
+        </div>
+      </div>
 
-                {/* Custom Date Range */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={advancedFilters.customStartDate}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, customStartDate: e.target.value })}
-                      className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={advancedFilters.customEndDate}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, customEndDate: e.target.value })}
-                      className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                </div>
+      {/* Task Priority */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Priority</label>
+        <select
+          value={filters.priority}
+          onChange={(e) => handleChange('priority', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary"
+        >
+          <option value="">All Priorities</option>
+          {options.priorities.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+      </div>
 
-                {/* Task Count Range */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                      Min Task Count
-                    </label>
-                    <input
-                      type="number"
-                      value={advancedFilters.minTaskCount}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, minTaskCount: e.target.value })}
-                      placeholder="0"
-                      className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-caption text-sm font-medium text-foreground mb-2 block">
-                      Max Task Count
-                    </label>
-                    <input
-                      type="number"
-                      value={advancedFilters.maxTaskCount}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, maxTaskCount: e.target.value })}
-                      placeholder="100"
-                      className="w-full px-4 py-2 bg-background border border-border rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-              </div>
+      {/* Task Status */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Status</label>
+        <select
+          value={filters.status}
+          onChange={(e) => handleChange('status', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary"
+        >
+          <option value="">All Statuses</option>
+          {options.statuses.map(s => <option key={s} value={s}>{statusLabels[s] || s}</option>)}
+        </select>
+      </div>
 
-              <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex items-center justify-end gap-3">
-                <button
-                  onClick={handleResetAdvancedFilters}
-                  className="px-4 py-2 bg-muted text-foreground rounded-md font-caption text-sm font-medium hover:bg-muted/80 transition-smooth"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={handleApplyAdvancedFilters}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-caption text-sm font-medium hover:bg-primary/90 transition-smooth"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>
+      {/* User Role */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase px-1">Role</label>
+        <select
+          value={filters.role}
+          onChange={(e) => handleChange('role', e.target.value)}
+          className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-medium focus:ring-1 focus:ring-primary"
+        >
+          <option value="">All Roles</option>
+          {options.roles.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {/* Actions */}
+      <div className="ml-auto mt-auto mb-1 flex items-center gap-2">
+        <button
+          onClick={handleReset}
+          className="px-4 py-1.5 bg-muted text-muted-foreground rounded-md text-xs font-bold hover:bg-muted/80 transition-smooth border border-border"
+        >
+          Reset
+        </button>
+        <button
+          onClick={handleApply}
+          className="px-5 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-bold hover:bg-primary/90 transition-smooth shadow-sm flex items-center gap-2"
+        >
+          <Icon name="FunnelIcon" size={14} variant="outline" />
+          Apply Filters
+        </button>
+      </div>
+    </div>
   );
 };
 
