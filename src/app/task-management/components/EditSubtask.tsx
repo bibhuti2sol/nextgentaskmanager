@@ -64,20 +64,25 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
         endDate: endDate || null
       };
 
-      const response = await axios.put(
-        `http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks/${subtask.id}`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-          }
+      const url = subtask.id
+        ? `http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks/${subtask.id}`
+        : `http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks`;
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
         }
-      );
+      };
+
+      const response = subtask.id 
+        ? await axios.put(url, payload, config)
+        : await axios.post(url, payload, config);
 
       if (response.status === 200 || response.status === 201) {
+        const savedSubtask = response.data;
         onSave({
-          id: subtask.id,
+          id: savedSubtask.id || subtask.id,
           title,
           description,
           status,
@@ -89,8 +94,8 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
         onClose();
       }
     } catch (error) {
-      console.error('Error updating subtask:', error);
-      alert('Failed to update subtask. Please try again.');
+      console.error('Error saving subtask:', error);
+      alert('Failed to save subtask. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -100,7 +105,9 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fade-in pointer-events-auto">
         <button className="absolute top-3 right-3 text-xl text-muted-foreground hover:text-primary" onClick={onClose}>&times;</button>
-        <h3 className="text-2xl font-bold text-primary mb-4 text-center">Edit Subtask</h3>
+        <h3 className="text-2xl font-bold text-primary mb-4 text-center">
+          {subtask.id ? 'Edit Subtask' : 'Add Subtask'}
+        </h3>
         <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-muted-foreground ml-1">Subtask Name</label>
@@ -131,7 +138,6 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
             >
               <option value="To Do">To Do</option>
               <option value="In Progress">In Progress</option>
-              <option value="Review">Review</option>
               <option value="Completed">Completed</option>
             </select>
           </div>
@@ -172,7 +178,7 @@ const EditSubtask = ({ taskId, subtask, onSave, onClose }: EditSubtaskProps) => 
           <button
             type="button"
             disabled={submitting}
-            className="mt-2 bg-gradient-to-r from-primary to-accent text-white font-bold px-6 py-2 rounded-lg hover:scale-105 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="mt-2 bg-success text-white font-bold px-6 py-2 rounded-lg hover:opacity-90 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             onClick={handleSave}
           >
             {submitting ? (

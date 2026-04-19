@@ -59,7 +59,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onSave, onClose }) 
               <option value="To Do">To Do</option>
               <option value="In Progress">In Progress</option>
               <option value="Review">Review</option>
-              <option value="Completed">Completed</option>
             </select>
           </div>
           <div>

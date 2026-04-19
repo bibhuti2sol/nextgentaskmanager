@@ -493,14 +493,6 @@ const ProjectOverviewInteractive = () => {
 
         {/* Main Content */}
         <main className="p-6">
-          {/* Project Health Dashboard */}
-          <div className="mb-6">
-            <ProjectHealthDashboard
-              projectName="NextGenTaskManager"
-              overallHealth={78}
-              metrics={mockHealthMetrics} />
-          </div>
-
           {/* Tabbed Content */}
           <div className="bg-card rounded-lg border border-border overflow-hidden">
             {/* Tab Navigation */}

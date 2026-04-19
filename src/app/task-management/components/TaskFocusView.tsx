@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import EditSubtask from './EditSubtask';
 
 interface Subtask {
   id: string;
   title: string;
   status: 'To Do' | 'In Progress' | 'Review' | 'Completed';
+  assignee?: string;
+  assigneeId?: number;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface Task {
@@ -36,9 +42,10 @@ interface TaskFocusViewProps {
   onTaskClick: (taskId: string) => void;
   onAddSubtask: (taskId: string, title: string) => void;
   onSubtaskToggle: (taskId: string, subtaskId: string, completed: boolean) => void;
+  onSubtaskDelete?: (taskId: string, subtaskId: string) => void;
 }
 
-const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle }: TaskFocusViewProps) => {
+const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle, onSubtaskDelete }: TaskFocusViewProps) => {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
@@ -68,6 +75,21 @@ const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle }: Ta
       setNewSubtaskTitle('');
       setIsAddingSubtask(false);
     }
+  };
+
+  const handleDeleteSubtask = (subtaskId: string) => {
+    if (onSubtaskDelete) {
+      onSubtaskDelete(currentTask.id, subtaskId);
+    }
+  };
+
+  const handleSubtaskCreated = (newSubtask: Subtask) => {
+    // Optimistically add just the visual since EditSubtask already made the API call
+    if (currentTask.subtaskList) {
+      currentTask.subtaskList.push(newSubtask);
+      currentTask.subtasks += 1;
+    }
+    setIsAddingSubtask(false);
   };
 
   const getPriorityColor = (priority: Task['priority']) => {
@@ -220,15 +242,37 @@ const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle }: Ta
               <h3 className="font-caption font-bold text-xs text-muted-foreground uppercase tracking-widest">
                 Subtasks ({currentTask.completedSubtasks}/{currentTask.subtasks})
               </h3>
-              <button 
-                onClick={() => setIsAddingSubtask(true)}
-                className="flex items-center gap-2 text-xs font-bold text-primary hover:text-primary/80 transition-smooth group"
-              >
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-smooth">
-                   <Icon name="PlusIcon" size={14} variant="outline" />
-                </div>
-                Add Subtask
-              </button>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => {
+                    if (currentTask.subtasks === 0) {
+                      alert('No subtasks to delete.');
+                      return;
+                    }
+                    if (confirm(`Are you sure you want to delete all subtasks? This action cannot be undone.`)) {
+                      currentTask.subtaskList?.forEach(st => {
+                        handleDeleteSubtask(st.id);
+                      });
+                    }
+                  }}
+                  disabled={currentTask.subtasks === 0}
+                  className="flex items-center gap-2 text-xs font-bold text-error hover:text-error/80 transition-smooth group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="w-6 h-6 rounded-full bg-error/10 flex items-center justify-center group-hover:bg-error group-hover:text-white transition-smooth">
+                     <Icon name="TrashIcon" size={14} variant="outline" />
+                  </div>
+                  Delete Subtask
+                </button>
+                <button 
+                  onClick={() => setIsAddingSubtask(true)}
+                  className="flex items-center gap-2 text-xs font-bold text-primary hover:text-primary/80 transition-smooth group"
+                >
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-smooth">
+                     <Icon name="PlusIcon" size={14} variant="outline" />
+                  </div>
+                  Add Subtask
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -250,6 +294,13 @@ const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle }: Ta
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${getStatusColor(subtask.status)}`}>
                        {subtask.status}
                     </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteSubtask(subtask.id); }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-muted-foreground hover:text-error hover:bg-error/10 transition-all"
+                      title="Delete subtask"
+                    >
+                      <Icon name="TrashIcon" size={14} variant="outline" />
+                    </button>
                   </div>
                 ))
               ) : (
@@ -259,35 +310,12 @@ const TaskFocusView = ({ tasks, onTaskClick, onAddSubtask, onSubtaskToggle }: Ta
               )}
 
               {isAddingSubtask && (
-                <div className="flex flex-col gap-3 p-4 bg-card border border-primary/30 rounded-lg animate-in fade-in slide-in-from-top-2 duration-200">
-                  <input
-                    autoFocus
-                    type="text"
-                    value={newSubtaskTitle}
-                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                    placeholder="Subtask name..."
-                    className="w-full h-9 px-3 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    onKeyDown={(e) => {
-                       if (e.key === 'Enter') handleAddSubtaskSubmit();
-                       if (e.key === 'Escape') setIsAddingSubtask(false);
-                    }}
-                  />
-                  <div className="flex items-center gap-2 justify-end">
-                    <button 
-                      onClick={() => setIsAddingSubtask(false)}
-                      className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted rounded-md transition-smooth"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      onClick={handleAddSubtaskSubmit}
-                      disabled={!newSubtaskTitle.trim()}
-                      className="px-4 py-1.5 text-xs font-bold bg-primary text-white rounded-md hover:opacity-90 transition-smooth disabled:opacity-50"
-                    >
-                      Save Subtask
-                    </button>
-                  </div>
-                </div>
+                <EditSubtask
+                  taskId={currentTask.id}
+                  subtask={{ id: '', title: '', status: 'To Do', description: '', assignee: '', assigneeId: undefined, startDate: '', endDate: '' }}
+                  onSave={handleSubtaskCreated}
+                  onClose={() => setIsAddingSubtask(false)}
+                />
               )}
             </div>
           </div>

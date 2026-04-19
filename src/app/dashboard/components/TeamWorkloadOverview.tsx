@@ -1,4 +1,6 @@
-import AppImage from '@/components/ui/AppImage';
+'use client';
+
+import { useState } from 'react';
 
 interface TeamMember {
   id: number;
@@ -14,16 +16,30 @@ interface TeamWorkloadOverviewProps {
   teamMembers: TeamMember[];
 }
 
+const PAGE_SIZE = 5;
+
 const TeamWorkloadOverview = ({ teamMembers }: TeamWorkloadOverviewProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(teamMembers.length / PAGE_SIZE));
+
+  const paginatedMembers = teamMembers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   const getWorkloadColor = (percentage: number) => {
     if (percentage >= 90) return 'bg-error';
     if (percentage >= 70) return 'bg-warning';
     return 'bg-success';
   };
 
+  const handlePrev = () => setCurrentPage((p) => Math.max(1, p - 1));
+  const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
+
   return (
     <div className="space-y-4">
-      {teamMembers.map((member) => (
+      {paginatedMembers.map((member) => (
         <div
           key={member.id}
           className="bg-card border border-border rounded-lg p-4 hover:shadow-elevation-2 transition-smooth"
@@ -55,6 +71,44 @@ const TeamWorkloadOverview = ({ teamMembers }: TeamWorkloadOverviewProps) => {
           </div>
         </div>
       ))}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2 border-t border-border mt-2">
+          <span className="font-caption text-xs text-muted-foreground">
+            Page {currentPage} of {totalPages} &middot; {teamMembers.length} members
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrev}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-md text-xs font-caption font-medium border border-border bg-background text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-smooth"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-7 h-7 rounded-md text-xs font-caption font-medium border transition-smooth ${
+                  page === currentPage
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-foreground border-border hover:bg-muted'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-md text-xs font-caption font-medium border border-border bg-background text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-smooth"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

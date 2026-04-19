@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 interface FilterToolbarProps {
@@ -16,8 +16,8 @@ export interface FilterState {
 }
 
 const FilterToolbar = ({ onFilterChange }: FilterToolbarProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [filters, setFilters] = React.useState<FilterState>({
     priority: [],
     assignee: [],
     project: [],
@@ -26,9 +26,47 @@ const FilterToolbar = ({ onFilterChange }: FilterToolbarProps) => {
   });
 
   const priorities = ['High', 'Medium', 'Low'];
-  const assignees = ['Sarah Chen', 'Michael Rodriguez', 'Emily Watson', 'David Kim'];
-  const projects = ['Website Redesign', 'Mobile App', 'API Integration', 'Marketing Campaign'];
+  const [assignees, setAssignees] = React.useState<string[]>([]);
+  const [dynamicProjects, setDynamicProjects] = React.useState<string[]>([]);
   const statuses = ['To Do', 'In Progress', 'Review', 'Completed'];
+
+  React.useEffect(() => {
+    const fetchAssignees = async () => {
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+        const response = await fetch('http://43.205.137.114:8080/api/v1/users/assignees', {
+          headers: { Authorization: token }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const uniqueNames = Array.from(new Set(data.map((a: any) => a.fullName).filter((name: any) => !!name))) as string[];
+          setAssignees(uniqueNames);
+        }
+      } catch (error) {
+        console.error('Failed to fetch assignees for filter:', error);
+      }
+    };
+
+    const fetchProjects = async () => {
+      try {
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+        const response = await fetch('http://43.205.137.114:8080/api/v1/projects?search=&status=&page=0&size=500&sort=id,desc', {
+          headers: { Authorization: token }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const projectList = data.content || data.data || [];
+          const uniqueProjects = Array.from(new Set(projectList.map((p: any) => p.title || p.name).filter((name: any) => !!name))) as string[];
+          setDynamicProjects(uniqueProjects);
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects for filter:', error);
+      }
+    };
+
+    fetchAssignees();
+    fetchProjects();
+  }, []);
 
   const handleFilterToggle = (category: keyof Omit<FilterState, 'dateRange'>, value: string) => {
     const newFilters = { ...filters };
@@ -95,80 +133,93 @@ const FilterToolbar = ({ onFilterChange }: FilterToolbarProps) => {
 
       {isExpanded && (
         <div className="p-4 space-y-4">
-          <div>
-            <h4 className="font-caption font-medium text-sm text-foreground mb-2">Priority</h4>
-            <div className="flex flex-wrap gap-2">
-              {priorities.map((priority) => (
-                <button
-                  key={priority}
-                  onClick={() => handleFilterToggle('priority', priority)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-caption font-medium transition-smooth ${
-                    filters.priority.includes(priority)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                  }`}
-                >
-                  {priority}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block font-caption text-sm text-muted-foreground mb-2">Priority</label>
+              <select
+                value={filters.priority[0] || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const newFilters = { ...filters, priority: val ? [val] : [] };
+                  setFilters(newFilters);
+                  onFilterChange(newFilters);
+                }}
+                className="w-full px-4 py-2 bg-background border border-input rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
+              >
+                <option value="">All Priorities</option>
+                {priorities.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+  
+            <div>
+              <label className="block font-caption text-sm text-muted-foreground mb-2">Assignee</label>
+              <select
+                value={filters.assignee[0] || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const newFilters = { ...filters, assignee: val ? [val] : [] };
+                  setFilters(newFilters);
+                  onFilterChange(newFilters);
+                }}
+                className="w-full px-4 py-2 bg-background border border-input rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
+              >
+                <option value="">All Assignees</option>
+                {assignees.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            </div>
+  
+            <div>
+              <label className="block font-caption text-sm text-muted-foreground mb-2">Project</label>
+              <select
+                value={filters.project[0] || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const newFilters = { ...filters, project: val ? [val] : [] };
+                  setFilters(newFilters);
+                  onFilterChange(newFilters);
+                }}
+                className="w-full px-4 py-2 bg-background border border-input rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
+              >
+                <option value="">All Projects</option>
+                {dynamicProjects.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+  
+            <div>
+              <label className="block font-caption text-sm text-muted-foreground mb-2">Status</label>
+              <select
+                value={filters.status[0] || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const newFilters = { ...filters, status: val ? [val] : [] };
+                  setFilters(newFilters);
+                  onFilterChange(newFilters);
+                }}
+                className="w-full px-4 py-2 bg-background border border-input rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
+              >
+                <option value="">All Statuses</option>
+                {statuses.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
           </div>
-
-          <div>
-            <h4 className="font-caption font-medium text-sm text-foreground mb-2">Assignee</h4>
-            <div className="flex flex-wrap gap-2">
-              {assignees.map((assignee) => (
-                <button
-                  key={assignee}
-                  onClick={() => handleFilterToggle('assignee', assignee)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-caption font-medium transition-smooth ${
-                    filters.assignee.includes(assignee)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                  }`}
-                >
-                  {assignee}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-caption font-medium text-sm text-foreground mb-2">Project</h4>
-            <div className="flex flex-wrap gap-2">
-              {projects.map((project) => (
-                <button
-                  key={project}
-                  onClick={() => handleFilterToggle('project', project)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-caption font-medium transition-smooth ${
-                    filters.project.includes(project)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                  }`}
-                >
-                  {project}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-caption font-medium text-sm text-foreground mb-2">Status</h4>
-            <div className="flex flex-wrap gap-2">
-              {statuses.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => handleFilterToggle('status', status)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-caption font-medium transition-smooth ${
-                    filters.status.includes(status)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
+  
+          {/* Clear Filters Button */}
+          <div className="pt-2 border-t border-border flex justify-end">
+            <button
+              onClick={clearAllFilters}
+              className="flex items-center gap-2 px-4 py-2 rounded-md text-xs font-caption font-semibold border border-error/30 text-error bg-error/5 hover:bg-error/15 transition-smooth"
+            >
+              <Icon name="XMarkIcon" size={14} variant="outline" />
+              Clear Filters
+            </button>
           </div>
         </div>
       )}

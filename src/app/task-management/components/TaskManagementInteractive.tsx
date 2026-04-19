@@ -351,6 +351,41 @@ const TaskManagementInteractive = () => {
     }
   };
 
+  const handleSubtaskDelete = async (taskId: string, subtaskId: string) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate || !taskToUpdate.subtaskList) return;
+
+    if (taskToUpdate.status === 'Completed') {
+      console.warn(`Prevented deleting subtask in completed task ${taskId}`);
+      return;
+    }
+
+    const previousTasks = [...tasks];
+    const updatedSubtaskList = taskToUpdate.subtaskList.filter(st => st.id !== subtaskId);
+
+    // Optimistic update
+    setTasks(tasks.map(t => t.id === taskId ? { 
+      ...t, 
+      subtaskList: updatedSubtaskList,
+      subtasks: updatedSubtaskList.length,
+      completedSubtasks: updatedSubtaskList.filter(st => st.status === 'Completed').length
+    } : t));
+
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      await axios.delete(`http://43.205.137.114:8080/api/v1/tasks/${taskId}/subtasks/${subtaskId}`, {
+        headers: { Authorization: token }
+      });
+      console.log(`Successfully deleted subtask ${subtaskId}`);
+    } catch (err) {
+      console.error('Failed to delete subtask:', err);
+      // Revert on error
+      setTasks(previousTasks);
+      alert('Failed to delete subtask on the server.');
+    }
+  };
+
   const handleTaskCreate = (newTask: any) => {
     console.log('New task created:', newTask);
     fetchTasks();
@@ -531,6 +566,7 @@ const TaskManagementInteractive = () => {
               onTaskClick={handleTaskClick} 
               onAddSubtask={handleTaskAddSubtask}
               onSubtaskToggle={handleSubtaskToggle}
+              onSubtaskDelete={handleSubtaskDelete}
             />
           }
         </main>

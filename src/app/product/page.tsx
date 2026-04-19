@@ -100,7 +100,7 @@ const heroPieOptions = {
     },
   },
   layout: {
-    padding: 0,
+    padding: { top: 40 },
   },
   animation: {
     animateRotate: true,
@@ -209,13 +209,10 @@ const features = [
 
 const industries = [
   "Manufacturing Industry",
-  "Real Estate and Construction Sector",
-  "CA/CS/CFA",
   "Event Management",
   "IT Industry",
   "Education Sector",
   "Law Firms",
-  "Service Sector & Consulting Firms",
   "BPO & KPO Firms",
   "Healthcare & Hospitals",
 ];
@@ -393,7 +390,6 @@ export default function ProductMainPage() {
           <div className="rounded-full bg-white shadow-2xl border-4 border-accent/30 w-[370px] h-[370px] flex items-center justify-center animate-fade-in relative">
             {/* Decorative elements */}
             <div className="absolute top-8 left-8 w-16 h-2 bg-primary/20 rounded-full" />
-            <div className="absolute bottom-8 right-8 w-10 h-10 border-2 border-primary/10 rounded-full" />
             {/* Realistic pie chart */}
             <div className="flex items-center justify-center w-[350px] h-[350px] rounded-full bg-transparent">
               <Pie
@@ -413,24 +409,31 @@ export default function ProductMainPage() {
       <section ref={featuresRef} id="features" className="w-full max-w-5xl mx-auto py-16 px-4">
         <h2 className="text-4xl font-bold text-primary mb-8 text-center drop-shadow-lg animate-fade-in">Features</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {features.map((feature) => (
-            <button
-              key={feature.name}
-              className="bg-gradient-to-br from-white via-primary/5 to-accent/10 rounded-2xl border border-primary/10 shadow-lg p-8 flex items-center justify-center text-primary font-semibold text-lg hover:scale-105 hover:bg-primary/10 transition-all text-center animate-fade-in"
-              onClick={() => setSelectedFeature(feature)}
-            >
-              {feature.name}
-            </button>
-          ))}
+          {features.map((feature, index) => {
+            const lightColors = ["bg-blue-50", "bg-green-50", "bg-yellow-50", "bg-purple-50", "bg-pink-50", "bg-orange-50", "bg-emerald-50", "bg-indigo-50"];
+            const bgClass = lightColors[index % lightColors.length];
+            return (
+              <button
+                key={feature.name}
+                className={`${bgClass} rounded-2xl border border-primary/5 shadow-md p-8 flex items-center justify-center text-primary font-bold text-lg hover:scale-105 hover:shadow-lg transition-all text-center animate-fade-in`}
+                onClick={() => setSelectedFeature(feature)}
+              >
+                {feature.name}
+              </button>
+            );
+          })}
         </div>
         {selectedFeature && <FeatureModal feature={selectedFeature} onClose={() => setSelectedFeature(null)} />}
       </section>
       {/* Industries Section */}
-      <section ref={industriesRef} id="industries" className="w-full max-w-4xl mx-auto py-16 px-4">
-        <h2 className="text-3xl font-bold text-accent mb-8 text-center drop-shadow-lg animate-fade-in">Industries We Serve</h2>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-lg">
+      <section ref={industriesRef} id="industries" className="w-full max-w-5xl mx-auto py-16 px-4">
+        <h2 className="text-4xl font-bold mb-10 text-center animate-fade-in" style={{ color: '#84cc16' }}>Industries We Serve</h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base md:text-lg">
           {industries.map((industry) => (
-            <li key={industry} className="bg-gradient-to-r from-primary/5 to-accent/10 rounded-xl border border-accent/20 shadow p-6 text-primary font-semibold hover:scale-105 hover:bg-accent/10 transition-all animate-fade-in">
+            <li 
+              key={industry} 
+              className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.04)] px-10 py-7 text-primary font-bold hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-fade-in flex items-center justify-start text-left"
+            >
               {industry}
             </li>
           ))}

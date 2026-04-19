@@ -139,7 +139,11 @@ const UserFormPanel = ({
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          roles: formData.role.map((role) => `ROLE_${role.toUpperCase()}`),
+          roles: formData.role.map((role) => {
+            // "Associate" maps to ROLE_USER as the backend does not have ROLE_ASSOCIATE
+            if (role === 'Associate') return 'ROLE_USER';
+            return `ROLE_${role.toUpperCase()}`;
+          }),
           departmentId: parseInt(formData.department),
           teamId: parseInt(formData.team),
           managerId: formData.managerId,

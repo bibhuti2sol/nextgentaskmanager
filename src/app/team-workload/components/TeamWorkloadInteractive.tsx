@@ -78,6 +78,10 @@ const TeamWorkloadInteractive = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [workloadChartData, setWorkloadChartData] = useState<WorkloadData[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -379,9 +383,113 @@ const TeamWorkloadInteractive = () => {
     console.log('Reassign tasks for member:', id);
   };
 
+  const fetchWorkloadData = async (currentFilters: any) => {
+    setLoading(true);
+    try {
+      const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs';
+      
+      let url = 'http://43.205.137.114:8080/api/v1/teams/workload?';
+      const params = new URLSearchParams();
+      
+      if (currentFilters.department && currentFilters.department !== 'all') {
+        params.append('departmentId', currentFilters.department);
+      }
+      if (currentFilters.team && currentFilters.team !== 'all') {
+        params.append('teamId', currentFilters.team);
+      }
+      if (currentFilters.timePeriod) {
+        params.append('period', currentFilters.timePeriod);
+      }
+
+      const response = await fetch(url + params.toString(), {
+        headers: { Authorization: token }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Map API data to metrics UI
+        const newMetrics: Metric[] = [
+          {
+            label: 'Average Completion Time',
+            value: data.averageCompletionTime ? `${data.averageCompletionTime.toFixed(1)}d` : '0d',
+            change: data.avgCompletionTimeProgress || 0,
+            icon: 'ClockIcon',
+            color: 'bg-primary'
+          },
+          {
+            label: 'Team Velocity',
+            value: data.teamVelocity?.toString() || '0',
+            change: data.velocityProgress || 0,
+            icon: 'BoltIcon',
+            color: 'bg-accent'
+          },
+          {
+            label: 'Completion Rate',
+            value: `${data.completionRate?.toFixed(1) || 0}%`,
+            change: data.completionRateProgress || 0,
+            icon: 'CheckCircleIcon',
+            color: 'bg-success'
+          },
+          {
+            label: 'Overloaded Members',
+            value: data.overloadedMembersCount?.toString() || '0',
+            change: data.overloadedMembersProgress || 0,
+            icon: 'ExclamationTriangleIcon',
+            color: 'bg-warning'
+          }
+        ];
+        setMetrics(newMetrics);
+
+        // Map API data to chart UI
+        if (data.members) {
+          const distributionData = data.members.map((m: any) => ({
+            name: m.userName || 'Unknown',
+            assigned: m.assignedTaskCount || 0,
+            completed: m.completedTaskCount || 0,
+            pending: m.pendingTaskCount || 0
+          }));
+          setWorkloadChartData(distributionData);
+        }
+
+        // Map API data to team members UI
+        if (data.members) {
+          const membersData = data.members.map((m: any) => ({
+            id: m.userId,
+            name: m.userName,
+            role: 'Team Member',
+            avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1a9e8814c-1763296696290.png",
+            avatarAlt: m.userName,
+            currentTasks: m.currentTaskCount || 0,
+            capacity: m.capacityProgressPercentage || 0,
+            completionRate: m.completionRateProgress || 0,
+            avgCompletionTime: m.averageCompletionTimeDays ? `${m.averageCompletionTimeDays.toFixed(1)}d` : '0d',
+            status: (m.capacityProgressPercentage > 90 ? 'overloaded' : m.capacityProgressPercentage > 60 ? 'busy' : 'available')
+          }));
+          setTeamMembers(membersData);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch workload data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isHydrated) {
+      fetchWorkloadData({
+        department: 'all',
+        team: 'all',
+        timePeriod: 'week'
+      });
+    }
+  }, [isHydrated]);
+
   const handleFilterChange = (filters: any) => {
     if (!isHydrated) return;
     console.log('Filters changed:', filters);
+    fetchWorkloadData(filters);
   };
 
   const handleApplySuggestion = (id: number) => {
@@ -438,27 +546,46 @@ const TeamWorkloadInteractive = () => {
           </div>
 
           <div className="p-8 space-y-6">
-            <TeamMetrics metrics={mockMetrics} />
             <WorkloadFilters onFilterChange={handleFilterChange} />
-            <WorkloadChart data={mockWorkloadData} />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
+            
+            {loading ? (
+              <div className="flex flex-col gap-6 animate-pulse">
+                <div className="h-32 bg-muted rounded-lg" />
+                <div className="h-80 bg-muted rounded-lg" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {mockTeamMembers.map((member) =>
-                    <TeamMemberCard
-                      key={member.id}
-                      member={member}
-                      onViewDetails={handleViewDetails}
-                      onReassignTasks={handleReassignTasks} />
-                  )}
+                  <div className="h-48 bg-muted rounded-lg" />
+                  <div className="h-48 bg-muted rounded-lg" />
                 </div>
               </div>
+            ) : (
+              <>
+                <TeamMetrics metrics={metrics} />
+                <WorkloadChart data={workloadChartData} />
 
-              <div className="space-y-6">
-                <UpcomingDeadlines deadlines={mockDeadlines} />
-              </div>
-            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {teamMembers.map((member) =>
+                        <TeamMemberCard
+                          key={member.id}
+                          member={member}
+                          onViewDetails={handleViewDetails}
+                          onReassignTasks={handleReassignTasks} />
+                      )}
+                      {teamMembers.length === 0 && (
+                        <div className="col-span-full py-12 text-center bg-card border border-dashed border-border rounded-lg">
+                          <p className="text-muted-foreground font-caption">No team members found for the selected filters.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <UpcomingDeadlines deadlines={mockDeadlines} />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </main>
       </div>

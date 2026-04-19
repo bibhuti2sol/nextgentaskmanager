@@ -105,7 +105,7 @@ const TeamMemberCard = ({ member, onViewDetails, onReassignTasks }: TeamMemberCa
           <div>
             <p className="font-caption text-xs text-muted-foreground mb-1">Completion Rate</p>
             <p className="font-heading font-semibold text-xl text-success">
-              {member.completionRate}%
+              {member.completionRate.toFixed(1)}%
             </p>
           </div>
           <div>

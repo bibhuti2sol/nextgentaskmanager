@@ -7,7 +7,6 @@ import axios from 'axios';
 interface FilterOptions {
   team: string;
   department: string;
-  project: string;
   timePeriod: string;
 }
 
@@ -25,45 +24,59 @@ interface DepartmentData {
   name: string;
 }
 
-interface ProjectData {
-  id: number;
-  name: string;
-}
+
 
 const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
   const [filters, setFilters] = useState<FilterOptions>({
-    team: 'all',
-    department: 'all',
-    project: 'all',
+    team: '',
+    department: '',
     timePeriod: 'week',
   });
 
-  const [teams, setTeams] = useState<{ value: string, label: string }[]>([{ value: 'all', label: 'All Teams' }]);
-  const [departments, setDepartments] = useState<{ value: string, label: string }[]>([{ value: 'all', label: 'All Departments' }]);
-  const [projects, setProjects] = useState<{ value: string, label: string }[]>([{ value: 'all', label: 'All Projects' }]);
+  const [teams, setTeams] = useState<{ value: string, label: string }[]>([{ value: '', label: 'Select Team' }]);
+  const [departments, setDepartments] = useState<{ value: string, label: string }[]>([{ value: '', label: 'Select Department' }]);
 
   useEffect(() => {
-    const fetchFiltersData = async () => {
+    const fetchTeamsByDepartment = async () => {
       const headers = {
         'Content-Type': 'application/json',
         Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
       };
 
       try {
-        const teamsResponse = await axios.get('http://43.205.137.114:8080/api/v1/teams?search=&status=&page=0&size=100', { headers });
+        if (!filters.department) {
+          setTeams([{ value: '', label: 'Select Team' }]);
+          return;
+        }
+
+        const url = `http://43.205.137.114:8080/api/v1/teams/department/${filters.department}`;
+        const response = await axios.get(url, { headers });
         let teamsArray: TeamData[] = [];
-        if (teamsResponse.status === 200) {
-          if (Array.isArray(teamsResponse.data)) {
-            teamsArray = teamsResponse.data;
-          } else if (teamsResponse.data?.content && Array.isArray(teamsResponse.data.content)) {
-            teamsArray = teamsResponse.data.content;
+        
+        if (response.status === 200) {
+          if (Array.isArray(response.data)) {
+            teamsArray = response.data;
+          } else if (response.data?.content && Array.isArray(response.data.content)) {
+            teamsArray = response.data.content;
           }
           const teamsOptions = teamsArray.map((t: TeamData) => ({ value: t.id.toString(), label: t.name }));
-          setTeams([{ value: 'all', label: 'All Teams' }, ...teamsOptions]);
+          setTeams([{ value: '', label: 'Select Team' }, ...teamsOptions]);
         }
       } catch (error) {
         console.error('Failed to fetch teams:', error);
+        setTeams([{ value: '', label: 'Select Team' }]);
       }
+    };
+
+    fetchTeamsByDepartment();
+  }, [filters.department]);
+
+  useEffect(() => {
+    const fetchDepartmentsData = async () => {
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXJlbmRyYS5tb2RpQGV4YW1wbGUuY29tIiwiaWQiOjM5LCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaWF0IjoxNzc2MTQ5NDkwLCJleHAiOjE3Nzg3NDE0OTB9.1YBLYJP5OKWGx-qgBllPTaqjae5ShbDrgOw-rr5wRTs',
+      };
 
       try {
         const departmentsResponse = await axios.get('http://43.205.137.114:8080/api/v1/departments?search=&status=&page=0&size=100', { headers });
@@ -75,50 +88,24 @@ const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
             deptsArray = departmentsResponse.data.content;
           }
           const departmentsOptions = deptsArray.map((d: DepartmentData) => ({ value: d.id.toString(), label: d.name }));
-          setDepartments([{ value: 'all', label: 'All Departments' }, ...departmentsOptions]);
+          setDepartments([{ value: '', label: 'Select Department' }, ...departmentsOptions]);
         }
       } catch (error) {
         console.error('Failed to fetch departments:', error);
       }
-
-      try {
-        const queryParams = new URLSearchParams({
-          search: '',
-          page: '0',
-          size: '100',
-          sort: 'name,asc'
-        });
-
-        const response = await fetch(`http://43.205.137.114:8080/api/v1/projects?${queryParams.toString()}`, {
-          method: 'GET',
-          headers: headers
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          let projectsArray: ProjectData[] = [];
-
-          if (Array.isArray(data)) {
-            projectsArray = data;
-          } else if (data?.content && Array.isArray(data.content)) {
-            projectsArray = data.content;
-          }
-
-          const projectsOptions = projectsArray.map((p: ProjectData) => ({ value: p.id.toString(), label: p.name }));
-          setProjects([{ value: 'all', label: 'All Projects' }, ...projectsOptions]);
-        } else {
-          console.error('Projects API returned non-OK status:', response.status);
-        }
-      } catch (error) {
-        console.error('Failed to fetch projects:', error);
-      }
     };
 
-    fetchFiltersData();
+    fetchDepartmentsData();
   }, []);
 
   const handleFilterChange = (key: keyof FilterOptions, value: string) => {
-    const newFilters = { ...filters, [key]: value };
+    let newFilters = { ...filters, [key]: value };
+    
+    // If department changes, reset team to empty
+    if (key === 'department') {
+      newFilters.team = '';
+    }
+    
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
@@ -137,7 +124,7 @@ const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
         <h3 className="font-heading font-semibold text-lg text-foreground">Filters</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label className="block font-caption text-sm text-muted-foreground mb-2">
             Department
@@ -170,20 +157,6 @@ const WorkloadFilters = ({ onFilterChange }: WorkloadFiltersProps) => {
           </select>
         </div>
 
-        <div>
-          <label className="block font-caption text-sm text-muted-foreground mb-2">Project</label>
-          <select
-            value={filters.project}
-            onChange={(e) => handleFilterChange('project', e.target.value)}
-            className="w-full px-4 py-2 bg-background border border-input rounded-md font-caption text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-          >
-            {projects.map((project) => (
-              <option key={project.value} value={project.value}>
-                {project.label}
-              </option>
-            ))}
-          </select>
-        </div>
 
         <div>
           <label className="block font-caption text-sm text-muted-foreground mb-2">
